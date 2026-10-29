@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Ajedrez</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
 :root{--bg:#211f1c;--card:#2b2926;--line:#3a3732;--text:#bab7b1;--bright:#fff;--muted:#8a867e;--green:#81b64c;--green2:#a3d160;--light:#ebecd0;--dark:#779556;--gold:#f6cf58}
 *{box-sizing:border-box}
+.material-symbols-rounded{font-family:"Material Symbols Rounded";font-weight:normal;font-style:normal;font-size:20px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:"liga";-webkit-font-smoothing:antialiased;vertical-align:middle}
+button .material-symbols-rounded{margin-right:5px}
 body{margin:0;background:var(--bg);color:var(--text);font:14px "DM Sans",sans-serif;min-height:100dvh}
 button,input,select{font:inherit}button{cursor:pointer;border:0}button:disabled{opacity:.4;cursor:not-allowed}
 main{display:grid;grid-template-columns:minmax(320px,min(calc(100dvh - 140px),calc(100vw - 440px))) 380px;gap:24px;justify-content:center;padding:16px}
@@ -60,6 +62,15 @@ main{display:grid;grid-template-columns:minmax(320px,min(calc(100dvh - 140px),ca
 .primary{background:var(--green);color:#141d0f}.primary:hover:not(:disabled){background:var(--green2)}
 .secondary{background:#3a3732;color:var(--bright)}.secondary:hover:not(:disabled){background:#46433e}
 .stack{display:flex;flex-direction:column;gap:12px;padding:14px 16px;flex:1;min-height:0}
+.subtabs{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.subtab{flex:1;background:#171614;color:var(--muted);padding:9px 10px;border-radius:6px;font-weight:700}
+.subtab.active{background:#4b6b2f;color:#fff}
+.subpane{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+.subpane[hidden]{display:none}
+.chat-panel{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;border:1px solid var(--line);border-radius:8px;padding:10px}
+.section-title{font:700 13px Manrope,sans-serif;color:var(--bright);display:flex;align-items:center;gap:7px}
+.friend{flex-wrap:wrap}.friend .tiny{white-space:nowrap}.friend button{white-space:nowrap}
+.friends{gap:8px}
 .field{display:flex;flex-direction:column;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}
 input,select{background:#171614;color:var(--bright);border:1px solid #46433e;border-radius:6px;padding:9px 10px;width:100%;outline:none}
 input:focus,select:focus{border-color:var(--green)}
@@ -76,10 +87,10 @@ input:focus,select:focus{border-color:var(--green)}
 .modal h3{margin:0 0 10px;font:700 16px Manrope;color:var(--bright)}
 .modal-buttons{display:flex;gap:8px}
 .promo{background:#3a3732;border-radius:8px;padding:6px}.promo:hover{background:#4b6b2f}.promo img{width:60px;height:60px;display:block}
-@media(max-width:900px){main{grid-template-columns:minmax(0,640px);padding:10px}.card{position:static}.moves{min-height:120px;max-height:220px}}
+@media(max-width:900px){main{grid-template-columns:minmax(0,640px);padding:10px}.card{position:static;min-height:560px}.moves{min-height:120px;max-height:220px}.sidebar{min-height:560px}}
 .end{width:min(360px,100%);background:#262522;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px #000a}
 .end-head{position:relative;text-align:center;padding:20px 52px;background:#2b2926}
-.end-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:40px;line-height:1}
+.end-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:36px;line-height:1}
 .end-title{font:800 24px Manrope,sans-serif;color:#fff}.end-sub{color:var(--muted);font-size:14px;margin-top:2px}
 .end-x{position:absolute;right:10px;top:8px;background:none;color:var(--muted);font-size:18px;padding:4px 8px}.end-x:hover{color:#fff}
 .end-body{padding:22px 16px 16px}
@@ -123,15 +134,14 @@ input:focus,select:focus{border-color:var(--green)}
 
   <aside class="sidebar"><section class="card">
     <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Mueven blancas</span></div>
-    <div class="drawbar" id="inviteBar" hidden><span id="inviteText"></span><button class="primary" id="invYes">Jugar</button><button class="secondary" id="invNo">No</button></div>
+    <div class="drawbar" id="inviteBar" hidden><span id="inviteText"></span><button class="primary" id="invYes"><span class="material-symbols-rounded">check</span> Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span> No</button></div>
     <div class="tabs">
       <button class="tab active" data-tab="moves">Jugadas <small id="moveCount">0</small></button>
-      <button class="tab" data-tab="online">Online</button>
-      <button class="tab" data-tab="friends">Amigos</button>
+      <button class="tab" data-tab="online"><span class="material-symbols-rounded">wifi</span> Online</button>
     </div>
 
     <div class="pane" id="pane-moves">
-      <div class="drawbar" id="drawBar" hidden><span>Tablas ofrecidas</span><button class="primary" id="drawYes">Aceptar</button><button class="secondary" id="drawNo">Rechazar</button></div>
+      <div class="drawbar" id="drawBar" hidden><span>Tablas ofrecidas</span><button class="primary" id="drawYes"><span class="material-symbols-rounded">check</span> Aceptar</button><button class="secondary" id="drawNo"><span class="material-symbols-rounded">close</span> Rechazar</button></div>
       <div class="moves" id="moves"></div>
       <div class="nav">
         <button class="secondary" id="firstBtn" title="Inicio (↑)">«</button>
@@ -140,52 +150,61 @@ input:focus,select:focus{border-color:var(--green)}
         <button class="secondary" id="lastBtn" title="Final (↓)">»</button>
       </div>
       <div class="actions">
-        <button class="secondary" id="flipBtn">⇅ Girar tablero</button>
-        <button class="secondary" id="downloadPgnBtn">⬇ Exportar PGN</button>
-        <button class="secondary" id="drawBtn">½ Ofrecer tablas</button>
-        <button class="secondary" id="resignBtn">⚑ Rendirse</button>
+        <button class="secondary" id="flipBtn"><span class="material-symbols-rounded">swap_vert</span> Girar tablero</button>
+        <button class="secondary" id="downloadPgnBtn"><span class="material-symbols-rounded">download</span> Exportar PGN</button>
+        <button class="secondary" id="drawBtn"><span class="material-symbols-rounded">handshake</span> Ofrecer tablas</button>
+        <button class="secondary" id="resignBtn"><span class="material-symbols-rounded">flag</span> Rendirse</button>
         <button class="primary wide" id="newGameBtn">Nueva partida</button>
       </div>
     </div>
 
-    <div class="pane stack" id="pane-online" hidden>
-      <div class="field">
-        <label for="tcSelect">Control de tiempo</label>
-        <select id="tcSelect">
-          <option value="180+0">Bullet (3 min)</option>
-          <option value="300+0">Blitz (5 min)</option>
-          <option value="300+3">Blitz (5 min + 3s)</option>
-          <option value="600+0" selected>Rápida (10 min)</option>
-          <option value="900+10">Clásica (15 min + 10s)</option>
-          <option value="0+0">Sin límite de tiempo</option>
-        </select>
+    <div class="pane" id="pane-online" hidden>
+      <div class="subtabs" role="tablist" aria-label="Secciones online">
+        <button class="subtab active" data-subtab="game"><span class="material-symbols-rounded">sports_esports</span> Partida</button>
+        <button class="subtab" data-subtab="friends"><span class="material-symbols-rounded">group</span> Amigos</button>
       </div>
-      <div class="field"><label for="colorSelect">Jugar con</label><select id="colorSelect"><option value="w">Blancas</option><option value="b">Negras</option><option value="r" selected>Aleatorio</option></select></div>
-      <div class="row"><button class="primary" id="createRoomBtn">Crear sala</button><button class="secondary" id="copyLinkBtn">Copiar enlace</button></div>
-      <div class="row"><input id="roomInput" type="text" placeholder="CÓDIGO" maxlength="6"><button class="secondary" id="joinRoomBtn">Unirse</button></div>
-      <div class="conn"><span class="status-dot warn" id="connDot"></span><span id="connText">Sin conectar · partida local</span></div>
-      <div class="chat-log" id="chatLog"></div>
-      <div class="chat-form"><input id="chatInput" type="text" maxlength="300" placeholder="Mensaje…" disabled><button class="primary" id="chatSend" disabled>Enviar</button></div>
-    </div>
-    <div class="pane stack" id="pane-friends" hidden>
-      <div class="field"><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="16"></div>
-      <div class="field"><label>Tu código de amigo</label><div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn">Copiar</button></div></div>
-      <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="secondary" id="addFriendBtn">Añadir</button></div>
-      <div class="friends" id="friendList"></div>
-      <button class="secondary" id="refreshFriends">↻ Comprobar amigos</button>
-      <div class="tiny" id="friendNote">Conectando…</div>
+      <div class="stack subpane" id="subpane-game">
+        <div class="field"><label for="tcSelect">Control de tiempo</label><select id="tcSelect"><option value="180+0">Bullet (3 min)</option><option value="300+0">Blitz (5 min)</option><option value="300+3">Blitz (5 min + 3s)</option><option value="600+0" selected>Rápida (10 min)</option><option value="900+10">Clásica (15 min + 10s)</option><option value="0+0">Sin límite de tiempo</option></select></div>
+        <div class="field"><label for="colorSelect">Jugar con</label><select id="colorSelect"><option value="w">Blancas</option><option value="b">Negras</option><option value="r" selected>Aleatorio</option></select></div>
+        <div class="row"><button class="primary" id="createRoomBtn"><span class="material-symbols-rounded">add_circle</span> Crear sala</button><button class="secondary" id="copyLinkBtn"><span class="material-symbols-rounded">link</span> Copiar enlace</button></div>
+        <div class="row"><input id="roomInput" type="text" placeholder="CÓDIGO DE SALA" maxlength="6"><button class="secondary" id="joinRoomBtn"><span class="material-symbols-rounded">login</span> Unirse</button></div>
+        <div class="conn"><span class="status-dot warn" id="connDot"></span><span id="connText">Sin conectar · partida local</span></div>
+        <div class="chat-panel">
+          <div class="section-title"><span class="material-symbols-rounded">forum</span> Chat de partida</div>
+          <div class="chat-log" id="chatLog"><div class="msg sys">Conéctate a una partida para chatear.</div></div>
+          <div class="chat-form"><input id="chatInput" type="text" maxlength="300" placeholder="Escribe un mensaje…" disabled><button class="primary" id="chatSend" disabled aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
+        </div>
+      </div>
+      <div class="stack subpane" id="subpane-friends" hidden>
+        <div class="field"><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="16"></div>
+        <div class="field"><label>Tu código de amigo</label><div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn"><span class="material-symbols-rounded">content_copy</span> Copiar</button></div></div>
+        <div class="field"><label for="friendInput">Añadir amigo por código</label><div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="primary" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span> Añadir</button></div></div>
+        <div class="friends" id="friendList"></div>
+        <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span> Comprobar amigos</button>
+        <div class="tiny" id="friendNote">Conectando…</div>
+      </div>
     </div>
   </section></aside>
 </main>
 
 <div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="challengeModal">
+  <div class="modal" style="width:min(360px,100%)">
+    <h3><span class="material-symbols-rounded" style="vertical-align:middle">sports_esports</span> Retar a un amigo</h3>
+    <p class="tiny" id="challengeFriendName" style="margin:0 0 14px">Configura la partida antes de enviar la invitación.</p>
+    <div class="field"><label for="inviteTcSelect">Control de tiempo</label><select id="inviteTcSelect"><option value="180+0">Bullet (3 min)</option><option value="300+0">Blitz (5 min)</option><option value="300+3">Blitz (5 min + 3s)</option><option value="600+0">Rápida (10 min)</option><option value="900+10">Clásica (15 min + 10s)</option><option value="0+0">Sin límite de tiempo</option></select></div>
+    <div class="field"><label for="inviteColorSelect">Jugar con</label><select id="inviteColorSelect"><option value="w">Blancas</option><option value="b">Negras</option><option value="r" selected>Aleatorio</option></select></div>
+    <div class="modal-buttons" style="margin-top:14px"><button class="primary" id="sendChallengeBtn"><span class="material-symbols-rounded">send</span> Enviar reto</button><button class="secondary" id="cancelChallengeBtn">Cancelar</button></div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="promotionModal">
   <div class="modal"><h3>Coronar peón</h3><div class="modal-buttons" id="promotionChoices"></div></div>
 </div>
 
 <div class="modal-backdrop" id="endModal">
   <div class="end">
-    <div class="end-head"><span class="end-icon" id="endIcon">🏆</span><div class="end-title" id="endTitle"></div><div class="end-sub" id="endSub"></div><button class="end-x" id="endClose" aria-label="Cerrar">✕</button></div>
+    <div class="end-head"><span class="end-icon material-symbols-rounded" id="endIcon">trophy</span><div class="end-title" id="endTitle"></div><div class="end-sub" id="endSub"></div><button class="end-x" id="endClose" aria-label="Cerrar"><span class="material-symbols-rounded">close</span></button></div>
     <div class="end-body">
       <div class="end-msg"><img id="endAvatar" alt=""><div class="bubble" id="endMsg"></div></div>
       <div class="end-stats">
@@ -193,7 +212,7 @@ input:focus,select:focus{border-color:var(--green)}
         <div><div class="sv"><i>✕</i><span id="endCaps" style="color:#fff;font-size:20px"></span></div><span>Capturas</span></div>
         <div><div class="sv"><i>♚</i><span id="endChecks" style="color:#fff;font-size:20px"></span></div><span>Jaques</span></div>
       </div>
-      <button class="end-pgn" id="endPgn">Exportar PGN</button>
+      <button class="end-pgn" id="endPgn"><span class="material-symbols-rounded">download</span> Exportar PGN</button>
       <div class="end-row"><button id="endNew">Nueva partida</button><button id="endRematch">Revancha</button></div>
     </div>
   </div>
@@ -739,7 +758,7 @@ input:focus,select:focus{border-color:var(--green)}
   }
   function showEnd(r){
     const h=game.history({verbose:true}),win=r.w&&myColor?r.w===myColor:null;
-    $("endIcon").textContent=!r.w?"🤝":win===false?"🏳️":"🏆";
+    $("endIcon").textContent=!r.w?"handshake":win===false?"flag":"trophy";
     $("endTitle").textContent=!r.w?"Tablas":myColor?(win?"¡Has ganado!":"Has perdido"):"Ganan las "+(r.w==="w"?"blancas":"negras");
     $("endSub").textContent=r.why;
     $("endAvatar").src=PIECE(r.w||"w","n");
@@ -760,10 +779,16 @@ input:focus,select:focus{border-color:var(--green)}
   $("firstBtn").onclick=()=>goPly(0);
   $("lastBtn").onclick=()=>goPly(game.history().length);
   function showTab(t){
-    if(t==="friends")pingAll();
     document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
-    document.querySelectorAll(".pane").forEach(p=>p.hidden=p.id!=="pane-"+t);
+    document.querySelectorAll("#pane-moves, #pane-online").forEach(p=>p.hidden=p.id!=="pane-"+t);
+    if(t==="online")showSubtab(document.querySelector(".subtab.active")?.dataset.subtab||"game");
   }
+  function showSubtab(t){
+    document.querySelectorAll(".subtab").forEach(b=>b.classList.toggle("active",b.dataset.subtab===t));
+    document.querySelectorAll(".subpane").forEach(p=>p.hidden=p.id!=="subpane-"+t);
+    if(t==="friends")pingAll();
+  }
+  document.querySelectorAll(".subtab").forEach(b=>b.onclick=()=>showSubtab(b.dataset.subtab));
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
   /* ---------- Control de Tiempo & Red ---------- */
@@ -859,8 +884,8 @@ input:focus,select:focus{border-color:var(--green)}
 
     peerJSInstance.on("connection", conn => setupConn(conn));
     peerJSInstance.on("error", err => {
-      showToast(err.type==="peer-unavailable"?"No existe esa sala":err.type==="unavailable-id"?"Código en uso, inténtalo de nuevo":"Error de conexión: "+err.type);
-      if(!online()){role=null;myColor=null;flipped=false;$("connText").textContent="Sin conectar · partida local";$("connDot").className="status-dot warn";render()}
+      showToast(err.type==="peer-unavailable"?"No existe esa sala o el anfitrión está desconectado":err.type==="unavailable-id"?"Código en uso, inténtalo de nuevo":"Error de conexión: "+err.type);
+      if(!online()){role=null;myColor=null;flipped=false;$("connText").textContent="Sin conectar · partida local";$("connDot").className="status-dot warn";$("chatInput").disabled=true;$("chatSend").disabled=true;render()}
     });
   }
 
@@ -871,6 +896,7 @@ input:focus,select:focus{border-color:var(--green)}
     }
     peerJSConn = conn;
     conn.on("open", () => {
+      if(conn!==peerJSConn)return;
       $("connText").textContent="¡Rival conectado!";
       $("connDot").className="status-dot";
       $("chatInput").disabled=false;
@@ -879,6 +905,7 @@ input:focus,select:focus{border-color:var(--green)}
       if(role==="host")sendPayload({type:"sync",tc:$("tcSelect").value,host:myColor});
     });
     conn.on("data", data => {if(conn===peerJSConn)handleNetworkData(data)});
+    conn.on("error",()=>{if(conn===peerJSConn){$("connText").textContent="Error en la conexión";$("connDot").className="status-dot warn"}});
     conn.on("close", () => {
       if(conn!==peerJSConn)return;
       myColor=null;role=null;clearDraw();render();
@@ -891,9 +918,9 @@ input:focus,select:focus{border-color:var(--green)}
 
   $("createRoomBtn").onclick = () => initPeerJS();
   $("joinRoomBtn").onclick = () => {
-    const c = $("roomInput").value.trim();
-    if(c) initPeerJS(c);
-    else showToast("Introduce un código de 6 letras");
+    const c = $("roomInput").value.trim().toUpperCase();
+    if(!/^[A-Z0-9]{6}$/.test(c)){showToast("El código de sala debe tener 6 caracteres");return}
+    initPeerJS(c);
   };
   $("copyLinkBtn").onclick = () => {
     const c = $("roomInput").value.trim();
@@ -917,7 +944,7 @@ input:focus,select:focus{border-color:var(--green)}
     if(!friends.length){el.innerHTML='<div class="empty">Añade el código de un amigo para ver si está conectado y retarle.</div>';return}
     friends.forEach(f=>{
       const d=document.createElement("div");d.className="friend";
-      d.innerHTML='<span class="fdot'+(presence[f.code]?" on":"")+'"></span><span class="fname"></span><span class="tiny">'+(presence[f.code]?"en línea":presence[f.code]===false?"sin conexión":"comprobando…")+'</span><button class="secondary">Retar</button><button class="secondary" title="Quitar">✕</button>';
+      d.innerHTML='<span class="fdot'+(presence[f.code]?" on":"")+'"></span><span class="fname"></span><span class="tiny">'+(presence[f.code]?"en línea":presence[f.code]===false?"sin conexión":"comprobando…")+'</span><button class="primary"><span class="material-symbols-rounded">swords</span> Retar</button><button class="secondary" title="Quitar" aria-label="Quitar amigo"><span class="material-symbols-rounded">close</span></button>';
       d.querySelector(".fname").textContent=f.name||f.code;
       const [b1,b2]=d.querySelectorAll("button");
       b1.disabled=!presence[f.code];
@@ -930,33 +957,60 @@ input:focus,select:focus{border-color:var(--green)}
     if(!friendPeer||!friendPeer.open)return;
     const c=friendPeer.connect(FID(f.code),{reliable:true});
     const t=setTimeout(()=>{presence[f.code]=false;renderFriends();try{c.close()}catch(_){}},10000);
-    c.on("open",()=>c.send({type:"hello",name:myName}));
+    c.on("open",()=>c.send({type:"hello",name:myName,code:myCode}));
     c.on("data",d=>{
       if(!d)return;
       if(d.type==="hello"){
         clearTimeout(t);presence[f.code]=true;
         if(d.name&&d.name!==f.name){f.name=String(d.name).slice(0,16);saveFriends()}
         renderFriends();
-        if(!f.ack){c.send({type:"friend",name:myName,code:myCode});setTimeout(()=>{try{c.close()}catch(_){}},2000)}
-        else c.close();
+        if(!f.ack){c.send({type:"friend",name:myName,code:myCode});f.ack=true;saveFriends()}
+        setTimeout(()=>{try{c.close()}catch(_){}},500);
       }else if(d.type==="friendAck"){f.ack=true;saveFriends();try{c.close()}catch(_){}}
     });
     c.on("error",()=>{clearTimeout(t);presence[f.code]=false;renderFriends()});
   }
   function pingAll(){friends.forEach(ping)}
+  let challengeTarget=null;
   function challenge(f){
     if(!confirmLeave())return;
+    if(!friendPeer||!friendPeer.open){showToast("Tu conexión de amigos aún no está lista");return}
+    challengeTarget=f;
+    $("challengeFriendName").textContent="Invitación para "+(f.name||f.code)+". Elige el ritmo y el color con el que quieres jugar.";
+    $("inviteTcSelect").value=$("tcSelect").value;
+    $("inviteColorSelect").value=$("colorSelect").value;
+    $("challengeModal").style.display="flex";
+  }
+  function sendChallenge(){
+    const f=challengeTarget;
+    if(!f)return;
+    $("challengeModal").style.display="none";
+    $("tcSelect").value=$("inviteTcSelect").value;
+    $("colorSelect").value=$("inviteColorSelect").value;
+    parseTC();
     initPeerJS(null,code=>{
       const c=friendPeer.connect(FID(f.code),{reliable:true});
-      c.on("open",()=>c.send({type:"invite",room:code,name:myName}));
+      const timeout=setTimeout(()=>{if(!c.open)showToast("No se pudo contactar con "+(f.name||f.code));},8000);
+      c.on("open",()=>{
+        clearTimeout(timeout);
+        c.send({type:"invite",room:code,name:myName,tc:$("tcSelect").value,color:myColor});
+        showToast("Invitación enviada a "+(f.name||f.code));
+      });
       c.on("data",d=>{if(d&&d.type==="declined")showToast((f.name||"Tu amigo")+" rechazó la invitación")});
-      showToast("Invitación enviada a "+(f.name||f.code));
+      c.on("error",()=>{clearTimeout(timeout);showToast("No se pudo enviar la invitación. Comprueba que esté en línea.")});
     });
+    challengeTarget=null;
   }
+  $("sendChallengeBtn").onclick=sendChallenge;
+  $("cancelChallengeBtn").onclick=()=>{$("challengeModal").style.display="none";challengeTarget=null};
+  $("challengeModal").addEventListener("click",e=>{if(e.target===$("challengeModal")){ $("challengeModal").style.display="none";challengeTarget=null; }});
   function showInvite(d,c){
     pendingInvite={room:d.room,c};
     const n=String(d.name||"Un amigo").slice(0,16);
-    $("inviteText").textContent=n+" te invita a jugar";
+    const tcOption=[...$("tcSelect").options].find(o=>o.value===d.tc);
+    const tcLabel=tcOption?tcOption.text:(d.tc==="0+0"?"Sin límite de tiempo":"Control de tiempo estándar");
+    const myInvitedColor=d.color==="w"?"negras":d.color==="b"?"blancas":"color aleatorio";
+    $("inviteText").textContent=n+" te invita · "+tcLabel+" · tú juegas con "+myInvitedColor;
     $("inviteBar").hidden=false;showToast("Invitación de "+n);
   }
   $("invYes").onclick=()=>{const i=pendingInvite;$("inviteBar").hidden=true;pendingInvite=null;if(i&&confirmLeave())initPeerJS(i.room)};
@@ -969,7 +1023,15 @@ input:focus,select:focus{border-color:var(--green)}
     friendPeer.on("connection",c=>{
       c.on("data",d=>{
         if(!d)return;
-        if(d.type==="hello")c.send({type:"hello",name:myName});
+        if(d.type==="hello"){
+          c.send({type:"hello",name:myName,code:myCode});
+          if(/^[A-Z0-9]{8}$/.test(String(d.code))&&d.code!==myCode){
+            const code=String(d.code),nm=String(d.name||code).slice(0,16);
+            let f=friends.find(x=>x.code===code);
+            if(!f){f={code,name:nm,ack:true};friends.push(f)}else{f.name=nm;f.ack=true}
+            presence[code]=true;saveFriends();renderFriends();c.send({type:"friendAck"});
+          }
+        }
         else if(d.type==="friend"&&/^[A-Z0-9]{8}$/.test(String(d.code))&&d.code!==myCode){
           const nm=String(d.name||d.code).slice(0,16);
           let f=friends.find(x=>x.code===d.code);
@@ -999,10 +1061,10 @@ input:focus,select:focus{border-color:var(--green)}
     if(c===myCode){showToast("Ese es tu propio código");return}
     if(friends.some(f=>f.code===c)){showToast("Ya está en tu lista");return}
     const f={code:c,name:c,ack:false};friends.push(f);saveFriends();$("friendInput").value="";renderFriends();
-    if(!friendPeer||!friendPeer.open)showToast("Conectando con el servidor; se comprobará en unos segundos");
-    ping(f);
+    if(!friendPeer||!friendPeer.open)showToast("Conectando con el servicio de amigos…");
+    else {showToast("Buscando a tu amigo…");ping(f)}
   };
-  setInterval(()=>{if(!$("pane-friends").hidden)pingAll()},30000);
+  setInterval(()=>{if(!$("subpane-friends").hidden)pingAll()},30000);
   window.addEventListener("beforeunload",()=>{try{friendPeer.destroy()}catch(_){}});
   renderFriends();startFriendPeer();
 
