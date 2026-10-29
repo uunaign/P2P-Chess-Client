@@ -2288,7 +2288,7 @@
       };
 
       let flipped = false, selected = null, legalTargets = [], lastMove = null;
-      let premove = null; // Almacena { from, to, promotion } cuando el jugador realiza una jugada fuera de su turno
+      let premove = null; // Guardará { from, to, promotion } cuando muevas fuera de tu turno
       let marks = new Map(), arrows = [], rightStart = null, rightMoved = false, dragFrom = null;
       let redoStack = [], pendingPromotion = null, analysis = false, justDragged = false;
       let historyPly = null;
@@ -2306,130 +2306,79 @@
       let boardTheme = /^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board") || "") ? store.get("ajedrez.board") : "c-verde";
       const UI_THEMES = {
         dark: { id: "dark", name: "Oscuro", bg: "#211f1c", card: "#2b2926", line: "#3a3732", text: "#bab7b1", bright: "#ffffff", muted: "#8a867e" },
-        // Send Invitation Logic
-        const sendInviteBtn = document.getElementById('sendInviteBtn');
-        if (sendInviteBtn) {
-            sendInviteBtn.addEventListener('click', () => {
-                const friendId = document.getElementById('friendIdInput').value.trim();
-                const tcVal = document.getElementById('inviteTcSelect').value;
-                
-                if (!friendId) {
-                    alert('Por favor ingresa el ID de tu amigo');
-                    return;
-                }
+        light: { id: "light", name: "Claro", bg: "#edf1f4", card: "#ffffff", line: "#d4dbe5", text: "#3a4758", bright: "#101827", muted: "#667085" }
+      };
+      const ACCENT_PRESETS = {
+        verde: { id: "verde", name: "Verde", dark: "#81b64c", light: "#5fb76b", accent: "#a3d160" },
+        azul: { id: "azul", name: "Azul", dark: "#3b82f6", light: "#2563eb", accent: "#93c5fd" },
+        rojo: { id: "rojo", name: "Rojo", dark: "#ef4444", light: "#dc2626", accent: "#fca5a5" },
+        morado: { id: "morado", name: "Morado", dark: "#8b5cf6", light: "#7c3aed", accent: "#c4b5fd" },
+        naranja: { id: "naranja", name: "Naranja", dark: "#f59e0b", light: "#ea580c", accent: "#fdba74" },
+        rosa: { id: "rosa", name: "Rosa", dark: "#ec4899", light: "#db2777", accent: "#f9a8d4" },
+        cian: { id: "cian", name: "Cian", dark: "#06b6d4", light: "#0891b2", accent: "#67e8f9" },
+        amarillo: { id: "amarillo", name: "Amarillo", dark: "#eab308", light: "#ca8a04", accent: "#fef08a" }
+      };
+      let uiTheme = /^(dark|light)$/.test(store.get("ajedrez.uiTheme") || "") ? store.get("ajedrez.uiTheme") : "dark";
+      let accentId = ACCENT_PRESETS[store.get("ajedrez.accent") || ""] ? store.get("ajedrez.accent") : "verde";
+      const pieceUrl = (set, c, t) => "https://images.chesscomfiles.com/chess-themes/pieces/" + set + "/150/" + c + t + ".png";
+      const PIECE = (c, t) => pieceUrl(pieceSet, c, t);
+      const files = "abcdefgh";
+      const pieceNames = { q: "Dama", r: "Torre", b: "Alfil", n: "Caballo" };
 
-                // Parse standard TC string format "min+inc" (e.g. "3+0", "5+3", "10+0")
-                let minutes = 5, inc = 0;
-                if (tcVal && tcVal.includes('+')) {
-                    const parts = tcVal.split('+');
-                    minutes = parseInt(parts[0], 10) || 5;
-                    inc = parseInt(parts[1], 10) || 0;
-                } else if (!isNaN(parseInt(tcVal, 10))) {
-                    minutes = parseInt(tcVal, 10);
-                }
+      function coords(name) {
+        const f = files.indexOf(name[0]), r = 8 - Number(name[1]);
+        return flipped ? { x: 7 - f, y: 7 - r } : { x: f, y: r };
+      }
 
-                const conn = peer.connect(friendId);
-                setupPeerEvents(conn);
-                
-                conn.on('open', () => {
-                    // Send invite payload with parsed time controls
-                    conn.send({
-                        type: 'invite',
-                        senderId: peer.id,
-                        tc: { minutes: minutes, inc: inc, raw: tcVal }
-                    });
-                    
-                    showNotification(`Invitación enviada a ${friendId} (${minutes}+${inc})`, 'info');
-                });
-            });
+      function showToast(msg) {
+        const t = $("toast");
+        t.textContent = msg;
+        t.style.display = "block";
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => t.style.display = "none", 2500);
+      }
+
+      function getMyCurrentColor() {
+        if (botEnabled) return botColor === "w" ? "b" : "w";
+        if (myColor) return myColor;
+        return null;
+      }
+
+      function isMyTurn() {
+        const c = getMyCurrentColor();
+        if (!c) return true; // Partida local de 2 personas en un solo teclado
+        return game.turn() === c;
+      }
+
+      function cancelPremove() {
+        if (premove) {
+          premove = null;
+          render();
         }
-        // Handle incoming data
-        function handlePeerData(data) {
-            switch (data.type) {
-                case 'invite':
-                    // Extract time controls from invite payload
-                    const reqMinutes = data.tc ? data.tc.minutes : 5;
-                    const reqInc = data.tc ? data.tc.inc : 0;
-                    
-                    showInviteModal(data.senderId, reqMinutes, reqInc);
-                    break;
-                case 'accept':
-                    // Connected friend accepted invitation
-                    setOnlineTimeControl(data.tc ? data.tc.minutes : 5, data.tc ? data.tc.inc : 0);
-                    startOnlineGame('w'); // Challenger plays as White
-                    showNotification('¡Tu invitación fue aceptada!', 'success');
-                    break;
-                case 'reject':
-                    showNotification('Tu invitación fue rechazada.', 'error');
-                    break;
-                case 'sync':
-                    if (data.tc) {
-                        setOnlineTimeControl(data.tc.minutes, data.tc.inc);
-                    }
-                    if (data.fen) {
-                        game.load(data.fen);
-                        board.position(game.fen());
-                        updateStatus();
-                    }
-                    break;
-                case 'move':
-                    game.move(data.move);
-                    board.position(game.fen());
-                    playMoveSound();
-                    executePremove();
-                    updateStatus();
-                    break;
-                // ... remaining cases ...
-            }
+      }
+
+      function processPremove() {
+        if (!premove) return;
+        const pm = premove;
+        premove = null;
+        if (isMyTurn() && !game.game_over()) {
+          const validMoves = game.moves({ square: pm.from, verbose: true });
+          if (validMoves.some(m => m.to === pm.to)) {
+            tryMove(pm.from, pm.to, pm.promotion, true);
+          } else {
+            render();
+          }
+        } else {
+          render();
         }
+      }
 
-        // Helper function to set time controls and update clocks for online game
-        function setOnlineTimeControl(minutes, inc) {
-            initialTime = minutes * 60;
-            whiteTime = initialTime;
-            blackTime = initialTime;
-            increment = inc;
-            updateClockDisplay();
-        }
-
-        function showInviteModal(senderId, minutes, inc) {
-            const modal = document.getElementById('inviteModal');
-            const msg = document.getElementById('inviteMsg');
-            if (msg) {
-                msg.textContent = `El jugador ${senderId} te desafía a una partida (${minutes}+${inc}). ¿Aceptas?`;
-            }
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
-
-            const acceptBtn = document.getElementById('acceptInviteBtn');
-            const rejectBtn = document.getElementById('rejectInviteBtn');
-
-            // Clean up previous listeners
-            const newAccept = acceptBtn.cloneNode(true);
-            const newReject = rejectBtn.cloneNode(true);
-            acceptBtn.parentNode.replaceChild(newAccept, acceptBtn);
-            rejectBtn.parentNode.replaceChild(newReject, rejectBtn);
-
-            newAccept.addEventListener('click', () => {
-                if (peerConn && peerConn.open) {
-                    setOnlineTimeControl(minutes, inc);
-                    peerConn.send({
-                        type: 'accept',
-                        tc: { minutes: minutes, inc: inc }
-                    });
-                    startOnlineGame('b'); // Guest plays as Black
-                }
-                modal.classList.add('hidden');
-            });
-
-            newReject.addEventListener('click', () => {
-                if (peerConn && peerConn.open) {
-                    peerConn.send({ type: 'reject' });
-                }
-                modal.classList.add('hidden');
-            });
-        }
+      function parseTCVal(valStr) {
+        const val = (valStr || "600+0").split("+");
+        return {
+          base: parseInt(val[0], 10) || 0,
+          inc: parseInt(val[1], 10) || 0
+        };
       }
 
       function formatTime(s) {
@@ -2444,7 +2393,7 @@
         clockTimer = setInterval(() => {
           if (game.game_over() || forced) return;
           const history = game.history();
-          if (!history.length) return; // El tiempo empieza tras la primera jugada
+          if (!history.length) return;
           if (game.turn() === "w") {
             if (whiteTime > 0) {
               whiteTime--;
@@ -2478,10 +2427,9 @@
         const board = $("board");
         board.innerHTML = "";
         const history = game.history({ verbose: true });
-        if (report && report.rows.length !== history.length) { report = null; reviewing = false }   // la partida ha cambiado: el análisis ya no vale
+        if (report && report.rows.length !== history.length) { report = null; reviewing = false }
         const activeHistory = (historyPly !== null) ? history.slice(0, historyPly) : history;
 
-        // Si estamos revisando la historia, creamos un tablero temporal para visualizar
         let displayGame = game;
         if (historyPly !== null) {
           displayGame = new Chess();
@@ -2548,7 +2496,7 @@
         checkEnd();
       }
 
-      /* ---------- Interacción: clic, arrastre, flechas y animaciones ---------- */
+      /* ---------- Interacción e Eventos de Raton ---------- */
       let drag = null, over = null;
       const curPly = () => historyPly !== null ? historyPly : game.history().length;
       const sqEl = n => $("board").querySelector('[data-sq="' + n + '"]');
@@ -2602,7 +2550,7 @@
         const playerColor = getMyCurrentColor();
         const myTurn = isMyTurn();
 
-        // Lógica fuera de turno -> Sistema de Premoves
+        // Lógica de premove cuando no es nuestro turno
         if (!myTurn && playerColor) {
           const p = game.get(name);
           if (selected && selected !== name) {
@@ -2631,7 +2579,6 @@
           return;
         }
 
-        // Si hay un premove pendiente en nuestro turno y pulsamos en otra casilla, se elimina
         if (premove) cancelPremove();
 
         const p = game.get(name);
@@ -2646,6 +2593,7 @@
         }
         selected = null; legalTargets = []; render();
       });
+
       window.addEventListener("pointermove", e => {
         if (!drag) return;
         if (e.buttons & 2) { cancelDrag(); return }
@@ -2664,6 +2612,7 @@
         const el = n && (myTurn ? legalTargets.includes(n) : n !== drag.from) ? sqEl(n) : null;
         if (el !== over) { if (over) over.classList.remove("over"); over = el; if (el) el.classList.add("over") }
       });
+
       window.addEventListener("pointerup", e => {
         if (e.button === 2) {
           const end = squareAt(e);
@@ -2692,6 +2641,7 @@
           }
         }
       });
+
       window.addEventListener("pointercancel", cancelDrag);
       document.addEventListener("mousedown", e => {
         if (e.button === 2) {
@@ -2725,7 +2675,6 @@
         const move = game.move({ from, to, promotion: promotion || "q" });
         if (!move) { showToast("Movimiento ilegal"); selected = null; legalTargets = []; render(); return }
 
-        // Aplicar incremento de tiempo
         if (currentTurn === "w") whiteTime += increment;
         else blackTime += increment;
 
@@ -2741,7 +2690,6 @@
         if (botEnabled && !fromBot && game.turn() === botColor) {
           window.setTimeout(makeBotMove, 180);
         } else {
-          // Intentar ejecutar el premove si es nuestro turno tras la jugada
           processPremove();
         }
       }
@@ -2856,14 +2804,12 @@
         drawAnnotations();
       }
 
-      /* ---------- Dibujar Flechas (en L para Caballos) y Puntas Ajustadas ---------- */
       function drawAnnotations() {
         const svg = $("overlay");
         svg.innerHTML = "";
         const NS = "http://www.w3.org/2000/svg";
         const defs = document.createElementNS(NS, "defs");
 
-        // Marcador de cabeza de flecha elegante y proporcional
         const marker = document.createElementNS(NS, "marker");
         marker.setAttribute("id", "arrowhead");
         marker.setAttribute("markerWidth", "4");
@@ -2898,9 +2844,7 @@
           const ef = files.indexOf(a.to[0]), er = Number(a.to[1]);
           const df = Math.abs(sf - ef), dr = Math.abs(sr - er);
 
-          // Si es un movimiento en L de Caballo (1x2 o 2x1)
           if ((df === 1 && dr === 2) || (df === 2 && dr === 1)) {
-            // Calcular punto de quiebre de la L
             let corner = (df === 1) ? { x: s.x, y: e.y } : { x: e.x, y: s.y };
             const pathEl = document.createElementNS(NS, "path");
             const dStr = `M ${s.x} ${s.y} L ${corner.x} ${corner.y} L ${e.x} ${e.y}`;
@@ -2914,7 +2858,6 @@
             pathEl.setAttribute("marker-end", "url(#" + (a.marker || "arrowhead") + ")");
             svg.appendChild(pathEl);
           } else {
-            // Flecha recta normal
             const dx = e.x - s.x, dy = e.y - s.y, len = Math.hypot(dx, dy) || 1;
             const line = document.createElementNS(NS, "line");
             line.setAttribute("x1", s.x + dx / len * 15); line.setAttribute("y1", s.y + dy / len * 15);
@@ -2953,7 +2896,7 @@
         if (botEnabled && botColor === "w") window.setTimeout(makeBotMove, 180);
       }
 
-      /* ---------- Stockfish: motor en Web Worker, bot y análisis ---------- */
+      /* ---------- Stockfish Engine ---------- */
       const STOCKFISH_URL = "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js";
       function engineMessage(event) {
         const line = String(event.data || "");
@@ -2994,12 +2937,12 @@
             engineWorker.onmessage = engineMessage;
             engineWorker.onerror = () => {
               engineInitPromise = null; engineReady = false;
-              const err = new Error("No se pudo cargar Stockfish. Comprueba la conexión a Internet o prueba desde un servidor local.");
+              const err = new Error("No se pudo cargar Stockfish.");
               if (engineInitResolve) { engineInitResolve = null; reject(err) }
               $("engineStatus").textContent = err.message;
             };
             engineWorker.postMessage("uci");
-            setTimeout(() => { if (!engineReady && engineInitResolve) { engineInitResolve = null; engineInitPromise = null; reject(new Error("Stockfish tarda demasiado en cargar. Prueba de nuevo.")) } }, 20000);
+            setTimeout(() => { if (!engineReady && engineInitResolve) { engineInitResolve = null; engineInitPromise = null; reject(new Error("Stockfish tarda demasiado en cargar.")) } }, 20000);
           } catch (e) { engineInitPromise = null; reject(e) }
         });
         return engineInitPromise;
@@ -3014,7 +2957,6 @@
           activeSearch = task;
           task.timer = setTimeout(() => {
             if (activeSearch !== task) return;
-            // Never leave the UI waiting forever for a stuck UCI search.
             engineWorker.postMessage("stop");
             task.timer = setTimeout(() => { if (activeSearch === task) { activeSearch = null; resolve({ move: "(none)", score: task.score === null ? 0 : task.score }) } }, 1800);
           }, movetime ? movetime + 2500 : 15000);
@@ -3037,8 +2979,6 @@
           botThinking = false;
           tryMove(m.from, m.to, m.promotion, true, true);
           $("engineStatus").textContent = "Bot activo · nivel " + botSkill + "/20.";
-          
-          // Ejecutar premove tras la respuesta del Bot
           processPremove();
         } catch (e) { showToast(e.message || "Error al ejecutar Stockfish"); $("engineStatus").textContent = e.message || "Error al cargar el motor." }
         finally { botThinking = false }
@@ -3082,7 +3022,8 @@
       $("endStopAnalyze").onclick = stopCurrentAnalysis;
       function analysisStatus() { return $("endModal").style.display === "flex" && $("endAnalysis").hidden === false ? $("endAnalysisStatus") : $("engineStatus") }
       function analysisResults() { return $("endModal").style.display === "flex" && $("endAnalysis").hidden === false ? $("endAnalysisResults") : $("engineResults") }
-      /* ---------- Análisis: clasificación, informe y walkthrough ---------- */
+
+      /* ---------- Análisis ---------- */
       const CATS = {
         brilliant: { label: "Brillante", plural: "Brillantes", color: "#26c9a2", icon: "!!", desc: "Un sacrificio que mantiene o mejora tu posición. Difícil de ver." },
         best: { label: "Mejor jugada", plural: "Mejores", color: "#81b64c", icon: "★", desc: "Es la jugada que prefiere el motor." },
@@ -3094,7 +3035,7 @@
         missed: { label: "Omisión de victoria", plural: "Omisiones", color: "#b34ea3", icon: "✗", desc: "Tenías una posición ganadora y la has soltado." }
       };
       const CAT_ORDER = ["brilliant", "best", "excellent", "good", "inaccuracy", "mistake", "blunder", "missed"];
-      const winPct = cp => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * Math.max(-1500, Math.min(1500, cp)))) - 1);   // cp = centipeones, punto de vista blancas
+      const winPct = cp => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * Math.max(-1500, Math.min(1500, cp)))) - 1);
       const fmtEval = e => Math.abs(e) >= 90 ? (e > 0 ? "" : "-") + "M" + Math.max(0, Math.round(100 - Math.abs(e))) : (e > 0 ? "+" : "") + e.toFixed(1);
       const sideName = c => myColor ? (c === myColor ? "Tú" : "Rival") : botEnabled ? (c === botColor ? "Bot" : "Tú") : (c === "w" ? "Blancas" : "Negras");
 
@@ -3114,7 +3055,6 @@
           const replay = new Chess(), positions = [{ fen: replay.fen(), term: null }];
           history.forEach(m => {
             replay.move({ from: m.from, to: m.to, promotion: m.promotion || "q" });
-            // Posiciones terminales: no se buscan con el motor (no hay jugada) y se evalúan a mano.
             let term = null;
             if (replay.in_checkmate()) term = replay.turn() === "w" ? -100 : 100;
             else if (replay.game_over()) term = 0;
@@ -3126,12 +3066,12 @@
             analysisStatus().textContent = "Analizando posición " + (i + 1) + " de " + positions.length + "…";
             const pg = $("endProg"); if (pg) pg.style.width = ((i + 1) / positions.length * 100) + "%";
             if (positions[i].term !== null) { evals.push(positions[i].term); bestMoves.push(""); continue }
-            const r = await engineSearch(positions[i].fen, 12, 20, 200);   // nivel 20: el análisis siempre a fuerza completa
+            const r = await engineSearch(positions[i].fen, 12, 20, 200);
             const turn = positions[i].fen.split(" ")[1];
             evals.push((turn === "w" ? r.score : -r.score) / 100);
             bestMoves.push(r.move);
           }
-          if (analysisCancelled) { analysisStatus().textContent = "Análisis detenido. Los resultados pueden estar incompletos."; return }
+          if (analysisCancelled) { analysisStatus().textContent = "Análisis detenido."; return }
           const pieceValue = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 99 };
           const rows = [];
           history.forEach((m, i) => {
@@ -3141,10 +3081,8 @@
             const playerAfter = m.color === "w" ? after : -after;
             let lost = Math.max(0, playerBefore - playerAfter);
             const uci = m.from + m.to + (m.promotion || "");
-            const isBest = (bestMoves[i] || "").slice(0, 4) === uci.slice(0, 4) || Math.abs(positions[i + 1].term ?? 0) === 100;   // dar mate siempre es la mejor
-            if (isBest) lost = Math.min(lost, 0.1);   // la jugada del propio motor no puede ser un error
-            // Sacrificio real: la pieza movida (no peón/rey) queda atacada y se pierde al menos 2 puntos de material neto,
-            // sin dar mate y sin estar ya la partida decidida. Es una heurística, no un juicio humano.
+            const isBest = (bestMoves[i] || "").slice(0, 4) === uci.slice(0, 4) || Math.abs(positions[i + 1].term ?? 0) === 100;
+            if (isBest) lost = Math.min(lost, 0.1);
             let sacrifice = false;
             if (!positions[i + 1].term && m.piece !== "p" && m.piece !== "k" && playerBefore <= 6 && playerAfter >= -0.5 && playerAfter >= playerBefore - 0.2) {
               const net = (pieceValue[m.piece] || 0) - (pieceValue[m.captured] || 0);
@@ -3159,7 +3097,6 @@
             else if (lost <= 1.5) key = "inaccuracy";
             else if (lost <= 3) key = "mistake";
             else key = "blunder";
-            // Precisión por jugada (fórmula tipo Chess.com, sobre la probabilidad de ganar)
             const wpB = m.color === "w" ? winPct(before * 100) : 100 - winPct(before * 100);
             const wpA = m.color === "w" ? winPct(after * 100) : 100 - winPct(after * 100);
             const acc = isBest ? 100 : Math.max(0, Math.min(100, 103.1668 * Math.exp(-0.04354 * Math.max(0, wpB - wpA)) - 3.1669));
@@ -3175,13 +3112,12 @@
           } else {
             renderSidebarList(results, rows);
           }
-          analysisStatus().textContent = "Análisis terminado · las categorías son estimaciones del motor.";
+          analysisStatus().textContent = "Análisis terminado.";
           renderReviewPanel();
         } catch (e) { analysisStatus().textContent = e.message || "Error durante el análisis."; showToast(e.message || "Error al analizar") }
         finally { analysisRunning = false; $("analyzeBtn").disabled = false; $("stopAnalyzeBtn").disabled = true; $("endStopAnalyze").disabled = true }
       }
 
-      // Lista compacta del panel lateral (comportamiento anterior)
       function renderSidebarList(results, rows) {
         const counts = {}; CAT_ORDER.forEach(k => counts[k] = 0);
         const frag = document.createDocumentFragment();
@@ -3192,7 +3128,7 @@
           const no = document.createElement("span"); no.textContent = (Math.floor(r.i / 2) + 1) + (r.m.color === "w" ? "." : "…");
           const mv = document.createElement("span"); mv.textContent = r.m.san + " · " + CATS[r.key].label;
           const ev = document.createElement("span"); ev.className = "engine-eval"; ev.textContent = fmtEval(r.after);
-          row.append(no, mv, ev); row.title = "Pérdida estimada: " + r.lost.toFixed(2) + " peones · Pulsa para revisar"; row.onclick = () => { closeEnd(); goPly(r.i + 1) }; frag.appendChild(row);
+          row.append(no, mv, ev); row.title = "Pérdida estimada: " + r.lost.toFixed(2) + " peones"; row.onclick = () => { closeEnd(); goPly(r.i + 1) }; frag.appendChild(row);
         });
         const summary = document.createElement("div"); summary.className = "engine-summary";
         CAT_ORDER.map(k => [counts[k], CATS[k].plural]).concat([[rows.length, "Jugadas"]]).forEach(([v, l]) => {
@@ -3201,7 +3137,6 @@
         results.append(summary, frag);
       }
 
-      // Gráfica de evaluación (probabilidad de ganar de las blancas); compartida por el modal y el panel de revisión
       function drawGraph(svg, evals) {
         const W = 600, H = 64, n = evals.length;
         const X = k => n > 1 ? k * W / (n - 1) : 0, Y = e => H * (1 - winPct(e * 100) / 100);
@@ -3211,7 +3146,6 @@
       }
       const graphPly = (svg, e, n) => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left) / (r.width || 1) * (n - 1)))) };
 
-      // Modal compacto: 1) categorías 2) precisión 3) evolución; el repaso se hace en el tablero real
       function renderReport(root, data) {
         const { rows, evals } = data;
         root.innerHTML = "";
@@ -3257,7 +3191,6 @@
         $("endAnalysis").classList.add("done"); $("endBox").classList.add("analyzed"); $("endReview").hidden = false;
       }
 
-      /* ---------- Modo análisis sobre el tablero real ---------- */
       function startReview(ply) {
         if (!report) return;
         const n = game.history().length;
@@ -3282,12 +3215,12 @@
         if (panel.hidden) return;
         const k = curPly(), r = k > 0 ? report.rows[k - 1] : null, e = report.evals[k], card = $("rvCard");
         if (!r) {
-          card.innerHTML = '<div class="rv-move">Posición inicial<span class="rv-eval">' + fmtEval(e) + '</span></div><div class="rv-desc">Avanza con ← → o pulsa una jugada de la lista. Aquí verás cómo la califica el motor.</div>';
+          card.innerHTML = '<div class="rv-move">Posición inicial<span class="rv-eval">' + fmtEval(e) + '</span></div><div class="rv-desc">Avanza con ← → o pulsa una jugada de la lista.</div>';
         } else {
           const c = CATS[r.key];
           let extra = "";
           if (r.bestSan && !r.isBest) extra += '<div class="rv-desc">Mejor era <b style="color:#4aa3ff">' + r.bestSan + '</b> (flecha azul en el tablero).</div>';
-          if (r.lost >= 0.15) extra += '<div class="rv-desc" style="color:var(--muted)">Pérdida: ' + r.lost.toFixed(2) + ' peones · precisión de la jugada: ' + r.acc.toFixed(0) + '%</div>';
+          if (r.lost >= 0.15) extra += '<div class="rv-desc" style="color:var(--muted)">Pérdida: ' + r.lost.toFixed(2) + ' peones · precisión: ' + r.acc.toFixed(0) + '%</div>';
           card.innerHTML = '<div class="rv-move"><span class="rp-dot" style="background:' + c.color + '">' + c.icon + '</span>' + (Math.floor(r.i / 2) + 1) + (r.m.color === "w" ? ". " : "… ") + r.m.san + '<span class="rv-eval">' + fmtEval(e) + '</span></div>' +
             '<div class="rv-cat" style="color:' + c.color + '">' + c.label + ' · ' + sideName(r.m.color) + '</div><div class="rv-desc">' + c.desc + '</div>' + extra;
         }
@@ -3299,7 +3232,7 @@
       $("rvGraph").addEventListener("click", e => { if (report) goPly(graphPly($("rvGraph"), e, report.evals.length)) });
       $("endReview").onclick = () => startReview(0);
 
-      /* ---------- Ajustes: piezas y tablero (assets de chess.com) ---------- */
+      /* ---------- Ajustes ---------- */
       const PIECE_SETS = ["neo", "classic", "wood", "neo_wood", "alpha", "glass", "gothic", "marble", "metal", "modern", "nature", "ocean", "space", "vintage", "tournament", "club", "condal", "game_room", "icy_sea", "maya", "lolz", "neon", "newspaper", "sky", "tigers", "graffiti", "light", "bases", "book", "cases", "8_bit", "bubblegum", "dash", "luca", "3d_chesskid", "3d_plastic", "3d_staunton", "3d_wood"];
       const PIECE_NAMES = { neo: "Neo", classic: "Clásico", wood: "Madera", neo_wood: "Neo madera", alpha: "Alpha", glass: "Cristal", gothic: "Gótico", marble: "Mármol", metal: "Metal", modern: "Moderno", nature: "Naturaleza", ocean: "Océano", space: "Espacio", vintage: "Vintage", tournament: "Torneo", club: "Club", condal: "Condal", game_room: "Sala de juegos", icy_sea: "Mar helado", maya: "Maya", lolz: "Lolz", neon: "Neón", newspaper: "Periódico", sky: "Cielo", tigers: "Tigres", graffiti: "Grafiti", light: "Claro", bases: "Bases", book: "Libro", cases: "Cases", bubblegum: "Chicle", "8_bit": "8 bits", "3d_chesskid": "3D Chesskid", "3d_plastic": "3D plástico", "3d_staunton": "3D Staunton", "3d_wood": "3D madera" };
       const COLOR_BOARDS = [
@@ -3445,7 +3378,7 @@
         PIECE_SETS.forEach(id => {
           const b = document.createElement("button"); b.type = "button"; b.className = "st-card"; b.dataset.id = id;
           const th = document.createElement("div"); th.className = "st-thumb";
-          const i1 = new Image(); i1.alt = ""; i1.onerror = () => b.remove(); i1.src = pieceUrl(id, "w", "n");   // si el set no existe, la tarjeta desaparece
+          const i1 = new Image(); i1.alt = ""; i1.onerror = () => b.remove(); i1.src = pieceUrl(id, "w", "n");
           const i2 = new Image(); i2.alt = ""; i2.onerror = () => { i2.style.display = "none" }; i2.src = pieceUrl(id, "b", "q");
           th.append(i1, i2);
           const sp = document.createElement("span"); sp.textContent = PIECE_NAMES[id] || prettyName(id);
@@ -3466,7 +3399,6 @@
           const th = document.createElement("div"); th.className = "st-thumb bd";
           const sp = document.createElement("span"); sp.textContent = IMG_BOARD_NAMES[name] || prettyName(name);
           b.append(th, sp); b.onclick = () => chooseBoard(id);
-          // miniatura ligera (76) con reserva a 150; si ninguna carga, ese tablero no existe y se quita
           const load = sizes => { const im = new Image(); im.onload = () => { th.style.backgroundImage = 'url("' + im.src + '")' }; im.onerror = () => { sizes.length ? load(sizes) : b.remove() }; im.src = boardImgUrl(id, sizes.shift()) };
           load([76, 150]);
           grid.appendChild(b);
@@ -3490,7 +3422,6 @@
       $("settingsModal").addEventListener("click", e => { if (e.target === $("settingsModal")) closeSettings() });
       document.querySelectorAll(".st-tab").forEach(b => b.onclick = () => showSettingsTab(b.dataset.st));
       $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview() };
-      // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
       document.addEventListener("keydown", e => {
         if ($("settingsModal").style.display !== "flex") return;
         if (e.key === "Escape") { e.stopImmediatePropagation(); closeSettings() }
@@ -3521,7 +3452,6 @@
       $("backBtn").onclick = () => goPly(curPly() - 1);
       $("forwardBtn").onclick = () => goPly(curPly() + 1);
 
-      /* ---------- Exportar PGN ---------- */
       function downloadPGN() {
         const pgn = game.pgn({ max_width: 60, newline_char: "\n" });
         const blob = new Blob([pgn], { type: "application/x-chess-pgn" });
@@ -3531,11 +3461,11 @@
         a.download = "partida_ajedrez.pgn";
         a.click();
         URL.revokeObjectURL(url);
-        showToast("PGN descargado para análisis");
+        showToast("PGN descargado");
       }
       $("downloadPgnBtn").onclick = downloadPGN;
-
       $("flipBtn").onclick = flip;
+
       /* ---------- Tablas y rendición ---------- */
       let forced = null, drawPending = false, resignArm = null;
       const online = () => peerJSConn && peerJSConn.open;
@@ -3594,7 +3524,7 @@
         $("endMoves").textContent = Math.ceil(h.length / 2);
         $("endCaps").textContent = h.filter(m => /[ce]/.test(m.flags)).length;
         $("endChecks").textContent = h.filter(m => /[+#]/.test(m.san)).length;
-        $("endAnalysis").hidden = true; $("endAnalysis").classList.remove("done"); $("endBox").classList.remove("analyzed"); $("endReview").hidden = true; $("endProg").style.width = "0"; $("endPgn").hidden = false; $("endAnalysisResults").innerHTML = ""; $("endAnalysisStatus").textContent = "El análisis se ejecuta en tu navegador y puede tardar unos segundos.";
+        $("endAnalysis").hidden = true; $("endAnalysis").classList.remove("done"); $("endBox").classList.remove("analyzed"); $("endReview").hidden = true; $("endProg").style.width = "0"; $("endPgn").hidden = false; $("endAnalysisResults").innerHTML = ""; $("endAnalysisStatus").textContent = "El análisis se ejecuta en tu navegador.";
         reportMatchResult(r);
         $("endModal").style.display = "flex";
       }
@@ -3635,18 +3565,22 @@
       document.querySelectorAll(".tab").forEach(b => b.onclick = () => showTab(b.dataset.tab));
 
       /* ---------- Control de Tiempo & Red ---------- */
-      function parseTC() {
-        const current = ($("localTcSelect") && $("localTcSelect").value) || ($("tcSelect") && $("tcSelect").value) || "600+0";
-        const val = current.split("+");
-        const base = parseInt(val[0], 10);
-        increment = parseInt(val[1], 10);
-        timed = base > 0;
-        whiteTime = base;
-        blackTime = base;
-        if ($("localTcSelect")) $("localTcSelect").value = current;
-        if ($("tcSelect")) $("tcSelect").value = current;
+      function setTimeControl(tcStr) {
+        const parsed = parseTCVal(tcStr);
+        timed = parsed.base > 0;
+        whiteTime = parsed.base;
+        blackTime = parsed.base;
+        increment = parsed.inc;
+        if ($("localTcSelect")) $("localTcSelect").value = tcStr;
+        if ($("tcSelect")) $("tcSelect").value = tcStr;
         updateClockUI();
       }
+
+      function parseTC() {
+        const current = ($("localTcSelect") && $("localTcSelect").value) || ($("tcSelect") && $("tcSelect").value) || "600+0";
+        setTimeControl(current);
+      }
+
       $("localTcSelect").onchange = parseTC;
       $("tcSelect").onchange = () => {
         if ($("localTcSelect")) $("localTcSelect").value = $("tcSelect").value;
@@ -3677,8 +3611,6 @@
             if (d.blackTime !== undefined) blackTime = d.blackTime;
             cancelDrag(); selected = null; legalTargets = []; redoStack = []; historyPly = null; marks.clear(); arrows = []; clearDraw();
             render(); animateMove(m, false);
-            
-            // Procesar el premove programado tras la jugada recibida del rival
             processPremove();
           }
         } else if (d.type === "reset") {
@@ -3689,7 +3621,8 @@
         } else if (d.type === "sync") {
           if (d.name) activeOpponentName = normalizeName(d.name, "Rival");
           if (d.host) { myColor = d.host === "w" ? "b" : "w"; flipped = myColor === "b" }
-          $("tcSelect").value = d.tc; parseTC(); render();
+          if (d.tc) setTimeControl(d.tc);
+          render();
         } else if (d.type === "resign") {
           forced = { w: d.color === "w" ? "b" : "w", why: "por abandono" }; clearDraw(); render();
         } else if (d.type === "drawOffer") {
@@ -3775,8 +3708,9 @@
           $("chatInput").disabled = false;
           $("chatSend").disabled = false;
           showToast("¡Partida iniciada!");
-          if (role === "host") sendPayload({ type: "sync", tc: $("tcSelect").value, host: myColor, name: myName });
-          else sendPayload({ type: "sync", tc: $("tcSelect").value, name: myName });
+          const currentTC = $("tcSelect") ? $("tcSelect").value : "600+0";
+          if (role === "host") sendPayload({ type: "sync", tc: currentTC, host: myColor, name: myName });
+          else sendPayload({ type: "sync", tc: currentTC, name: myName });
         });
         conn.on("data", data => { if (conn === peerJSConn) handleNetworkData(data) });
         conn.on("error", () => { if (conn === peerJSConn) { $("connText").textContent = "Error en la conexión"; $("connDot").className = "status-dot warn" } });
@@ -3803,7 +3737,7 @@
         navigator.clipboard.writeText(url).then(() => showToast("Enlace copiado"));
       };
 
-      /* ---------- Amigos: ID persistente + presencia (sin servidor propio) ---------- */
+      /* ---------- Amigos & Elo ---------- */
       const LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (_) { return null } };
       const rnd = n => Array.from({ length: n }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.random() * 32 | 0]).join("");
       let myCode = LS("aj_code"); if (!myCode) { myCode = rnd(8); LS("aj_code", myCode) }
@@ -3890,6 +3824,7 @@
           el.appendChild(d);
         });
       }
+
       function ping(f) {
         if (!friendPeer || !friendPeer.open) return;
         const c = friendPeer.connect(FID(f.code), { reliable: true });
@@ -3908,6 +3843,7 @@
         });
         c.on("error", () => { clearTimeout(t); presence[f.code] = false; renderFriends() });
       }
+
       function pingAll() { friends.forEach(ping) }
       let challengeTarget = null;
       function challenge(f) {
@@ -3919,39 +3855,46 @@
         $("inviteColorSelect").value = $("colorSelect").value;
         $("challengeModal").style.display = "flex";
       }
+
       function sendChallenge() {
         const f = challengeTarget;
         if (!f) return;
         $("challengeModal").style.display = "none";
-        $("tcSelect").value = $("inviteTcSelect").value;
-        $("colorSelect").value = $("inviteColorSelect").value;
-        parseTC();
+        const chosenTC = $("inviteTcSelect").value;
+        const chosenColor = $("inviteColorSelect").value;
+        $("tcSelect").value = chosenTC;
+        $("colorSelect").value = chosenColor;
+        setTimeControl(chosenTC);
+
         initPeerJS(null, code => {
           const c = friendPeer.connect(FID(f.code), { reliable: true });
           const timeout = setTimeout(() => { if (!c.open) showToast("No se pudo contactar con " + (f.name || f.code)); }, 8000);
           c.on("open", () => {
             clearTimeout(timeout);
-            c.send({ type: "invite", room: code, name: myName, tc: $("tcSelect").value, color: myColor });
+            c.send({ type: "invite", room: code, name: myName, tc: chosenTC, color: myColor });
             showToast("Invitación enviada a " + (f.name || f.code));
           });
           c.on("data", d => { if (d && d.type === "declined") showToast((f.name || "Tu amigo") + " rechazó la invitación") });
-          c.on("error", () => { clearTimeout(timeout); showToast("No se pudo enviar la invitación. Comprueba que esté en línea.") });
+          c.on("error", () => { clearTimeout(timeout); showToast("No se pudo enviar la invitación.") });
         });
         challengeTarget = null;
       }
+
       $("sendChallengeBtn").onclick = sendChallenge;
       $("cancelChallengeBtn").onclick = () => { $("challengeModal").style.display = "none"; challengeTarget = null };
       $("challengeModal").addEventListener("click", e => { if (e.target === $("challengeModal")) { $("challengeModal").style.display = "none"; challengeTarget = null; } });
+
       function showInvite(d, c) {
-        pendingInvite = { room: d.room, c };
+        pendingInvite = { room: d.room, c, tc: d.tc };
         pendingRematch = null;
         const n = normalizeName(d.name || "Un amigo");
         const tcOption = [...$("tcSelect").options].find(o => o.value === d.tc);
-        const tcLabel = tcOption ? tcOption.text : (d.tc === "0+0" ? "Sin límite de tiempo" : "Control de tiempo estándar");
+        const tcLabel = tcOption ? tcOption.text : (d.tc === "0+0" ? "Sin límite de tiempo" : "Control de tiempo personalizado");
         const myInvitedColor = d.color === "w" ? "negras" : d.color === "b" ? "blancas" : "color aleatorio";
-        $("inviteText").textContent = n + " te invita · " + tcLabel + " · " + getEloText(n) + " · tú juegas con " + myInvitedColor;
+        $("inviteText").textContent = n + " te invita · " + tcLabel + " · " + getEloText(n) + " · juegas con " + myInvitedColor;
         $("inviteBar").hidden = false; showToast("Invitación de " + n);
       }
+
       function showRematchOffer(d, c) {
         pendingInvite = null;
         pendingRematch = { c, opponent: normalizeName(d.name || "Rival") };
@@ -3959,6 +3902,7 @@
         $("inviteText").textContent = n + " quiere revancha · " + getEloText(n) + " · ¿aceptas?";
         $("inviteBar").hidden = false; showToast("Revancha de " + n);
       }
+
       function requestRematch() {
         if (!online()) { showToast("Necesitas una partida online para pedir revancha"); return }
         const opponent = normalizeName(activeOpponentName || "Rival");
@@ -3967,6 +3911,7 @@
           showToast("Revancha enviada a " + opponent);
         }
       }
+
       $("invYes").onclick = () => {
         const rematch = pendingRematch;
         const i = pendingInvite;
@@ -3984,8 +3929,12 @@
           return;
         }
         pendingInvite = null;
-        if (i && confirmLeave()) initPeerJS(i.room)
+        if (i && confirmLeave()) {
+          if (i.tc) setTimeControl(i.tc);
+          initPeerJS(i.room);
+        }
       };
+
       $("invNo").onclick = () => {
         const rematch = pendingRematch;
         try {
@@ -4000,7 +3949,7 @@
       function startFriendPeer() {
         if (typeof Peer === "undefined") return;
         friendPeer = new Peer(FID(myCode), { config: RTC_CONFIG });
-        friendPeer.on("open", () => { $("friendNote").textContent = "En línea. Tus amigos te ven mientras esta página esté abierta; ambos necesitáis la última versión del archivo."; pingAll() });
+        friendPeer.on("open", () => { $("friendNote").textContent = "En línea. Tus amigos pueden retarte mientras estés conectado."; pingAll() });
         friendPeer.on("connection", c => {
           c.on("data", d => {
             if (!d) return;
@@ -4028,10 +3977,11 @@
         friendPeer.on("disconnected", () => { $("friendNote").textContent = "Reconectando…"; try { friendPeer.reconnect() } catch (_) { } });
         friendPeer.on("error", err => {
           if (err.type === "peer-unavailable") { const m = /AJEDREZ-U([A-Z0-9]+)/.exec(err.message || ""); if (m) { presence[m[1]] = false; renderFriends() } }
-          else if (err.type === "unavailable-id") $("friendNote").textContent = "Tu ID ya está en uso en otra pestaña o ventana del mismo navegador; ciérrala para aparecer en línea.";
+          else if (err.type === "unavailable-id") $("friendNote").textContent = "Tu ID ya está en uso en otra pestaña.";
           else $("friendNote").textContent = "Error de conexión con amigos: " + err.type;
         });
       }
+
       $("nameInput").value = myName;
       $("nameInput").onchange = () => { myName = $("nameInput").value.trim().slice(0, 16) || myName; $("nameInput").value = myName; LS("aj_name", myName); render(); };
       $("myCode").value = myCode;
@@ -4046,6 +3996,7 @@
         if (!friendPeer || !friendPeer.open) showToast("Conectando con el servicio de amigos…");
         else { showToast("Buscando a tu amigo…"); ping(f) }
       };
+
       setInterval(() => { if (!$("subpane-online").hidden && !$("pane-online").hidden) pingAll() }, 30000);
       window.addEventListener("beforeunload", () => { try { friendPeer.destroy() } catch (_) { } });
       renderFriends(); startFriendPeer();
