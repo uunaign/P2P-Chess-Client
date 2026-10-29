@@ -172,6 +172,7 @@ input:focus,select:focus{border-color:var(--green)}
       <div class="field"><label>Tu código de amigo</label><div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn">Copiar</button></div></div>
       <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="secondary" id="addFriendBtn">Añadir</button></div>
       <div class="friends" id="friendList"></div>
+      <button class="secondary" id="refreshFriends">↻ Comprobar amigos</button>
       <div class="tiny" id="friendNote">Conectando…</div>
     </div>
   </section></aside>
@@ -916,7 +917,7 @@ input:focus,select:focus{border-color:var(--green)}
     if(!friends.length){el.innerHTML='<div class="empty">Añade el código de un amigo para ver si está conectado y retarle.</div>';return}
     friends.forEach(f=>{
       const d=document.createElement("div");d.className="friend";
-      d.innerHTML='<span class="fdot'+(presence[f.code]?" on":"")+'"></span><span class="fname"></span><button class="secondary">Retar</button><button class="secondary" title="Quitar">✕</button>';
+      d.innerHTML='<span class="fdot'+(presence[f.code]?" on":"")+'"></span><span class="fname"></span><span class="tiny">'+(presence[f.code]?"en línea":presence[f.code]===false?"sin conexión":"comprobando…")+'</span><button class="secondary">Retar</button><button class="secondary" title="Quitar">✕</button>';
       d.querySelector(".fname").textContent=f.name||f.code;
       const [b1,b2]=d.querySelectorAll("button");
       b1.disabled=!presence[f.code];
@@ -927,8 +928,8 @@ input:focus,select:focus{border-color:var(--green)}
   }
   function ping(f){
     if(!friendPeer||!friendPeer.open)return;
-    const c=friendPeer.connect(FID(f.code));
-    const t=setTimeout(()=>{presence[f.code]=false;renderFriends();try{c.close()}catch(_){}},6000);
+    const c=friendPeer.connect(FID(f.code),{reliable:true});
+    const t=setTimeout(()=>{presence[f.code]=false;renderFriends();try{c.close()}catch(_){}},10000);
     c.on("open",()=>c.send({type:"hello",name:myName}));
     c.on("data",d=>{
       if(!d)return;
@@ -946,7 +947,7 @@ input:focus,select:focus{border-color:var(--green)}
   function challenge(f){
     if(!confirmLeave())return;
     initPeerJS(null,code=>{
-      const c=friendPeer.connect(FID(f.code));
+      const c=friendPeer.connect(FID(f.code),{reliable:true});
       c.on("open",()=>c.send({type:"invite",room:code,name:myName}));
       c.on("data",d=>{if(d&&d.type==="declined")showToast((f.name||"Tu amigo")+" rechazó la invitación")});
       showToast("Invitación enviada a "+(f.name||f.code));
@@ -964,7 +965,7 @@ input:focus,select:focus{border-color:var(--green)}
   function startFriendPeer(){
     if(typeof Peer==="undefined")return;
     friendPeer=new Peer(FID(myCode),{config:RTC_CONFIG});
-    friendPeer.on("open",()=>{$("friendNote").textContent="En línea: tus amigos pueden verte y retarte mientras esta página esté abierta.";pingAll()});
+    friendPeer.on("open",()=>{$("friendNote").textContent="En línea. Tus amigos te ven mientras esta página esté abierta; ambos necesitáis la última versión del archivo.";pingAll()});
     friendPeer.on("connection",c=>{
       c.on("data",d=>{
         if(!d)return;
@@ -980,22 +981,26 @@ input:focus,select:focus{border-color:var(--green)}
         else if(d.type==="invite"&&/^[A-Z0-9]{6}$/.test(String(d.room)))showInvite(d,c);
       });
     });
-    friendPeer.on("disconnected",()=>{try{friendPeer.reconnect()}catch(_){}});
+    friendPeer.on("disconnected",()=>{$("friendNote").textContent="Reconectando…";try{friendPeer.reconnect()}catch(_){}});
     friendPeer.on("error",err=>{
       if(err.type==="peer-unavailable"){const m=/AJEDREZ-U([A-Z0-9]+)/.exec(err.message||"");if(m){presence[m[1]]=false;renderFriends()}}
-      else if(err.type==="unavailable-id")$("friendNote").textContent="Tu ID ya está en uso en otra pestaña; ciérrala para aparecer en línea.";
+      else if(err.type==="unavailable-id")$("friendNote").textContent="Tu ID ya está en uso en otra pestaña o ventana del mismo navegador; ciérrala para aparecer en línea.";
+      else $("friendNote").textContent="Error de conexión con amigos: "+err.type;
     });
   }
   $("nameInput").value=myName;
   $("nameInput").onchange=()=>{myName=$("nameInput").value.trim().slice(0,16)||myName;$("nameInput").value=myName;LS("aj_name",myName)};
   $("myCode").value=myCode;
+  $("refreshFriends").onclick=()=>pingAll();
   $("copyCodeBtn").onclick=()=>navigator.clipboard.writeText(myCode).then(()=>showToast("Código copiado"));
   $("addFriendBtn").onclick=()=>{
     const c=$("friendInput").value.trim().toUpperCase().replace(/^AJEDREZ-U/,"");
     if(!/^[A-Z0-9]{8}$/.test(c)){showToast("El código de amigo tiene 8 caracteres");return}
     if(c===myCode){showToast("Ese es tu propio código");return}
     if(friends.some(f=>f.code===c)){showToast("Ya está en tu lista");return}
-    const f={code:c,name:c,ack:false};friends.push(f);saveFriends();$("friendInput").value="";renderFriends();ping(f);
+    const f={code:c,name:c,ack:false};friends.push(f);saveFriends();$("friendInput").value="";renderFriends();
+    if(!friendPeer||!friendPeer.open)showToast("Conectando con el servidor; se comprobará en unos segundos");
+    ping(f);
   };
   setInterval(()=>{if(!$("pane-friends").hidden)pingAll()},30000);
   window.addEventListener("beforeunload",()=>{try{friendPeer.destroy()}catch(_){}});
