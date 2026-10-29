@@ -54,6 +54,10 @@
       margin-right: 5px
     }
 
+    .noTextButton .material-symbols-rounded {
+      margin-right: 0
+    }
+
     body {
       margin: 0;
       background: var(--bg);
@@ -195,9 +199,16 @@
       backdrop-filter: grayscale(1) blur(1px);
     }
 
-    .board-loading[hidden] { display: none; }
+    .board-loading[hidden] {
+      display: none;
+    }
 
-    .loading-dots { display: flex; align-items: center; gap: 8px; }
+    .loading-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .loading-dots span {
       width: 9px;
       height: 9px;
@@ -205,13 +216,37 @@
       background: var(--green2);
       animation: boardDot 1.1s infinite ease-in-out;
     }
-    .loading-dots span:nth-child(2) { animation-delay: .15s; }
-    .loading-dots span:nth-child(3) { animation-delay: .3s; }
-    .board-loading strong { font: 700 15px Manrope, sans-serif; }
-    .board-loading small { color: #d0ccc4; font-size: 12px; }
+
+    .loading-dots span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .loading-dots span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    .board-loading strong {
+      font: 700 15px Manrope, sans-serif;
+    }
+
+    .board-loading small {
+      color: #d0ccc4;
+      font-size: 12px;
+    }
+
     @keyframes boardDot {
-      0%, 60%, 100% { transform: translateY(0); opacity: .45; }
-      30% { transform: translateY(-7px); opacity: 1; }
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: .45;
+      }
+
+      30% {
+        transform: translateY(-7px);
+        opacity: 1;
+      }
     }
 
     .square {
@@ -246,8 +281,25 @@
       background: #f6e85d99
     }
 
-    .square.premove:before { content:""; position:absolute; inset:0; background:#8b5cf688; box-shadow:inset 0 0 0 4px #a78bfa; pointer-events:none; z-index:1; }
-    .square.premove-from:before { content:""; position:absolute; inset:0; background:#8b5cf655; box-shadow:inset 0 0 0 4px #a78bfa; pointer-events:none; z-index:1; }
+    .square.premove:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #8b5cf688;
+      box-shadow: inset 0 0 0 4px #a78bfa;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .square.premove-from:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #8b5cf655;
+      box-shadow: inset 0 0 0 4px #a78bfa;
+      pointer-events: none;
+      z-index: 1;
+    }
 
     .square.legal:after {
       content: "";
@@ -360,22 +412,10 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 14px 16px;
+      padding: 10px 10px 10px 20px;
       font: 700 15px Manrope, sans-serif;
       color: var(--bright);
       border-bottom: 1px solid var(--line)
-    }
-
-    .status-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--green);
-      flex: none
-    }
-
-    .status-dot.warn {
-      background: var(--gold)
     }
 
     .tabs {
@@ -457,11 +497,16 @@
       grid-column: 1/-1
     }
 
-    .nav,
-    .actions {
+    .nav {
       display: grid;
       gap: 6px;
       padding: 8px 12px
+    }
+
+    .actions {
+      display: grid;
+      gap: 6px;
+      padding: 12px;
     }
 
     .nav {
@@ -479,16 +524,22 @@
     }
 
     .primary,
-    .secondary {
+    .secondary, .primarySmall {
       border-radius: 6px;
       padding: 9px 12px;
       font-weight: 700;
-      transition: background .15s
+      transition: background .15s;
     }
 
     .primary {
       background: var(--green);
-      color: #141d0f
+      color: #141d0f;
+      margin-top: 6px;
+    }
+
+    .primarySmall {
+      background: var(--green);
+      color: #141d0f;
     }
 
     .primary:hover:not(:disabled) {
@@ -917,6 +968,91 @@
       flex: 1
     }
 
+    .bot-level-native {
+      display: none !important
+    }
+
+    .bot-level-picker {
+      position: relative;
+      flex: 1;
+      min-width: 0
+    }
+
+    .bot-level-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 10px;
+      color: var(--bright);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      text-align: left
+    }
+
+    .bot-level-trigger:focus-visible,
+    .bot-level-option:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px
+    }
+
+    .bot-level-trigger-avatar,
+    .bot-level-option-avatar {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: 6px;
+      background: var(--bg)
+    }
+
+    .bot-level-trigger-label {
+      flex: 1;
+      min-width: 0
+    }
+
+    .bot-level-trigger .material-symbols-rounded {
+      color: var(--muted);
+      margin: 0
+    }
+
+    .bot-level-panel {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 5px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px #0008
+    }
+
+    .bot-level-panel[hidden] {
+      display: none
+    }
+
+    .bot-level-option {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px;
+      color: var(--text);
+      background: transparent;
+      border-radius: 6px;
+      text-align: left
+    }
+
+    .bot-level-option:hover,
+    .bot-level-option[aria-selected="true"] {
+      color: var(--bright);
+      background: var(--line)
+    }
+
     .engine-status {
       font-size: 12px;
       color: var(--muted);
@@ -1186,8 +1322,8 @@
       background: #363330
     }
 
-    /* ---- icaciones (invitaciones, revancha, tablas) ---- */
-    .-stack {
+    /* ---- Notificaciones (invitaciones, revancha, tablas) ---- */
+    .notif-stack {
       position: fixed;
       left: 16px;
       bottom: 16px;
@@ -1211,7 +1347,7 @@
       background: var(--card);
       color: var(--bright);
       border: 4px solid var(--accent);
-      border-radius: 12px;
+      border-radius: 8px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
       animation: notifIn .22s ease-out
     }
@@ -1343,12 +1479,24 @@
       margin-top: 6px;
       padding: 12px;
       display: flex;
+      position: absolute;
+      width: 100%;
+      max-height: 500px;
+      overflow-y: scroll;
       flex-direction: column;
       gap: 14px;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 12px;
-      animation: notifIn .16s ease-out
+      animation: notifIn .16s ease-out;
+      scrollbar-width: none;
+
+      -ms-overflow-style: none;
+    }
+
+    /* 4. Oculta la barra en Chrome, Safari y Opera */
+    .tcp-panel::-webkit-scrollbar {
+      display: none;
     }
 
     .tcp-panel[hidden] {
@@ -1487,6 +1635,14 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap
+    }
+
+    .friend-avatar {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      border-radius: 8px;
+      background: var(--card)
     }
 
     .friend-status {
@@ -2276,11 +2432,11 @@
 
     <aside class="sidebar">
       <section class="card">
-        <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Mueven
+        <div class="status"><span id="statusText">Mueven
             blancas</span><button class="gear" id="settingsBtn" title="Ajustes" aria-label="Ajustes"><span
               class="material-symbols-rounded">settings</span></button></div>
         <div class="tabs">
-          <button class="tab active" data-tab="moves"><span class="material-symbols-rounded">history</span> PARTIDA
+          <button class="tab active" data-tab="moves"><span class="material-symbols-rounded">chess_pawn</span> PARTIDA
             <small id="moveCount">0</small></button>
           <button class="tab" data-tab="online"><span class="material-symbols-rounded">sports_esports</span>
             JUGAR</button>
@@ -2288,7 +2444,8 @@
 
         <div class="pane" id="pane-moves">
           <div class="local-time">
-            <div class="field"><label for="localTcSelect">Control de tiempo</label><select id="localTcSelect"></select></div>
+            <div class="field"><label for="localTcSelect">Control de tiempo</label><select id="localTcSelect"></select>
+            </div>
           </div>
           <div class="move-subpane" id="move-subpane-list">
             <div class="rv" id="reviewPanel" hidden>
@@ -2366,7 +2523,7 @@
               </div>
               <div class="field"><label for="friendInput">Añadir amigo por código</label>
                 <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button
-                    class="primary" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span>
+                    class="primarySmall" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span>
                     Añadir</button></div>
               </div>
               <div class="friends" id="friendList"></div>
@@ -2376,7 +2533,8 @@
               <details class="room-details">
                 <summary><span class="material-symbols-rounded">vpn_key</span> Jugar con código de sala</summary>
                 <div class="room-details-body">
-                  <div class="field"><label for="tcSelect">Control de tiempo</label><select id="tcSelect"></select></div>
+                  <div class="field"><label for="tcSelect">Control de tiempo</label><select id="tcSelect"></select>
+                  </div>
                   <div class="field"><label for="colorSelect">Jugar con</label><select id="colorSelect">
                       <option value="w">Blancas</option>
                       <option value="b">Negras</option>
@@ -2412,9 +2570,9 @@
   <div class="notif-stack" id="notifStack" aria-live="polite">
     <div class="notif" id="inviteBar" hidden><span class="material-symbols-rounded notif-ico">sports_esports</span><span
         class="notif-text" id="inviteText"></span>
-      <div class="notif-actions"><button class="primary" id="invYes"><span
-            class="material-symbols-rounded">check</span> Jugar</button><button class="secondary" id="invNo"><span
-            class="material-symbols-rounded">close</span> No</button></div>
+      <div class="notif-actions"><button class="primary" id="invYes"><span class="material-symbols-rounded">check</span>
+          Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span>
+          No</button></div>
     </div>
     <div class="notif" id="drawBar" hidden><span class="material-symbols-rounded notif-ico">handshake</span><span
         class="notif-text">El rival ofrece tablas</span>
@@ -2430,13 +2588,14 @@
       </h3>
       <p class="tiny" id="challengeFriendName" style="margin:0 0 14px">Configura la partida antes de enviar la
         invitación.</p>
-      <div class="field"><label for="inviteTcSelect">Control de tiempo</label><select id="inviteTcSelect"></select></div>
+      <div class="field"><label for="inviteTcSelect">Control de tiempo</label><select id="inviteTcSelect"></select>
+      </div>
       <div class="field"><label for="inviteColorSelect">Jugar con</label><select id="inviteColorSelect">
           <option value="w">Blancas</option>
           <option value="b">Negras</option>
           <option value="r" selected>Aleatorio</option>
         </select></div>
-      <div class="modal-buttons" style="margin-top:14px"><button class="primary" id="sendChallengeBtn"><span
+      <div class="modal-buttons" style="margin-top:14px"><button class="primarySmall" id="sendChallengeBtn"><span
             class="material-symbols-rounded">send</span> Enviar reto</button><button class="secondary"
           id="cancelChallengeBtn">Cancelar</button></div>
     </div>
@@ -2768,7 +2927,7 @@
         const piece = game.get(from);
         if (!piece || !myColor || piece.color !== myColor || from === to) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
         let legal = false;
-        try { const fen = game.fen().split(" "); fen[1] = myColor; const temp = new Chess(fen.join(" ")); legal = temp.moves({ square: from, verbose: true }).some(m => m.to === to); } catch (_) {}
+        try { const fen = game.fen().split(" "); fen[1] = myColor; const temp = new Chess(fen.join(" ")); legal = temp.moves({ square: from, verbose: true }).some(m => m.to === to); } catch (_) { }
         if (!legal) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
         pendingPremove = { from, to, promotion: piece.type === "p" && (to[1] === "1" || to[1] === "8") ? "q" : undefined };
         selected = null; legalTargets = []; premoveMode = false; render(); showToast("Premovimiento preparado");
@@ -2797,7 +2956,7 @@
             if (premoveMode && selected && legalTargets.includes(name)) { queuePremove(selected, name); return; }
             selected = name; premoveMode = true; legalTargets = getPremoveTargets(name); render();
             drag = { from: name, x: e.clientX, y: e.clientY, active: false, premove: true };
-            try { boardEl.setPointerCapture(e.pointerId) } catch (_) {} return;
+            try { boardEl.setPointerCapture(e.pointerId) } catch (_) { } return;
           }
           if (premoveMode && selected && legalTargets.includes(name)) { queuePremove(selected, name); return; }
           selected = null; legalTargets = []; premoveMode = false; render(); return;
@@ -2948,37 +3107,38 @@
 
       function timedOut() { return timed && (whiteTime <= 0 || blackTime <= 0) }
       function renderStatus() {
-        let text = game.turn() === "w" ? "Mueven blancas" : "Mueven negras", warn = false;
-        if (timedOut()) { text = (whiteTime <= 0 ? "Negras" : "Blancas") + " ganan por tiempo"; warn = true }
-        else if (game.isCheckmate()) { text = "Jaque mate · ganan " + (game.turn() === "w" ? "negras" : "blancas"); warn = true }
-        else if (game.isStalemate()) { text = "Tablas por ahogado"; warn = true }
-        else if (game.isThreefoldRepetition()) { text = "Tablas por repetición"; warn = true }
-        else if (game.isInsufficientMaterial()) { text = "Tablas por material insuficiente"; warn = true }
-        else if (game.isDraw()) { text = "Tablas"; warn = true }
+        let text = game.turn() === "w" ? "Mueven blancas" : "Mueven negras";
+        if (timedOut()) text = (whiteTime <= 0 ? "Negras" : "Blancas") + " ganan por tiempo";
+        else if (game.isCheckmate()) text = "Jaque mate · ganan " + (game.turn() === "w" ? "negras" : "blancas");
+        else if (game.isStalemate()) text = "Tablas por ahogado";
+        else if (game.isThreefoldRepetition()) text = "Tablas por repetición";
+        else if (game.isInsufficientMaterial()) text = "Tablas por material insuficiente";
+        else if (game.isDraw()) text = "Tablas";
         else if (game.inCheck()) text += " · Jaque";
         $("statusText").textContent = text;
-        $("statusDot").className = "status-dot" + (warn ? " warn" : "");
 
         const top = flipped ? "w" : "b", bot = flipped ? "b" : "w";
         const sideInfo = c => {
           if (botEnabled) {
             const isBot = c === botColor;
             return {
-              name: isBot ? "Stockfish" : normalizeName(myName, "Yo"),
+              name: playerDisplayName(c),
               elo: isBot ? "Nivel " + botSkill : getEloText(myName)
             };
           }
           if (myColor) {
-            const isMe = c === myColor;
-            const name = normalizeName(isMe ? myName : (activeOpponentName || "Rival"), isMe ? "Yo" : "Rival");
+            const name = playerDisplayName(c);
             return { name, elo: getEloText(name) };
           }
-          return { name: c === "w" ? "Blancas" : "Negras", elo: "" };
+          return { name: playerDisplayName(c), elo: "" };
         };
 
         const topData = sideInfo(top), bottomData = sideInfo(bot);
         $("topName").textContent = topData.name; $("bottomName").textContent = bottomData.name;
-        $("topAvatar").src = PIECE(top, "k"); $("bottomAvatar").src = PIECE(bot, "k");
+        const topIsBot = botEnabled && top === botColor, bottomIsBot = botEnabled && bot === botColor;
+        const usePieceAvatars = !botEnabled && !myColor;
+        setPlayerAvatar($("topAvatar"), topData.name, top, topIsBot, topIsBot ? botAvatarSeed(botSkill) : topData.name, usePieceAvatars);
+        setPlayerAvatar($("bottomAvatar"), bottomData.name, bot, bottomIsBot, bottomIsBot ? botAvatarSeed(botSkill) : bottomData.name, usePieceAvatars);
       }
 
       function renderCaptured(g) {
@@ -3734,7 +3894,10 @@
         $("endIcon").textContent = !r.w ? "handshake" : win === false ? "flag" : "trophy";
         $("endTitle").textContent = !r.w ? "Tablas" : myColor ? (win ? "¡Has ganado!" : "Has perdido") : "Ganan las " + (r.w === "w" ? "blancas" : "negras");
         $("endSub").textContent = r.why;
-        $("endAvatar").src = PIECE(r.w || "w", "n");
+        const endAvatarColor = r.w || myColor || "w";
+        const endAvatarName = playerDisplayName(endAvatarColor);
+        const endIsBot = botEnabled && endAvatarColor === botColor;
+        setPlayerAvatar($("endAvatar"), endAvatarName, endAvatarColor, endIsBot, endIsBot ? botAvatarSeed(botSkill) : endAvatarName, !botEnabled && !myColor);
         $("endMsg").textContent = !r.w ? "Tablas, ¡buen duelo!" : win === false ? "¡Ánimo, la próxima es tuya!" : "¡Buena partida!";
         $("endMoves").textContent = Math.ceil(h.length / 2);
         $("endCaps").textContent = h.filter(m => /[ce]/.test(m.flags)).length;
@@ -3903,7 +4066,7 @@
         document.addEventListener("keydown", e => { if (e.key === "Escape") closeTcPickers() });
       })();
 
-            function parseTC() {
+      function parseTC() {
         const current = ($("localTcSelect") && $("localTcSelect").value) || ($("tcSelect") && $("tcSelect").value) || "600+0";
         const val = current.split("+");
         const base = parseInt(val[0], 10);
@@ -4085,11 +4248,124 @@
       let activeOpponentName = "Rival";
       let friendPeer = null, pendingInvite = null, pendingRematch = null;
       const ratedResults = new Map();
-      const confirmLeave = () => true;
+      const confirmLeave = () => !online() || confirm("Se cerrará la partida online actual. ¿Continuar?");
 
       function normalizeName(name, fallback = "Jugador", max = 16) {
         const clean = String(name || fallback).trim().replace(/\s+/g, " ").slice(0, max);
         return clean || fallback;
+      }
+      function avatarUrl(name, isBot = false) {
+        return "https://api.dicebear.com/10.x/" + (isBot ? "bottts-neutral" : "marbles") +
+          "/svg?seed=" + encodeURIComponent(normalizeName(name).toLowerCase());
+      }
+      function botAvatarSeed(level) { return "stockfish-" + Number(level || 0) }
+      function chessPieceFallbackUrl(color) {
+        const isWhite = color === "w";
+        const piece = isWhite ? "♔" : "♚";
+        const fill = isWhite ? "#fff" : "#222";
+        const stroke = isWhite ? "#333" : "#fff";
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="50%" y="78%" text-anchor="middle" font-family="Segoe UI Symbol,Arial,sans-serif" font-size="56" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1">' + piece + '</text></svg>';
+        return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      }
+      function setPlayerAvatar(img, name, color, isBot = false, seed = name, useChessPiece = false) {
+        img.alt = name;
+        let triedPieceImage = useChessPiece;
+        img.onerror = () => {
+          if (!triedPieceImage) {
+            triedPieceImage = true;
+            img.src = PIECE(color, "k");
+            return;
+          }
+          img.onerror = null;
+          img.src = chessPieceFallbackUrl(color);
+        };
+        if (useChessPiece) {
+          img.src = PIECE(color, "k");
+          return;
+        }
+        img.src = avatarUrl(seed, isBot);
+      }
+      (function initBotLevelPicker() {
+        const select = $("botLevel");
+        const root = document.createElement("div");
+        root.className = "bot-level-picker";
+        root.innerHTML = '<button type="button" class="bot-level-trigger" role="combobox" aria-label="Nivel del bot" aria-haspopup="listbox" aria-expanded="false" aria-controls="botLevelOptions"><img class="bot-level-trigger-avatar" alt=""><span class="bot-level-trigger-label"></span><span class="material-symbols-rounded">expand_more</span></button><div class="bot-level-panel" id="botLevelOptions" role="listbox" hidden></div>';
+        select.classList.add("bot-level-native");
+        select.after(root);
+
+        const trigger = root.querySelector(".bot-level-trigger");
+        const triggerAvatar = root.querySelector(".bot-level-trigger-avatar");
+        const triggerLabel = root.querySelector(".bot-level-trigger-label");
+        const panel = root.querySelector(".bot-level-panel");
+        const entries = [...select.options].map(option => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "bot-level-option";
+          button.setAttribute("role", "option");
+          const image = document.createElement("img");
+          image.className = "bot-level-option-avatar";
+          image.alt = "";
+          const label = document.createElement("span");
+          label.textContent = option.textContent;
+          button.append(image, label);
+          button.onclick = () => {
+            select.value = option.value;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            close();
+            trigger.focus();
+          };
+          panel.appendChild(button);
+          setPlayerAvatar(image, option.textContent, "b", true, botAvatarSeed(option.value));
+          return { option, button, image };
+        });
+
+        function refresh() {
+          const selected = entries.find(entry => entry.option.value === select.value) || entries[0];
+          triggerLabel.textContent = selected.option.textContent;
+          setPlayerAvatar(triggerAvatar, selected.option.textContent, "b", true, botAvatarSeed(selected.option.value));
+          entries.forEach(entry => entry.button.setAttribute("aria-selected", String(entry === selected)));
+        }
+        function open() {
+          panel.hidden = false;
+          trigger.setAttribute("aria-expanded", "true");
+          const selected = entries.find(entry => entry.option.value === select.value) || entries[0];
+          if (selected) selected.button.focus();
+        }
+        function close() {
+          panel.hidden = true;
+          trigger.setAttribute("aria-expanded", "false");
+        }
+
+        trigger.onclick = () => panel.hidden ? open() : close();
+        trigger.onkeydown = event => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            open();
+          }
+        };
+        panel.onkeydown = event => {
+          const currentIndex = entries.findIndex(entry => entry.button === document.activeElement);
+          if (event.key === "Escape") {
+            event.preventDefault();
+            close();
+            trigger.focus();
+          } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            const direction = event.key === "ArrowDown" ? 1 : -1;
+            const next = (currentIndex + direction + entries.length) % entries.length;
+            entries[next].button.focus();
+          }
+        };
+        select.addEventListener("change", refresh);
+        document.addEventListener("pointerdown", event => {
+          if (!root.contains(event.target)) close();
+        });
+        refresh();
+      })();
+      function playerDisplayName(color) {
+        if (botEnabled) return color === botColor ? "Stockfish" : normalizeName(myName, "Yo");
+        if (myColor) return normalizeName(color === myColor ? myName : activeOpponentName || "Rival", color === myColor ? "Yo" : "Rival");
+        return color === "w" ? "Blancas" : "Negras";
       }
       function playerKey(name) { return normalizeName(name, "Jugador").toLowerCase(); }
       function ensurePlayerElo(name) {
@@ -4142,15 +4418,16 @@
           const d = document.createElement("div"); d.className = "friend";
           d.innerHTML = '<span class="fdot' + (presence[f.code] ? " on" : "") + '"></span>' +
             '<div class="friend-main">' +
-            '<div class="friend-top"><span class="fname"></span><span class="friend-status"></span></div>' +
-            '<span class="friend-elo tiny"></span>' +
+            '<div class="friend-top"><img class="friend-avatar" alt=""><span class="fname"></span></div>' +
+            '<span class="friend-elo tiny"><span class="friend-status"></span>' +
             '</div>' +
             '<div class="friend-actions">' +
-            '<button class="primary"><span class="material-symbols-rounded">swords</span> Retar</button>' +
-            '<button class="secondary" title="Quitar" aria-label="Quitar amigo"><span class="material-symbols-rounded">close</span></button>' +
+            '<button class="primarySmall"><span class="material-symbols-rounded">swords</span> Retar</button>' +
+            '<button class="secondary noTextButton" title="Quitar" aria-label="Quitar amigo"><span class="material-symbols-rounded">close</span></button>' +
             '</div>';
           const name = f.name || f.code;
           d.querySelector(".fname").textContent = name;
+          setPlayerAvatar(d.querySelector(".friend-avatar"), name, "w");
           d.querySelector(".friend-status").textContent = presence[f.code] ? "en línea" : presence[f.code] === false ? "sin conexión" : "comprobando…";
           d.querySelector(".friend-elo").textContent = getEloText(name);
           const [b1, b2] = d.querySelectorAll("button");
