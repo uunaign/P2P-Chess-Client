@@ -2306,73 +2306,129 @@
       let boardTheme = /^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board") || "") ? store.get("ajedrez.board") : "c-verde";
       const UI_THEMES = {
         dark: { id: "dark", name: "Oscuro", bg: "#211f1c", card: "#2b2926", line: "#3a3732", text: "#bab7b1", bright: "#ffffff", muted: "#8a867e" },
-        light: { id: "light", name: "Claro", bg: "#edf1f4", card: "#ffffff", line: "#d4dbe5", text: "#3a4758", bright: "#101827", muted: "#667085" }
-      };
-      const ACCENT_PRESETS = {
-        verde: { id: "verde", name: "Verde", dark: "#81b64c", light: "#5fb76b", accent: "#a3d160" },
-        azul: { id: "azul", name: "Azul", dark: "#3b82f6", light: "#2563eb", accent: "#93c5fd" },
-        rojo: { id: "rojo", name: "Rojo", dark: "#ef4444", light: "#dc2626", accent: "#fca5a5" },
-        morado: { id: "morado", name: "Morado", dark: "#8b5cf6", light: "#7c3aed", accent: "#c4b5fd" },
-        naranja: { id: "naranja", name: "Naranja", dark: "#f59e0b", light: "#ea580c", accent: "#fdba74" },
-        rosa: { id: "rosa", name: "Rosa", dark: "#ec4899", light: "#db2777", accent: "#f9a8d4" },
-        cian: { id: "cian", name: "Cian", dark: "#06b6d4", light: "#0891b2", accent: "#67e8f9" },
-        amarillo: { id: "amarillo", name: "Amarillo", dark: "#eab308", light: "#ca8a04", accent: "#fef08a" }
-      };
-      let uiTheme = /^(dark|light)$/.test(store.get("ajedrez.uiTheme") || "") ? store.get("ajedrez.uiTheme") : "dark";
-      let accentId = ACCENT_PRESETS[store.get("ajedrez.accent") || ""] ? store.get("ajedrez.accent") : "verde";
-      const pieceUrl = (set, c, t) => "https://images.chesscomfiles.com/chess-themes/pieces/" + set + "/150/" + c + t + ".png";
-      const PIECE = (c, t) => pieceUrl(pieceSet, c, t);
-      const files = "abcdefgh";
-      const pieceNames = { q: "Dama", r: "Torre", b: "Alfil", n: "Caballo" };
+        // Send Invitation Logic
+        const sendInviteBtn = document.getElementById('sendInviteBtn');
+        if (sendInviteBtn) {
+            sendInviteBtn.addEventListener('click', () => {
+                const friendId = document.getElementById('friendIdInput').value.trim();
+                const tcVal = document.getElementById('inviteTcSelect').value;
+                
+                if (!friendId) {
+                    alert('Por favor ingresa el ID de tu amigo');
+                    return;
+                }
 
-      function coords(name) {
-        const f = files.indexOf(name[0]), r = 8 - Number(name[1]);
-        return flipped ? { x: 7 - f, y: 7 - r } : { x: f, y: r };
-      }
+                // Parse standard TC string format "min+inc" (e.g. "3+0", "5+3", "10+0")
+                let minutes = 5, inc = 0;
+                if (tcVal && tcVal.includes('+')) {
+                    const parts = tcVal.split('+');
+                    minutes = parseInt(parts[0], 10) || 5;
+                    inc = parseInt(parts[1], 10) || 0;
+                } else if (!isNaN(parseInt(tcVal, 10))) {
+                    minutes = parseInt(tcVal, 10);
+                }
 
-      function showToast(msg) {
-        const t = $("toast");
-        t.textContent = msg;
-        t.style.display = "block";
-        clearTimeout(showToast.timer);
-        showToast.timer = setTimeout(() => t.style.display = "none", 2500);
-      }
-
-      function cancelPremove() {
-        if (premove) {
-          premove = null;
-          render();
+                const conn = peer.connect(friendId);
+                setupPeerEvents(conn);
+                
+                conn.on('open', () => {
+                    // Send invite payload with parsed time controls
+                    conn.send({
+                        type: 'invite',
+                        senderId: peer.id,
+                        tc: { minutes: minutes, inc: inc, raw: tcVal }
+                    });
+                    
+                    showNotification(`Invitación enviada a ${friendId} (${minutes}+${inc})`, 'info');
+                });
+            });
         }
-      }
+        // Handle incoming data
+        function handlePeerData(data) {
+            switch (data.type) {
+                case 'invite':
+                    // Extract time controls from invite payload
+                    const reqMinutes = data.tc ? data.tc.minutes : 5;
+                    const reqInc = data.tc ? data.tc.inc : 0;
+                    
+                    showInviteModal(data.senderId, reqMinutes, reqInc);
+                    break;
+                case 'accept':
+                    // Connected friend accepted invitation
+                    setOnlineTimeControl(data.tc ? data.tc.minutes : 5, data.tc ? data.tc.inc : 0);
+                    startOnlineGame('w'); // Challenger plays as White
+                    showNotification('¡Tu invitación fue aceptada!', 'success');
+                    break;
+                case 'reject':
+                    showNotification('Tu invitación fue rechazada.', 'error');
+                    break;
+                case 'sync':
+                    if (data.tc) {
+                        setOnlineTimeControl(data.tc.minutes, data.tc.inc);
+                    }
+                    if (data.fen) {
+                        game.load(data.fen);
+                        board.position(game.fen());
+                        updateStatus();
+                    }
+                    break;
+                case 'move':
+                    game.move(data.move);
+                    board.position(game.fen());
+                    playMoveSound();
+                    executePremove();
+                    updateStatus();
+                    break;
+                // ... remaining cases ...
+            }
+        }
 
-      function getMyCurrentColor() {
-        if (myColor) return myColor;
-        if (botEnabled) return botColor === "w" ? "b" : "w";
-        return null;
-      }
+        // Helper function to set time controls and update clocks for online game
+        function setOnlineTimeControl(minutes, inc) {
+            initialTime = minutes * 60;
+            whiteTime = initialTime;
+            blackTime = initialTime;
+            increment = inc;
+            updateClockDisplay();
+        }
 
-      function isMyTurn() {
-        const playerColor = getMyCurrentColor();
-        if (!playerColor) return true; // En modo local/dos jugadores en un mismo teclado
-        return game.turn() === playerColor;
-      }
+        function showInviteModal(senderId, minutes, inc) {
+            const modal = document.getElementById('inviteModal');
+            const msg = document.getElementById('inviteMsg');
+            if (msg) {
+                msg.textContent = `El jugador ${senderId} te desafía a una partida (${minutes}+${inc}). ¿Aceptas?`;
+            }
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
 
-      function processPremove() {
-        if (!premove) return;
-        if (!isMyTurn()) return;
+            const acceptBtn = document.getElementById('acceptInviteBtn');
+            const rejectBtn = document.getElementById('rejectInviteBtn');
 
-        const pm = premove;
-        premove = null;
+            // Clean up previous listeners
+            const newAccept = acceptBtn.cloneNode(true);
+            const newReject = rejectBtn.cloneNode(true);
+            acceptBtn.parentNode.replaceChild(newAccept, acceptBtn);
+            rejectBtn.parentNode.replaceChild(newReject, rejectBtn);
 
-        // Verificar si la jugada programada es legal en el estado actual
-        const moves = game.moves({ square: pm.from, verbose: true });
-        const isLegal = moves.some(m => m.to === pm.to);
+            newAccept.addEventListener('click', () => {
+                if (peerConn && peerConn.open) {
+                    setOnlineTimeControl(minutes, inc);
+                    peerConn.send({
+                        type: 'accept',
+                        tc: { minutes: minutes, inc: inc }
+                    });
+                    startOnlineGame('b'); // Guest plays as Black
+                }
+                modal.classList.add('hidden');
+            });
 
-        if (isLegal) {
-          tryMove(pm.from, pm.to, pm.promotion, false);
-        } else {
-          // Si el premove deja de ser válido en la nueva posición, se cancela suavemente
-          render();
+            newReject.addEventListener('click', () => {
+                if (peerConn && peerConn.open) {
+                    peerConn.send({ type: 'reject' });
+                }
+                modal.classList.add('hidden');
+            });
         }
       }
 
