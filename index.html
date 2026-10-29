@@ -98,10 +98,40 @@
     }
 
     .player {
+      position: relative;
+      z-index: 5;
       display: flex;
       align-items: center;
       gap: 10px;
       height: 44px
+    }
+
+    .player-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0
+    }
+
+    .player-chat-bubble {
+      z-index: 8;
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: min(320px, 50%);
+      padding: 8px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: #fff;
+      color: #211f1c;
+      box-shadow: 0 4px 14px #0008;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      pointer-events: none
+    }
+
+    .player-chat-bubble[hidden] {
+      display: none
     }
 
     .avatar {
@@ -113,8 +143,13 @@
     }
 
     .who {
-      flex: 1;
-      min-width: 0
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 50%
+    }
+
+    .clock {
+      margin-left: auto
     }
 
     .name {
@@ -155,13 +190,22 @@
       color: var(--muted);
       padding: 6px 12px;
       border-radius: 6px;
-      min-width: 76px;
+      min-width: 98px;
       text-align: center
+    }
+
+    .clock.low-time {
+      color: #ef4444
     }
 
     .clock.active {
       background: #fff;
       color: #1c1a17
+    }
+
+    .clock.active.low-time {
+      background: #fee2e2;
+      color: #b91c1c
     }
 
     .board-wrap {
@@ -2409,9 +2453,12 @@
     <section class="board-column">
       <div class="player">
         <img class="avatar" id="topAvatar" alt="">
-        <div class="who">
-          <div class="name" id="topName">Negras</div>
-          <div class="cap" id="topCap"></div>
+        <div class="player-info">
+          <div class="who">
+            <div class="name" id="topName">Negras</div>
+            <div class="cap" id="topCap"></div>
+          </div>
+          <div class="player-chat-bubble" id="topChatBubble" hidden role="status" aria-live="polite"></div>
         </div>
         <span class="clock" id="topClock">10:00</span>
       </div>
@@ -2426,9 +2473,12 @@
       </div>
       <div class="player">
         <img class="avatar" id="bottomAvatar" alt="">
-        <div class="who">
-          <div class="name" id="bottomName">Blancas</div>
-          <div class="cap" id="bottomCap"></div>
+        <div class="player-info">
+          <div class="who">
+            <div class="name" id="bottomName">Blancas</div>
+            <div class="cap" id="bottomCap"></div>
+          </div>
+          <div class="player-chat-bubble" id="bottomChatBubble" hidden role="status" aria-live="polite"></div>
         </div>
         <span class="clock" id="bottomClock">10:00</span>
       </div>
@@ -2581,7 +2631,7 @@
   <div class="notif-stack" id="notifStack" aria-live="polite">
     <div class="notif" id="inviteBar" hidden><span class="material-symbols-rounded notif-ico">sports_esports</span><span
         class="notif-text" id="inviteText"></span>
-      <div class="notif-actions"><button class="primary" id="invYes"><span class="material-symbols-rounded">check</span>
+      <div class="notif-actions"><button class="primarySmall" id="invYes"><span class="material-symbols-rounded">check</span>
           Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span>
           No</button></div>
     </div>
@@ -2722,7 +2772,8 @@
       // Red y tiempo
       let role = null, myColor = null;
       let peerJSInstance = null, peerJSConn = null;
-      let timed = true, whiteTime = 600, blackTime = 600, increment = 0, clockTimer = null;
+      let timed = true, whiteTime = 600, blackTime = 600, increment = 0, clockTimer = null, clockLastUpdate = null;
+      let opponentChatBubbleTimer = null;
 
       const store = { get: k => { try { return localStorage.getItem(k) } catch (_) { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch (_) { } } };
       let pieceSet = /^[a-z0-9_]+$/.test(store.get("ajedrez.pieces") || "") ? store.get("ajedrez.pieces") : "neo";
@@ -2775,42 +2826,51 @@
       function formatTime(s) {
         if (!timed) return "∞";
         if (s <= 0) return "0:00";
-        const m = Math.floor(s / 60), sec = s % 60;
+        if (s < 60) {
+          const centiseconds = Math.ceil(s * 100);
+          if (centiseconds >= 6000) return "1:00";
+          const seconds = Math.floor(centiseconds / 100);
+          return "0:" + String(seconds).padStart(2, "0") + "." + String(centiseconds % 100).padStart(2, "0");
+        }
+        const totalSeconds = Math.ceil(s);
+        const m = Math.floor(totalSeconds / 60), sec = totalSeconds % 60;
         return m + ":" + (sec < 10 ? "0" : "") + sec;
+      }
+
+      function advanceClock(now = performance.now()) {
+        const previous = clockLastUpdate;
+        clockLastUpdate = now;
+        if (previous === null || !timed || !game.history().length || game.game_over() || forced) return;
+
+        const color = game.turn();
+        const remaining = color === "w" ? whiteTime : blackTime;
+        if (remaining <= 0) return;
+        const updated = Math.max(0, remaining - Math.max(0, now - previous) / 1000);
+        if (color === "w") whiteTime = updated;
+        else blackTime = updated;
+        if (updated === 0) {
+          renderStatus();
+          checkEnd();
+        }
       }
 
       function startClocks() {
         clearInterval(clockTimer);
         clockTimer = setInterval(() => {
-          if (game.game_over() || forced) return;
-          const history = game.history();
-          if (!history.length) return; // El tiempo empieza tras la primera jugada
-          if (game.turn() === "w") {
-            if (whiteTime > 0) {
-              whiteTime--;
-              if (whiteTime === 0) {
-                renderStatus(); checkEnd();
-              }
-            }
-          } else {
-            if (blackTime > 0) {
-              blackTime--;
-              if (blackTime === 0) {
-                renderStatus(); checkEnd();
-              }
-            }
-          }
+          advanceClock();
           updateClockUI();
-        }, 1000);
+        }, 50);
       }
 
       function updateClockUI() {
         const topColor = flipped ? "w" : "b";
         const bottomColor = flipped ? "b" : "w";
-        $("topClock").textContent = formatTime(topColor === "w" ? whiteTime : blackTime);
-        $("bottomClock").textContent = formatTime(bottomColor === "w" ? whiteTime : blackTime);
-        $("topClock").classList.toggle("active", game.turn() === topColor && game.history().length > 0);
-        $("bottomClock").classList.toggle("active", game.turn() === bottomColor && game.history().length > 0);
+        [["topClock", topColor], ["bottomClock", bottomColor]].forEach(([id, color]) => {
+          const clock = $(id), remaining = color === "w" ? whiteTime : blackTime;
+          clock.textContent = formatTime(remaining);
+          clock.classList.toggle("low-time", timed && remaining < 60 && remaining > 0);
+          clock.classList.toggle("active", game.turn() === color && game.history().length > 0);
+        });
       }
 
       /* ---------- Renderizado del Tablero ---------- */
@@ -2931,21 +2991,62 @@
       function getPremoveTargets(from) {
         const piece = game.get(from);
         if (!piece || !myColor || piece.color !== myColor) return [];
-        try { const fen = game.fen().split(" "); fen[1] = myColor; const temp = new Chess(fen.join(" ")); return temp.moves({ square: from, verbose: true }).map(m => m.to); }
-        catch (_) { return []; }
+        const targets = new Set(), [file, rank] = [files.indexOf(from[0]), 8 - Number(from[1])];
+        const inside = (f, r) => f >= 0 && f < 8 && r >= 0 && r < 8;
+        const at = (f, r) => inside(f, r) ? game.get(files[f] + (8 - r)) : null;
+        const add = (f, r) => {
+          if (!inside(f, r)) return false;
+          const target = at(f, r);
+          if (target && (target.color === myColor || target.type === "k")) return false;
+          targets.add(files[f] + (8 - r));
+          return !target;
+        };
+
+        if (piece.type === "n") {
+          [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]]
+            .forEach(([df, dr]) => add(file + df, rank + dr));
+        } else if (piece.type === "p") {
+          const direction = myColor === "w" ? -1 : 1;
+          const nextRank = rank + direction;
+          if (inside(file, nextRank) && !at(file, nextRank)) {
+            targets.add(files[file] + (8 - nextRank));
+            const startRank = myColor === "w" ? 6 : 1, doubleRank = rank + 2 * direction;
+            if (rank === startRank && !at(file, doubleRank)) targets.add(files[file] + (8 - doubleRank));
+          }
+          [-1, 1].forEach(df => {
+            const target = at(file + df, nextRank);
+            if (!target || target.color !== myColor && target.type !== "k") targets.add(files[file + df] + (8 - nextRank));
+          });
+        } else {
+          const directions = piece.type === "b" ? [[1, 1], [1, -1], [-1, 1], [-1, -1]]
+            : piece.type === "r" ? [[1, 0], [-1, 0], [0, 1], [0, -1]]
+              : [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]];
+          directions.forEach(([df, dr]) => {
+            let f = file + df, r = rank + dr;
+            while (add(f, r)) { f += df; r += dr }
+          });
+          if (piece.type === "k") {
+            const homeRank = myColor === "w" ? 7 : 0;
+            const rights = game.fen().split(" ")[2];
+            if (rank === homeRank && file === 4) {
+              if (rights.includes(myColor === "w" ? "K" : "k") && !at(5, homeRank) && !at(6, homeRank) && at(7, homeRank)?.color === myColor && at(7, homeRank)?.type === "r") targets.add(files[6] + (8 - homeRank));
+              if (rights.includes(myColor === "w" ? "Q" : "q") && !at(1, homeRank) && !at(2, homeRank) && !at(3, homeRank) && at(0, homeRank)?.color === myColor && at(0, homeRank)?.type === "r") targets.add(files[2] + (8 - homeRank));
+            }
+          }
+        }
+        return [...targets];
       }
       function queuePremove(from, to) {
         const piece = game.get(from);
         if (!piece || !myColor || piece.color !== myColor || from === to) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
-        let legal = false;
-        try { const fen = game.fen().split(" "); fen[1] = myColor; const temp = new Chess(fen.join(" ")); legal = temp.moves({ square: from, verbose: true }).some(m => m.to === to); } catch (_) { }
-        if (!legal) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
+        if (!getPremoveTargets(from).includes(to)) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
+        if (game.turn() === myColor) { tryMove(from, to, undefined, true); return; }
         pendingPremove = { from, to, promotion: piece.type === "p" && (to[1] === "1" || to[1] === "8") ? "q" : undefined };
-        selected = null; legalTargets = []; premoveMode = false; render(); showToast("Premovimiento preparado");
+        selected = null; legalTargets = []; premoveMode = false; render();
       }
       function cancelPremove() {
         if (!pendingPremove) return false;
-        pendingPremove = null; selected = null; legalTargets = []; premoveMode = false; render(); showToast("Premovimiento cancelado"); return true;
+        pendingPremove = null; selected = null; legalTargets = []; premoveMode = false; render(); return true;
       }
       function executePremove() {
         if (!pendingPremove) return;
@@ -3026,10 +3127,11 @@
       document.addEventListener("contextmenu", e => {
         if (drag || (e.target.closest && e.target.closest("#boardWrap"))) e.preventDefault();
         cancelDrag();
-        if (e.target.closest && e.target.closest("#boardWrap") && pendingPremove) { pendingPremove = null; selected = null; legalTargets = []; premoveMode = false; render(); showToast("Premovimiento cancelado"); }
+        if (e.target.closest && e.target.closest("#boardWrap") && pendingPremove) cancelPremove();
       });
 
       function tryMove(from, to, promotion, noAnim, fromBot = false) {
+        advanceClock();
         historyPly = null;
         if (forced || timedOut()) { showToast("La partida ha terminado"); return }
         const p = game.get(from);
@@ -3048,6 +3150,7 @@
         const currentTurn = game.turn();
         const move = game.move({ from, to, promotion: promotion || "q" });
         if (!move) { showToast("Movimiento ilegal"); selected = null; legalTargets = []; render(); return }
+        clockLastUpdate = performance.now();
 
         // Aplicar incremento de tiempo
         if (currentTurn === "w") whiteTime += increment;
@@ -4094,14 +4197,17 @@
         document.addEventListener("keydown", e => { if (e.key === "Escape") closeTcPickers() });
       })();
 
-      function parseTC() {
-        const current = ($("localTcSelect") && $("localTcSelect").value) || ($("tcSelect") && $("tcSelect").value) || "600+0";
+      function parseTC(value) {
+        const current = typeof value === "string" && TC_RE.test(value)
+          ? value
+          : ($("localTcSelect") && $("localTcSelect").value) || ($("tcSelect") && $("tcSelect").value) || "600+0";
         const val = current.split("+");
         const base = parseInt(val[0], 10);
         increment = parseInt(val[1], 10);
         timed = base > 0;
         whiteTime = base;
         blackTime = base;
+        clockLastUpdate = performance.now();
         if ($("localTcSelect")) $("localTcSelect").value = current;
         if ($("tcSelect")) $("tcSelect").value = current;
         updateClockUI();
@@ -4130,10 +4236,12 @@
 
       function handleNetworkData(d) {
         if (d.type === "move") {
+          advanceClock();
           const m = game.move(d.move);
           if (m) {
             if (d.whiteTime !== undefined) whiteTime = d.whiteTime;
             if (d.blackTime !== undefined) blackTime = d.blackTime;
+            clockLastUpdate = performance.now();
             cancelDrag(); selected = null; legalTargets = []; redoStack = []; historyPly = null; marks.clear(); arrows = []; clearDraw();
             render(); animateMove(m, false);
             if (pendingPremove && !game.game_over()) window.setTimeout(executePremove, 0);
@@ -4146,7 +4254,8 @@
         } else if (d.type === "sync") {
           if (d.name) activeOpponentName = normalizeName(d.name, "Rival");
           if (d.host) { myColor = d.host === "w" ? "b" : "w"; flipped = myColor === "b" }
-          $("tcSelect").value = d.tc; parseTC(); render();
+          if (TC_RE.test(String(d.tc))) parseTC(String(d.tc));
+          render();
         } else if (d.type === "resign") {
           forced = { w: d.color === "w" ? "b" : "w", why: "por abandono" }; clearDraw(); render();
         } else if (d.type === "drawOffer") {
@@ -4176,7 +4285,9 @@
         } else if (d.type === "full") {
           showToast("La sala ya está completa");
         } else if (d.type === "chat") {
-          addMsg("them", String(d.text || "").slice(0, 300));
+          const text = String(d.text || "").slice(0, 300);
+          addMsg("them", text);
+          showOpponentChatBubble(text);
         }
       }
 
@@ -4185,6 +4296,7 @@
         if (peerJSConn) { const o = peerJSConn; peerJSConn = null; try { o.close() } catch (_) { } }
         if (peerJSInstance) peerJSInstance.destroy();
         role = null; myColor = null; flipped = false;
+        hideOpponentChatBubble();
         syncGameSubtabs();
         $("connText").textContent = "Conectando…"; $("connDot").className = "status-dot warn";
         $("chatInput").disabled = true; $("chatSend").disabled = true; $("chatLog").innerHTML = "";
@@ -4252,6 +4364,7 @@
           $("connDot").className = "status-dot warn";
           $("chatInput").disabled = true;
           $("chatSend").disabled = true;
+          hideOpponentChatBubble();
           syncGameSubtabs();
         });
       }
@@ -4505,9 +4618,9 @@
         if (!f) return;
         $("challengeModal").style.display = "none";
         setBoardLoading(true);
-        $("tcSelect").value = $("inviteTcSelect").value;
+        const timeControl = $("inviteTcSelect").value;
         $("colorSelect").value = $("inviteColorSelect").value;
-        parseTC();
+        parseTC(timeControl);
         initPeerJS(null, code => {
           const c = friendPeer.connect(FID(f.code), { reliable: true });
           const timeout = setTimeout(() => {
@@ -4652,6 +4765,19 @@
         d.textContent = text;
         log.appendChild(d);
         log.scrollTop = log.scrollHeight;
+      }
+      function hideOpponentChatBubble() {
+        clearTimeout(opponentChatBubbleTimer);
+        $("topChatBubble").hidden = true;
+        $("bottomChatBubble").hidden = true;
+      }
+      function showOpponentChatBubble(text) {
+        const topColor = flipped ? "w" : "b";
+        const bubble = $(topColor === myColor ? "bottomChatBubble" : "topChatBubble");
+        hideOpponentChatBubble();
+        bubble.textContent = text;
+        bubble.hidden = false;
+        opponentChatBubbleTimer = setTimeout(() => { bubble.hidden = true }, 5000);
       }
       function sendChat() {
         const text = $("chatInput").value.trim();
