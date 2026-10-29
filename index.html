@@ -572,6 +572,10 @@
       border-bottom: 1px solid var(--line)
     }
 
+    .game-subtabs[hidden] {
+      display: none
+    }
+
     .subtab {
       flex: 1;
       background: transparent;
@@ -2447,7 +2451,13 @@
             <div class="field"><label for="localTcSelect">Control de tiempo</label><select id="localTcSelect"></select>
             </div>
           </div>
-          <div class="move-subpane" id="move-subpane-list">
+          <div class="subtabs game-subtabs" role="tablist" aria-label="Contenido de la partida" hidden>
+            <button class="game-subtab subtab active" id="gameMovesTab" type="button" role="tab"
+              aria-selected="true" aria-controls="move-subpane-list" data-game-subtab="moves">Movimientos</button>
+            <button class="game-subtab subtab" id="gameChatTab" type="button" role="tab"
+              aria-selected="false" aria-controls="move-subpane-chat" data-game-subtab="chat">Chat</button>
+          </div>
+          <div class="move-subpane" id="move-subpane-list" role="tabpanel" aria-labelledby="gameMovesTab">
             <div class="rv" id="reviewPanel" hidden>
               <div class="rv-top"><span class="material-symbols-rounded">query_stats</span><strong>Análisis de la
                   partida</strong><button class="secondary" id="rvExit" title="Salir del análisis">Salir</button></div>
@@ -2475,7 +2485,17 @@
               <button class="primary wide" id="newGameBtn">Nueva partida</button>
             </div>
           </div>
-
+          <div class="move-subpane" id="move-subpane-chat" role="tabpanel" aria-labelledby="gameChatTab" hidden>
+            <div class="chat-panel">
+              <div class="section-title"><span class="material-symbols-rounded">forum</span> Chat de partida</div>
+              <div class="chat-log" id="chatLog" aria-live="polite">
+                <div class="msg sys">Conéctate a una partida para chatear.</div>
+              </div>
+              <div class="chat-form"><input id="chatInput" type="text" maxlength="300"
+                  placeholder="Escribe un mensaje…" disabled><button class="primarySmall noTextButton" id="chatSend" disabled
+                  aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
+            </div>
+          </div>
         </div>
 
         <div class="pane" id="pane-online" hidden>
@@ -2548,15 +2568,6 @@
                       Unirse</button></div>
                   <div class="conn"><span class="status-dot warn" id="connDot"></span><span id="connText">Sin conectar ·
                       partida local</span></div>
-                  <div class="chat-panel">
-                    <div class="section-title"><span class="material-symbols-rounded">forum</span> Chat de partida</div>
-                    <div class="chat-log" id="chatLog">
-                      <div class="msg sys">Conéctate a una partida para chatear.</div>
-                    </div>
-                    <div class="chat-form"><input id="chatInput" type="text" maxlength="300"
-                        placeholder="Escribe un mensaje…" disabled><button class="primary" id="chatSend" disabled
-                        aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
-                  </div>
                 </div>
               </details>
 
@@ -2576,7 +2587,7 @@
     </div>
     <div class="notif" id="drawBar" hidden><span class="material-symbols-rounded notif-ico">handshake</span><span
         class="notif-text">El rival ofrece tablas</span>
-      <div class="notif-actions"><button class="primary" id="drawYes"><span
+      <div class="notif-actions"><button class="primarySmall" id="drawYes"><span
             class="material-symbols-rounded">check</span> Aceptar</button><button class="secondary" id="drawNo"><span
             class="material-symbols-rounded">close</span> Rechazar</button></div>
     </div>
@@ -3245,7 +3256,7 @@
         const wrapper = document.querySelector(".local-time");
         if (!wrapper) return;
         const started = game.history().length > 0 && !forced && !game.game_over() && !game.isDraw() && !game.isCheckmate() && !game.isStalemate() && !game.isThreefoldRepetition() && !game.isInsufficientMaterial();
-        wrapper.hidden = started;
+        wrapper.hidden = started || online();
       }
 
       function resetLocal() {
@@ -3928,6 +3939,21 @@
           showSubtab(active);
         }
       }
+      function showGameSubtab(t) {
+        document.querySelectorAll(".game-subtab").forEach(b => {
+          const active = b.dataset.gameSubtab === t;
+          b.classList.toggle("active", active);
+          b.setAttribute("aria-selected", String(active));
+        });
+        document.querySelectorAll("#move-subpane-list, #move-subpane-chat").forEach(p => {
+          p.hidden = p.id !== "move-subpane-" + (t === "chat" ? "chat" : "list");
+        });
+      }
+      function syncGameSubtabs() {
+        const connected = !!online();
+        document.querySelector(".game-subtabs").hidden = !connected;
+        if (!connected) showGameSubtab("moves");
+      }
       function showSubtab(t) {
         document.querySelectorAll(".play-subtab").forEach(b => b.classList.toggle("active", b.dataset.playSubtab === t));
         document.querySelectorAll(".play-subpane").forEach(p => p.hidden = p.id !== "subpane-" + t);
@@ -3939,8 +3965,10 @@
       function showOnlineSubtab(t) {
         if (t === "friends") pingAll();
       }
+      document.querySelectorAll(".game-subtab").forEach(b => b.onclick = () => showGameSubtab(b.dataset.gameSubtab));
       document.querySelectorAll(".play-subtab").forEach(b => b.onclick = () => showSubtab(b.dataset.playSubtab));
       document.querySelectorAll(".tab").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+      syncGameSubtabs();
 
       /* ---------- Control de Tiempo & Red ---------- */
       /* ---------- Selector de ritmo personalizado ---------- */
@@ -4157,6 +4185,7 @@
         if (peerJSConn) { const o = peerJSConn; peerJSConn = null; try { o.close() } catch (_) { } }
         if (peerJSInstance) peerJSInstance.destroy();
         role = null; myColor = null; flipped = false;
+        syncGameSubtabs();
         $("connText").textContent = "Conectando…"; $("connDot").className = "status-dot warn";
         $("chatInput").disabled = true; $("chatSend").disabled = true; $("chatLog").innerHTML = "";
         resetLocal();
@@ -4203,6 +4232,9 @@
           setBoardLoading(false);
           // Al aceptar una invitación y establecerse la conexión, mostrar directamente la partida.
           showTab("moves");
+          showGameSubtab("moves");
+          syncGameSubtabs();
+          syncLocalTimeVisibility();
           $("connText").textContent = "¡Rival conectado!";
           $("connDot").className = "status-dot";
           $("chatInput").disabled = false;
@@ -4220,6 +4252,7 @@
           $("connDot").className = "status-dot warn";
           $("chatInput").disabled = true;
           $("chatSend").disabled = true;
+          syncGameSubtabs();
         });
       }
 
