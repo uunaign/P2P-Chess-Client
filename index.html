@@ -4086,7 +4086,7 @@
       let activeOpponentName = "Rival";
       let friendPeer = null, pendingInvite = null, pendingRematch = null;
       const ratedResults = new Map();
-      const confirmLeave = () => !online() || confirm("Se cerrará la partida online actual. ¿Continuar?");
+      const confirmLeave = () => true;
 
       function normalizeName(name, fallback = "Jugador", max = 16) {
         const clean = String(name || fallback).trim().replace(/\s+/g, " ").slice(0, max);
