@@ -211,6 +211,20 @@
       background: #f6e85d99
     }
 
+    /* Estilos para Premoves estilo Chess.com */
+    .square.premove:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(204, 35, 35, 0.55);
+      z-index: 1;
+      pointer-events: none
+    }
+
+    .square.premove.light:before {
+      background: rgba(224, 60, 60, 0.5);
+    }
+
     .square.legal:after {
       content: "";
       position: absolute;
@@ -2274,6 +2288,7 @@
       };
 
       let flipped = false, selected = null, legalTargets = [], lastMove = null;
+      let premove = null; // Almacena { from, to, promotion } cuando el jugador realiza una jugada fuera de su turno
       let marks = new Map(), arrows = [], rightStart = null, rightMoved = false, dragFrom = null;
       let redoStack = [], pendingPromotion = null, analysis = false, justDragged = false;
       let historyPly = null;
@@ -2321,6 +2336,44 @@
         t.style.display = "block";
         clearTimeout(showToast.timer);
         showToast.timer = setTimeout(() => t.style.display = "none", 2500);
+      }
+
+      function cancelPremove() {
+        if (premove) {
+          premove = null;
+          render();
+        }
+      }
+
+      function getMyCurrentColor() {
+        if (myColor) return myColor;
+        if (botEnabled) return botColor === "w" ? "b" : "w";
+        return null;
+      }
+
+      function isMyTurn() {
+        const playerColor = getMyCurrentColor();
+        if (!playerColor) return true; // En modo local/dos jugadores en un mismo teclado
+        return game.turn() === playerColor;
+      }
+
+      function processPremove() {
+        if (!premove) return;
+        if (!isMyTurn()) return;
+
+        const pm = premove;
+        premove = null;
+
+        // Verificar si la jugada programada es legal en el estado actual
+        const moves = game.moves({ square: pm.from, verbose: true });
+        const isLegal = moves.some(m => m.to === pm.to);
+
+        if (isLegal) {
+          tryMove(pm.from, pm.to, pm.promotion, false);
+        } else {
+          // Si el premove deja de ser válido en la nueva posición, se cancela suavemente
+          render();
+        }
       }
 
       function formatTime(s) {
@@ -2393,6 +2446,7 @@
 
           if (lastMove && (lastMove.from === name || lastMove.to === name)) sq.classList.add("last");
           if (selected === name) sq.classList.add("selected");
+          if (premove && (premove.from === name || premove.to === name)) sq.classList.add("premove");
           if (legalTargets.includes(name)) sq.classList.add(p ? "capture" : "legal");
 
           if (p) {
@@ -2479,11 +2533,51 @@
       const boardEl = $("board");
       boardEl.addEventListener("pointerdown", e => {
         const name = squareAt(e); if (!name) return;
-        if (e.button === 2) { cancelDrag(); rightStart = name; return }
+        if (e.button === 2) { 
+          cancelDrag(); 
+          if (premove) { cancelPremove(); return; }
+          rightStart = name; 
+          return; 
+        }
         if (e.button !== 0) return;
         if (historyPly !== null) { historyPly = null; render(); return }
         if (marks.size || arrows.length) { marks.clear(); arrows = []; drawAnnotations() }
-        if (myColor && game.turn() !== myColor) { showToast("Es el turno del rival"); return }
+
+        const playerColor = getMyCurrentColor();
+        const myTurn = isMyTurn();
+
+        // Lógica fuera de turno -> Sistema de Premoves
+        if (!myTurn && playerColor) {
+          const p = game.get(name);
+          if (selected && selected !== name) {
+            premove = { from: selected, to: name, promotion: "q" };
+            selected = null;
+            legalTargets = [];
+            render();
+            return;
+          }
+          if (p && p.color === playerColor) {
+            if (premove && premove.from === name) {
+              cancelPremove();
+              return;
+            }
+            selected = name;
+            legalTargets = [];
+            render();
+            drag = { from: name, x: e.clientX, y: e.clientY, active: false };
+            try { boardEl.setPointerCapture(e.pointerId) } catch (_) { }
+            return;
+          }
+          cancelPremove();
+          selected = null;
+          legalTargets = [];
+          render();
+          return;
+        }
+
+        // Si hay un premove pendiente en nuestro turno y pulsamos en otra casilla, se elimina
+        if (premove) cancelPremove();
+
         const p = game.get(name);
         if (selected && legalTargets.includes(name)) { tryMove(selected, name); return }
         if (p && p.color === game.turn()) {
@@ -2509,7 +2603,9 @@
           drag.active = true; drag.ghost = g; drag.piece = img;
         }
         drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px";
-        const n = squareAt(e), el = n && legalTargets.includes(n) ? sqEl(n) : null;
+        const n = squareAt(e);
+        const myTurn = isMyTurn();
+        const el = n && (myTurn ? legalTargets.includes(n) : n !== drag.from) ? sqEl(n) : null;
         if (el !== over) { if (over) over.classList.remove("over"); over = el; if (el) el.classList.add("over") }
       });
       window.addEventListener("pointerup", e => {
@@ -2529,13 +2625,28 @@
         if (!drag) return;
         const d = drag, to = squareAt(e);
         cancelDrag();
-        if (d.active && to && to !== d.from && legalTargets.includes(to)) tryMove(d.from, to, undefined, true);
+        if (d.active && to && to !== d.from) {
+          if (!isMyTurn()) {
+            premove = { from: d.from, to, promotion: "q" };
+            selected = null;
+            legalTargets = [];
+            render();
+          } else if (legalTargets.includes(to)) {
+            tryMove(d.from, to, undefined, true);
+          }
+        }
       });
       window.addEventListener("pointercancel", cancelDrag);
-      document.addEventListener("mousedown", e => { if (e.button === 2) cancelDrag() });
+      document.addEventListener("mousedown", e => {
+        if (e.button === 2) {
+          cancelDrag();
+          cancelPremove();
+        }
+      });
       document.addEventListener("contextmenu", e => {
         if (drag || (e.target.closest && e.target.closest("#boardWrap"))) e.preventDefault();
         cancelDrag();
+        cancelPremove();
       });
 
       function tryMove(from, to, promotion, noAnim, fromBot = false) {
@@ -2570,7 +2681,13 @@
         marks.clear(); arrows = [];
         render();
         if (!noAnim) animateMove(move, false);
-        if (botEnabled && !fromBot && game.turn() === botColor) window.setTimeout(makeBotMove, 180);
+
+        if (botEnabled && !fromBot && game.turn() === botColor) {
+          window.setTimeout(makeBotMove, 180);
+        } else {
+          // Intentar ejecutar el premove si es nuestro turno tras la jugada
+          processPremove();
+        }
       }
 
       function openPromotion(color) {
@@ -2767,6 +2884,7 @@
 
       function resetLocal() {
         if (drag) cancelDrag();
+        premove = null;
         game.reset(); selected = null; legalTargets = []; marks.clear(); arrows = []; redoStack = []; historyPly = null; forced = null; clearDraw(); report = null; reviewing = false; endShown = false;
         parseTC();
         syncLocalTimeVisibility();
@@ -2863,6 +2981,9 @@
           botThinking = false;
           tryMove(m.from, m.to, m.promotion, true, true);
           $("engineStatus").textContent = "Bot activo · nivel " + botSkill + "/20.";
+          
+          // Ejecutar premove tras la respuesta del Bot
+          processPremove();
         } catch (e) { showToast(e.message || "Error al ejecutar Stockfish"); $("engineStatus").textContent = e.message || "Error al cargar el motor." }
         finally { botThinking = false }
       }
@@ -3335,6 +3456,7 @@
         else if (e.key === "ArrowDown") goPly(h.length);
         else if (e.key === "Escape") {
           cancelDrag();
+          cancelPremove();
           $("promotionModal").style.display = "none";
           marks.clear(); arrows = []; selected = null; legalTargets = []; render();
         }
@@ -3499,6 +3621,9 @@
             if (d.blackTime !== undefined) blackTime = d.blackTime;
             cancelDrag(); selected = null; legalTargets = []; redoStack = []; historyPly = null; marks.clear(); arrows = []; clearDraw();
             render(); animateMove(m, false);
+            
+            // Procesar el premove programado tras la jugada recibida del rival
+            processPremove();
           }
         } else if (d.type === "reset") {
           game.reset(); marks.clear(); arrows = []; forced = null; clearDraw();
