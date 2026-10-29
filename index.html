@@ -61,10 +61,10 @@ main{display:grid;grid-template-columns:minmax(320px,min(calc(100dvh - 140px),ca
 .primary,.secondary{border-radius:6px;padding:9px 12px;font-weight:700;transition:background .15s}
 .primary{background:var(--green);color:#141d0f}.primary:hover:not(:disabled){background:var(--green2)}
 .secondary{background:#3a3732;color:var(--bright)}.secondary:hover:not(:disabled){background:#46433e}
-.stack{display:flex;flex-direction:column;gap:12px;padding:14px 16px;flex:1;min-height:0}
-.subtabs{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
-.subtab{flex:1;background:#171614;color:var(--muted);padding:9px 10px;border-radius:6px;font-weight:700}
-.subtab.active{background:#4b6b2f;color:#fff}
+.stack{display:flex;flex-direction:column;gap:9px;padding:12px 14px;flex:1;min-height:0}
+.subtabs{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.subtab{flex:1;background:transparent;color:var(--muted);padding:10px;border-radius:7px;font-weight:700;border:1px solid transparent}
+.subtab.active{background:#3b4d2e;color:#fff;border-color:#587a3c}
 .subpane{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
 .subpane[hidden]{display:none}
 .move-subpane{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto}
@@ -72,9 +72,9 @@ main{display:grid;grid-template-columns:minmax(320px,min(calc(100dvh - 140px),ca
 #move-subpane-list .moves{flex:1;min-height:160px}
 .play-subpane{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto}
 .play-subpane[hidden],.online-subpane[hidden]{display:none}
-.play-subpane#subpane-bot .engine-panel{border-top:0;flex:1;overflow:auto}
+.play-subpane#subpane-bot .engine-panel{border-top:0;flex:1;overflow:auto}.play-subpane#subpane-bot #analyzeBtn,.play-subpane#subpane-bot #stopAnalyzeBtn,.play-subpane#subpane-bot #engineResults{display:none}
 .inner-subtabs{padding-top:8px}
-.online-subpane{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto}
+.online-subpane{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto}.room-details{border-top:1px solid var(--line);padding-top:10px}.room-details summary{display:flex;align-items:center;gap:7px;color:var(--bright);font-weight:700;cursor:pointer;list-style:none;padding:6px 2px}.room-details summary::-webkit-details-marker{display:none}.room-details summary:after{content:"＋";margin-left:auto;color:var(--muted)}.room-details[open] summary:after{content:"−"}.room-details-body{display:flex;flex-direction:column;gap:10px;padding-top:10px}
 .chat-panel{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;border:1px solid var(--line);border-radius:8px;padding:10px}
 .section-title{font:700 13px Manrope,sans-serif;color:var(--bright);display:flex;align-items:center;gap:7px}
 .friend{flex-wrap:wrap}.friend .tiny{white-space:nowrap}.friend button{white-space:nowrap}
@@ -95,14 +95,14 @@ input:focus,select:focus{border-color:var(--green)}
 .modal h3{margin:0 0 10px;font:700 16px Manrope;color:var(--bright)}
 .modal-buttons{display:flex;gap:8px}
 .promo{background:#3a3732;border-radius:8px;padding:6px}.promo:hover{background:#4b6b2f}.promo img{width:60px;height:60px;display:block}
-.engine-panel{border-top:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:9px}.engine-panel .section-title{margin-bottom:1px}.engine-row{display:flex;gap:7px;align-items:center}.engine-row>*{min-width:0;flex:1}.engine-status{font-size:12px;color:var(--muted);line-height:1.4}.engine-results{max-height:180px;overflow:auto;background:#171614;border-radius:7px;padding:8px;font-size:12px;line-height:1.55}.engine-results:empty{display:none}.engine-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}.engine-stat{background:#24221f;border:1px solid #39352f;border-radius:6px;padding:7px 5px;text-align:center}.engine-stat strong{display:block;font-size:18px;line-height:1.2}.engine-stat span{display:block;font-size:10px;color:#c0bbb2;margin-top:3px}.engine-result{display:grid;grid-template-columns:44px 1fr auto;gap:7px;padding:4px 2px;border-bottom:1px solid #302d29;cursor:pointer}.engine-result:last-child{border-bottom:0}.engine-result.bad{color:#ff9b8d}.engine-result.good{color:#b9e58b}.engine-result.best{color:#a9d7ff}.engine-result.brilliant{color:#55e5b1}.engine-eval{font-weight:700;text-align:right;white-space:nowrap}.engine-note{color:var(--muted);font-size:11px}
+.engine-panel{border-top:0;padding:12px 14px;display:flex;flex-direction:column;gap:10px}.engine-panel .section-title{margin-bottom:1px}.engine-row{display:flex;gap:7px;align-items:center}.engine-row>*{min-width:0;flex:1}.engine-status{font-size:12px;color:var(--muted);line-height:1.4}.engine-results{max-height:180px;overflow:auto;background:#171614;border-radius:7px;padding:8px;font-size:12px;line-height:1.55}.engine-results:empty{display:none}.engine-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}.engine-stat{background:#24221f;border:1px solid #39352f;border-radius:6px;padding:7px 5px;text-align:center}.engine-stat strong{display:block;font-size:18px;line-height:1.2}.engine-stat span{display:block;font-size:10px;color:#c0bbb2;margin-top:3px}.engine-result{display:grid;grid-template-columns:44px 1fr auto;gap:7px;padding:4px 2px;border-bottom:1px solid #302d29;cursor:pointer}.engine-result:last-child{border-bottom:0}.engine-result.bad{color:#ff9b8d}.engine-result.good{color:#b9e58b}.engine-result.best{color:#a9d7ff}.engine-result.brilliant{color:#55e5b1}.engine-eval{font-weight:700;text-align:right;white-space:nowrap}.engine-note{color:var(--muted);font-size:11px}
 @media(max-width:900px){main{grid-template-columns:minmax(0,640px);padding:10px}.card{position:static;min-height:560px}.moves{min-height:120px;max-height:220px}.sidebar{min-height:560px}}
-.end{width:min(360px,100%);background:#262522;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px #000a}
+.end{width:min(720px,100%);max-height:90dvh;overflow:auto;background:#262522;border-radius:12px;box-shadow:0 20px 60px #000a}
 .end-head{position:relative;text-align:center;padding:20px 52px;background:#2b2926}
 .end-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:36px;line-height:1}
 .end-title{font:800 24px Manrope,sans-serif;color:#fff}.end-sub{color:var(--muted);font-size:14px;margin-top:2px}
 .end-x{position:absolute;right:10px;top:8px;background:none;color:var(--muted);font-size:18px;padding:4px 8px}.end-x:hover{color:#fff}
-.end-body{padding:22px 16px 16px}
+.end-body{padding:18px 20px 20px}
 .end-msg{display:flex;align-items:flex-end;gap:10px;margin-bottom:20px}
 .end-msg img{width:56px;height:56px;border-radius:8px;background:#3a3732;flex:none}
 .bubble{flex:1;background:#fff;color:#262522;font-weight:600;font-size:15px;padding:14px 16px;border-radius:12px 12px 12px 2px}
@@ -110,7 +110,7 @@ input:focus,select:focus{border-color:var(--green)}
 .sv{display:flex;align-items:center;justify-content:center;gap:6px;font:800 20px Manrope,sans-serif;color:#fff}
 .sv i{width:22px;height:22px;border-radius:50%;background:var(--green);color:#1c1a17;font-style:normal;font-size:12px;display:grid;place-items:center}
 .end-stats .b i{background:#7aa7d9}.end-stats span{font-size:13px;font-weight:600;color:var(--green)}.end-stats .b span{color:#7aa7d9}
-.end-pgn{width:100%;background:var(--green);color:#fff;font:800 22px Manrope,sans-serif;padding:18px;border-radius:10px;box-shadow:0 4px 0 #4a7a2c;margin-bottom:14px}
+.end-pgn{width:100%;background:var(--green);color:#17200f;font:700 15px Manrope,sans-serif;padding:12px;border-radius:8px;margin-bottom:12px;box-shadow:none}
 .end-pgn:hover{background:var(--green2)}.end-pgn:active{transform:translateY(3px);box-shadow:0 1px 0 #4a7a2c}
 .end-row{display:flex;gap:8px}.end-row button{flex:1;background:#2b2926;color:#fff;font-weight:700;padding:14px;border-radius:8px;box-shadow:0 3px 0 #1a1917}
 .end-row button:hover{background:#363330}
@@ -120,6 +120,65 @@ input:focus,select:focus{border-color:var(--green)}
 .fname{flex:1;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fdot{width:9px;height:9px;border-radius:50%;background:#6b6760;flex:none}.fdot.on{background:var(--green)}
 .friend button{padding:5px 10px}.stack .tiny{font-size:12px;color:var(--muted)}
+
+/* ===== Informe de análisis en el modal ===== */
+.rp-sec{margin:0 0 16px}.rp-h{font:800 13px Manrope,sans-serif;color:var(--bright);text-transform:uppercase;letter-spacing:.6px;margin:0 0 8px}
+.rp-table{width:100%;border-collapse:collapse;font-size:13px}.rp-table th{font:700 11px Manrope,sans-serif;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 8px;text-align:center}.rp-table th:first-child{text-align:left}
+.rp-table td{padding:5px 8px;border-top:1px solid #302d29;text-align:center;font-weight:700;color:var(--bright);font-variant-numeric:tabular-nums}.rp-table td:first-child{text-align:left;font-weight:600;color:var(--text)}
+.rp-table td.zero{color:#5d5a54;font-weight:500}
+.rp-dot{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font:800 10px Manrope,sans-serif;color:#17140f;margin-right:8px;vertical-align:middle}
+.rp-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rp-card{background:#1f1d1a;border:1px solid #39352f;border-radius:9px;padding:10px 12px}
+.rp-card .who{font:700 12px Manrope,sans-serif;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.rp-card .who i{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #0006}
+.rp-acc{font:800 28px Manrope,sans-serif;color:var(--bright);line-height:1}.rp-acc small{font-size:14px;color:var(--muted);margin-left:1px}
+.rp-mini{display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--muted)}.rp-mini b{display:block;color:var(--bright);font-size:14px}
+.rp-graph{width:100%;height:80px;display:block;border-radius:7px;background:#1f1d1a;cursor:pointer}
+
+/* ===== Modal compacto (sin scroll) ===== */
+#endBox.analyzed .end-head{padding:10px 52px}#endBox.analyzed .end-title{font-size:20px}#endBox.analyzed .end-icon{font-size:28px}#endBox.analyzed .end-sub{font-size:12px;margin-top:0}
+#endBox.analyzed .end-body{padding:12px 16px 14px}#endBox.analyzed .end-msg{display:none}
+#endBox.analyzed .end-stats{margin-bottom:10px}#endBox.analyzed .sv{font-size:16px}#endBox.analyzed .end-stats span{font-size:12px}
+#endBox.analyzed .end-row button{padding:11px}
+#endAnalysis.done{border:0!important;padding:0!important;margin:0 0 10px!important}#endAnalysis.done .ea-head,#endAnalysis.done #endAnalysisStatus,#endAnalysis.done .ea-prog{display:none}
+.ea-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.ea-prog{height:5px;border-radius:3px;background:#3a3732;overflow:hidden;margin-bottom:8px}.ea-prog i{display:block;height:100%;width:0;background:var(--green);transition:width .15s}
+.rp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.rp-col{min-width:0}
+.rp-h{margin:0 0 6px!important}
+.rp-table{font-size:12.5px}.rp-table th{padding:2px 6px}.rp-table td{padding:3px 6px}.rp-dot{width:16px;height:16px;font-size:8px;margin-right:7px}
+.rp-metrics{gap:8px}.rp-card{padding:8px 10px}.rp-card .who{margin-bottom:4px}.rp-acc{font-size:24px}.rp-mini{flex-direction:column;gap:2px;margin-top:6px;font-size:11px}.rp-mini b{display:inline;font-size:12px;margin-right:4px}
+.rp-graph{height:56px}
+#endReview{margin-bottom:10px}#endReview[hidden],#reviewBtn[hidden]{display:none!important}
+@media(max-width:640px){.rp-grid{grid-template-columns:1fr}}
+@media(max-height:620px){.rp-table td{padding:2px 6px}.rp-acc{font-size:20px}.rp-graph{height:40px}#endBox.analyzed .end-stats{display:none}}
+/* ===== Modo análisis en el tablero real ===== */
+.rv{padding:10px 12px 0;display:flex;flex-direction:column;gap:8px}.rv[hidden]{display:none}
+.rv-top{display:flex;align-items:center;gap:6px;color:var(--bright)}.rv-top strong{flex:1;font:800 13px Manrope,sans-serif}.rv-top button{padding:5px 10px}
+.rv-card{background:#1f1d1a;border:1px solid #39352f;border-radius:9px;padding:10px 12px}
+.rv-move{display:flex;align-items:center;gap:8px;font:800 17px Manrope,sans-serif;color:var(--bright)}.rv-move .rp-dot{margin:0;width:24px;height:24px;font-size:11px}
+.rv-eval{margin-left:auto;font:800 14px Manrope,sans-serif;background:#2f2c28;padding:3px 8px;border-radius:6px}
+.rv-cat{font:700 13px Manrope,sans-serif;margin-top:3px}.rv-desc{font-size:12.5px;color:var(--text);margin-top:5px;line-height:1.4}
+.rv-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.rv-badge{position:absolute;z-index:3;top:1px;right:1px;min-width:22px;height:22px;border-radius:11px;padding:0 4px;display:grid;place-items:center;font:800 12px Manrope,sans-serif;color:#15120e;box-shadow:0 1px 4px #000a;pointer-events:none}
+
+/* ===== Ajustes: piezas y tablero ===== */
+.gear{margin-left:auto;background:#3a3732;color:var(--bright);padding:6px;border-radius:8px;display:grid;place-items:center}.gear:hover{background:#46433e}.gear .material-symbols-rounded{margin:0}
+body.board-img .square.light,body.board-img .square.dark,body.board-img .pv-sq{background:transparent!important}
+body.board-img .coord{color:#fff!important;text-shadow:0 0 3px #000,0 0 2px #000}
+.st{width:min(680px,100%);max-height:90dvh;display:flex;flex-direction:column;gap:12px}
+.st-head{display:flex;align-items:center}.st-head h3{margin:0;flex:1;display:flex;align-items:center;gap:8px}.st-head .material-symbols-rounded{margin:0}
+.st-body{display:flex;gap:16px;min-height:0;flex:1}
+.st-preview{flex:none;width:236px}
+.pv-board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);aspect-ratio:1;border-radius:6px;overflow:hidden}
+.pv-sq{display:flex;align-items:center;justify-content:center}.pv-sq.light{background:var(--light)}.pv-sq.dark{background:var(--dark)}.pv-sq img{width:94%;height:94%}
+.st-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;min-height:0}
+.st-tabs{display:flex;gap:6px}.st-tab{flex:1;background:#3a3732;color:var(--muted);padding:8px;border-radius:7px;font-weight:700;border:1px solid transparent}.st-tab.active{color:var(--bright);border-color:var(--green)}
+.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;overflow:auto;padding:2px;max-height:min(340px,52dvh);align-content:start}.st-grid[hidden]{display:none}
+.st-card{display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 4px 6px;border-radius:9px;background:#1f1d1a;border:2px solid transparent;color:var(--text);font-size:11.5px;font-weight:600;text-align:center}
+.st-card:hover{background:#2a2825}.st-card.sel{border-color:var(--green);color:var(--bright)}
+.st-thumb{display:flex;justify-content:center;height:40px}.st-thumb img{width:40px;height:40px}.st-thumb.bd{width:60px;height:60px;border-radius:5px;background-size:100% 100%;background-color:#2f2c28}
+.st-foot{display:flex;gap:8px;justify-content:flex-end}.st-foot button{padding:9px 16px}
+@media(max-width:600px){.st-body{flex-direction:column;overflow:auto}.st-preview{align-self:center;width:min(200px,100%)}}
 </style>
 </head>
 <body>
@@ -142,7 +201,7 @@ input:focus,select:focus{border-color:var(--green)}
   </section>
 
   <aside class="sidebar"><section class="card">
-    <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Mueven blancas</span></div>
+    <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Mueven blancas</span><button class="gear" id="settingsBtn" title="Ajustes" aria-label="Ajustes"><span class="material-symbols-rounded">settings</span></button></div>
     <div class="drawbar" id="inviteBar" hidden><span id="inviteText"></span><button class="primary" id="invYes"><span class="material-symbols-rounded">check</span> Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span> No</button></div>
     <div class="tabs">
       <button class="tab active" data-tab="moves"><span class="material-symbols-rounded">history</span> PARTIDA <small id="moveCount">0</small></button>
@@ -152,6 +211,11 @@ input:focus,select:focus{border-color:var(--green)}
     <div class="pane" id="pane-moves">
       <div class="move-subpane" id="move-subpane-list">
       <div class="drawbar" id="drawBar" hidden><span>Tablas ofrecidas</span><button class="primary" id="drawYes"><span class="material-symbols-rounded">check</span> Aceptar</button><button class="secondary" id="drawNo"><span class="material-symbols-rounded">close</span> Rechazar</button></div>
+      <div class="rv" id="reviewPanel" hidden>
+        <div class="rv-top"><span class="material-symbols-rounded">query_stats</span><strong>Análisis de la partida</strong><button class="secondary" id="rvExit" title="Salir del análisis">Salir</button></div>
+        <div class="rv-card" id="rvCard"></div>
+        <svg class="rp-graph" id="rvGraph" style="height:44px" aria-label="Evaluación de la partida"></svg>
+      </div>
       <div class="moves" id="moves"></div>
       <div class="nav">
         <button class="secondary" id="firstBtn" title="Inicio (↑)">«</button>
@@ -164,6 +228,7 @@ input:focus,select:focus{border-color:var(--green)}
         <button class="secondary" id="downloadPgnBtn"><span class="material-symbols-rounded">download</span> Exportar PGN</button>
         <button class="secondary" id="drawBtn"><span class="material-symbols-rounded">handshake</span> Ofrecer tablas</button>
         <button class="secondary" id="resignBtn"><span class="material-symbols-rounded">flag</span> Rendirse</button>
+        <button class="secondary wide" id="reviewBtn" hidden><span class="material-symbols-rounded">query_stats</span> Revisar análisis en el tablero</button>
         <button class="primary wide" id="newGameBtn">Nueva partida</button>
       </div>
       </div>
@@ -187,19 +252,16 @@ input:focus,select:focus{border-color:var(--green)}
       </div>
       </div>
       <div class="play-subpane" id="subpane-online" hidden>
-        <div class="subtabs inner-subtabs" role="tablist" aria-label="Opciones online">
-          <button class="online-subtab subtab active" data-online-subtab="friends"><span class="material-symbols-rounded">group</span> Amigos</button>
-          <button class="online-subtab subtab" data-online-subtab="code"><span class="material-symbols-rounded">vpn_key</span> Código de sala</button>
-        </div>
-      <div class="stack online-subpane" id="online-subpane-friends" hidden>
+      <div class="stack online-subpane" id="online-subpane-friends">
         <div class="field"><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="16"></div>
         <div class="field"><label>Tu código de amigo</label><div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn"><span class="material-symbols-rounded">content_copy</span> Copiar</button></div></div>
         <div class="field"><label for="friendInput">Añadir amigo por código</label><div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="primary" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span> Añadir</button></div></div>
         <div class="friends" id="friendList"></div>
-        <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span> Comprobar amigos</button>
+        <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span> Actualizar lista</button>
         <div class="tiny" id="friendNote">Conectando…</div>
-      </div>
-      <div class="stack online-subpane" id="online-subpane-code" hidden>
+        <details class="room-details">
+          <summary><span class="material-symbols-rounded">vpn_key</span> Jugar con código de sala</summary>
+          <div class="room-details-body">
         <div class="field"><label for="tcSelect">Control de tiempo</label><select id="tcSelect"><option value="180+0">Bullet (3 min)</option><option value="300+0">Blitz (5 min)</option><option value="300+3">Blitz (5 min + 3s)</option><option value="600+0" selected>Rápida (10 min)</option><option value="900+10">Clásica (15 min + 10s)</option><option value="0+0">Sin límite de tiempo</option></select></div>
         <div class="field"><label for="colorSelect">Jugar con</label><select id="colorSelect"><option value="w">Blancas</option><option value="b">Negras</option><option value="r" selected>Aleatorio</option></select></div>
         <div class="row"><button class="primary" id="createRoomBtn"><span class="material-symbols-rounded">add_circle</span> Crear sala</button><button class="secondary" id="copyLinkBtn"><span class="material-symbols-rounded">link</span> Copiar enlace</button></div>
@@ -210,8 +272,10 @@ input:focus,select:focus{border-color:var(--green)}
           <div class="chat-log" id="chatLog"><div class="msg sys">Conéctate a una partida para chatear.</div></div>
           <div class="chat-form"><input id="chatInput" type="text" maxlength="300" placeholder="Escribe un mensaje…" disabled><button class="primary" id="chatSend" disabled aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
         </div>
-      </div>
+          </div>
+        </details>
 
+      </div>
       </div>
     </div>
   </section></aside>
@@ -228,12 +292,27 @@ input:focus,select:focus{border-color:var(--green)}
   </div>
 </div>
 
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal st" role="dialog" aria-label="Ajustes">
+    <div class="st-head"><h3><span class="material-symbols-rounded">settings</span> Ajustes</h3><button class="end-x" id="stClose" aria-label="Cerrar" style="position:static"><span class="material-symbols-rounded" style="margin:0">close</span></button></div>
+    <div class="st-body">
+      <div class="st-preview"><div class="pv-board" id="stPreview"></div></div>
+      <div class="st-main">
+        <div class="st-tabs"><button class="st-tab active" data-st="pieces">Piezas</button><button class="st-tab" data-st="boards">Tablero</button></div>
+        <div class="st-grid" id="stPieces"></div>
+        <div class="st-grid" id="stBoards" hidden></div>
+      </div>
+    </div>
+    <div class="st-foot"><button class="secondary" id="stReset">Restablecer</button><button class="primary" id="stDone">Hecho</button></div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="promotionModal">
   <div class="modal"><h3>Coronar peón</h3><div class="modal-buttons" id="promotionChoices"></div></div>
 </div>
 
 <div class="modal-backdrop" id="endModal">
-  <div class="end">
+  <div class="end" id="endBox">
     <div class="end-head"><span class="end-icon material-symbols-rounded" id="endIcon">trophy</span><div class="end-title" id="endTitle"></div><div class="end-sub" id="endSub"></div><button class="end-x" id="endClose" aria-label="Cerrar"><span class="material-symbols-rounded">close</span></button></div>
     <div class="end-body">
       <div class="end-msg"><img id="endAvatar" alt=""><div class="bubble" id="endMsg"></div></div>
@@ -243,6 +322,13 @@ input:focus,select:focus{border-color:var(--green)}
         <div><div class="sv"><i>♚</i><span id="endChecks" style="color:#fff;font-size:20px"></span></div><span>Jaques</span></div>
       </div>
       <button class="end-pgn" id="endPgn"><span class="material-symbols-rounded">query_stats</span> Analizar partida</button>
+      <div id="endAnalysis" hidden style="border:1px solid var(--line);border-radius:9px;padding:12px;margin:0 0 14px">
+        <div class="ea-head"><strong style="color:var(--bright)">Análisis de la partida</strong><button class="secondary" id="endStopAnalyze" disabled><span class="material-symbols-rounded">stop</span> Detener</button></div>
+        <div class="ea-prog"><i id="endProg"></i></div>
+        <div class="engine-status" id="endAnalysisStatus" aria-live="polite">Preparando Stockfish…</div>
+        <div class="engine-results" id="endAnalysisResults" aria-live="polite" style="max-height:none;background:none;padding:0;overflow:visible"></div>
+      </div>
+      <button class="end-pgn" id="endReview" hidden><span class="material-symbols-rounded">swipe_right_alt</span> Revisar jugada a jugada en el tablero</button>
       <div class="end-row"><button id="endNew">Nueva partida</button><button id="endRematch">Revancha</button></div>
     </div>
   </div>
@@ -277,14 +363,18 @@ input:focus,select:focus{border-color:var(--green)}
   let historyPly = null;
   let botEnabled=false, botColor="b", botSkill=6, botThinking=false;
   let engineWorker=null, engineReady=false, engineInitPromise=null, activeSearch=null;
-  let analysisCancelled=false, analysisRunning=false;
+  let analysisCancelled=false, analysisRunning=false, report=null, reviewing=false;
 
   // Red y tiempo
   let role = null, myColor = null;
   let peerJSInstance = null, peerJSConn = null;
   let timed = true, whiteTime = 600, blackTime = 600, increment = 0, clockTimer = null;
 
-  const PIECE=(c,t)=>"https://images.chesscomfiles.com/chess-themes/pieces/neo/150/"+c+t+".png";
+  const store={get:k=>{try{return localStorage.getItem(k)}catch(_){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}}};
+  let pieceSet=/^[a-z0-9_]+$/.test(store.get("ajedrez.pieces")||"")?store.get("ajedrez.pieces"):"neo";
+  let boardTheme=/^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board")||"")?store.get("ajedrez.board"):"c-verde";
+  const pieceUrl=(set,c,t)=>"https://images.chesscomfiles.com/chess-themes/pieces/"+set+"/150/"+c+t+".png";
+  const PIECE=(c,t)=>pieceUrl(pieceSet,c,t);
   const files = "abcdefgh";
   const pieceNames = {q:"Dama",r:"Torre",b:"Alfil",n:"Caballo"};
 
@@ -347,6 +437,7 @@ input:focus,select:focus{border-color:var(--green)}
     const board=$("board");
     board.innerHTML="";
     const history=game.history({verbose:true});
+    if(report&&report.rows.length!==history.length){report=null;reviewing=false}   // la partida ha cambiado: el análisis ya no vale
     const activeHistory = (historyPly !== null) ? history.slice(0, historyPly) : history;
     
     // Si estamos revisando la historia, creamos un tablero temporal para visualizar
@@ -357,6 +448,7 @@ input:focus,select:focus{border-color:var(--green)}
     }
 
     lastMove=activeHistory.length?{from:activeHistory[activeHistory.length-1].from,to:activeHistory[activeHistory.length-1].to}:null;
+    const rvRow=(reviewing&&report&&activeHistory.length)?report.rows[activeHistory.length-1]:null;
 
     for(let y=0;y<8;y++) for(let x=0;x<8;x++){
       const file=flipped?7-x:x;
@@ -392,11 +484,13 @@ input:focus,select:focus{border-color:var(--green)}
         sq.appendChild(fileLabel);
       }
 
+      if(rvRow&&name===rvRow.m.to){const bd=document.createElement("span");bd.className="rv-badge";bd.style.background=CATS[rvRow.key].color;bd.textContent=CATS[rvRow.key].icon;sq.appendChild(bd)}
       sq.dataset.sq=name;
       board.appendChild(sq);
     }
 
     renderMoves();
+    renderReviewPanel();
     renderStatus();
     drawAnnotations();
     updateClockUI();
@@ -584,13 +678,16 @@ input:focus,select:focus{border-color:var(--green)}
         const b=document.createElement("button");
         b.className="move "+(currentPly === j+1 ? "current" : "");
         b.textContent=h[j].san;
+        if(reviewing&&report&&report.rows[j]){const dt=document.createElement("i");dt.className="rv-dot";dt.style.background=CATS[report.rows[j].key].color;b.prepend(dt)}
         const plyTarget = j+1;
         b.onclick=()=>goPly(plyTarget);
         el.appendChild(b);
       }
       if(i+1>=h.length)el.appendChild(document.createElement("span"));
     }
-    el.scrollTop=el.scrollHeight;
+    const curEl=el.querySelector(".move.current");
+    if(reviewing&&curEl){const cr=curEl.getBoundingClientRect(),er=el.getBoundingClientRect();el.scrollTop+=cr.top-er.top-er.height/2+cr.height/2}
+    else el.scrollTop=el.scrollHeight;
   }
 
   function timedOut(){return timed&&(whiteTime<=0||blackTime<=0)}
@@ -649,6 +746,7 @@ input:focus,select:focus{border-color:var(--green)}
     path.setAttribute("fill",markColor);
     marker.appendChild(path);
     defs.appendChild(marker);
+    const marker2=marker.cloneNode(true);marker2.setAttribute("id","arrowhead-rv");marker2.firstChild.setAttribute("fill","#4aa3ff");defs.appendChild(marker2);
     svg.appendChild(defs);
 
     const center=n=>{
@@ -664,7 +762,7 @@ input:focus,select:focus{border-color:var(--green)}
       svg.appendChild(r);
     });
 
-    arrows.forEach(a=>{
+    [...arrows,...reviewArrows()].forEach(a=>{
       const s=center(a.from), e=center(a.to);
       const sf=files.indexOf(a.from[0]), sr=Number(a.from[1]);
       const ef=files.indexOf(a.to[0]), er=Number(a.to[1]);
@@ -683,7 +781,7 @@ input:focus,select:focus{border-color:var(--green)}
         pathEl.setAttribute("stroke-linecap", "round");
         pathEl.setAttribute("stroke-linejoin", "round");
         pathEl.setAttribute("opacity", ".85");
-        pathEl.setAttribute("marker-end", "url(#arrowhead)");
+        pathEl.setAttribute("marker-end", "url(#"+(a.marker||"arrowhead")+")");
         svg.appendChild(pathEl);
       } else {
         // Flecha recta normal
@@ -695,7 +793,7 @@ input:focus,select:focus{border-color:var(--green)}
         line.setAttribute("stroke-width","9");
         line.setAttribute("stroke-linecap","round");
         line.setAttribute("opacity",".85");
-        line.setAttribute("marker-end","url(#arrowhead)");
+        line.setAttribute("marker-end","url(#"+(a.marker||"arrowhead")+")");
         svg.appendChild(line);
       }
     });
@@ -705,7 +803,7 @@ input:focus,select:focus{border-color:var(--green)}
   
   function resetLocal(){
     if(drag)cancelDrag();
-    game.reset();selected=null;legalTargets=[];marks.clear();arrows=[];redoStack=[];historyPly=null;forced=null;clearDraw();
+    game.reset();selected=null;legalTargets=[];marks.clear();arrows=[];redoStack=[];historyPly=null;forced=null;clearDraw();report=null;reviewing=false;
     parseTC();
     render();
   }
@@ -739,6 +837,7 @@ input:focus,select:focus{border-color:var(--green)}
       const best=line.match(/^bestmove\s+(\S+)/);
       if(best){
         const task=activeSearch;activeSearch=null;
+        if(task.timer)clearTimeout(task.timer);
         task.resolve({move:best[1],score:task.score===null?0:task.score});
       }
     }
@@ -766,14 +865,21 @@ input:focus,select:focus{border-color:var(--green)}
     });
     return engineInitPromise;
   }
-  async function engineSearch(fen,depth,skill=10){
+  async function engineSearch(fen,depth,skill=10,movetime=0){
     await ensureEngine();
     if(activeSearch)throw new Error("El motor ya está calculando otra posición.");
     engineWorker.postMessage("setoption name Skill Level value "+Math.max(0,Math.min(20,skill)));
     engineWorker.postMessage("position fen "+fen);
     return new Promise((resolve,reject)=>{
-      activeSearch={resolve,reject,score:null};
-      engineWorker.postMessage("go depth "+depth);
+      const task={resolve,reject,score:null,timer:null};
+      activeSearch=task;
+      task.timer=setTimeout(()=>{
+        if(activeSearch!==task)return;
+        // Never leave the UI waiting forever for a stuck UCI search.
+        engineWorker.postMessage("stop");
+        task.timer=setTimeout(()=>{if(activeSearch===task){activeSearch=null;resolve({move:"(none)",score:task.score===null?0:task.score})}},1800);
+      },movetime?movetime+2500:15000);
+      engineWorker.postMessage(movetime?"go movetime "+movetime:"go depth "+depth);
     });
   }
   function uciToMove(uci){
@@ -824,80 +930,339 @@ input:focus,select:focus{border-color:var(--green)}
   }
   $("startBotBtn").onclick=startBotGame;
   $("analyzeBtn").onclick=analyzeGame;
-  $("stopAnalyzeBtn").onclick=()=>{
+  function stopCurrentAnalysis(){
     analysisCancelled=true;
     if(engineWorker&&activeSearch)engineWorker.postMessage("stop");
-    $("stopAnalyzeBtn").disabled=true;
-    $("engineStatus").textContent="Deteniendo el análisis…";
+    $("stopAnalyzeBtn").disabled=true;$("endStopAnalyze").disabled=true;
+    analysisStatus().textContent="Deteniendo el análisis…";
+  }
+  $("stopAnalyzeBtn").onclick=stopCurrentAnalysis;
+  $("endStopAnalyze").onclick=stopCurrentAnalysis;
+  function analysisStatus(){return $("endModal").style.display==="flex"&&$("endAnalysis").hidden===false?$("endAnalysisStatus") : $("engineStatus")}
+  function analysisResults(){return $("endModal").style.display==="flex"&&$("endAnalysis").hidden===false?$("endAnalysisResults") : $("engineResults")}
+  /* ---------- Análisis: clasificación, informe y walkthrough ---------- */
+  const CATS={
+    brilliant:{label:"Brillante",plural:"Brillantes",color:"#26c9a2",icon:"!!",desc:"Un sacrificio que mantiene o mejora tu posición. Difícil de ver."},
+    best:{label:"Mejor jugada",plural:"Mejores",color:"#81b64c",icon:"★",desc:"Es la jugada que prefiere el motor."},
+    excellent:{label:"Excelente",plural:"Excelentes",color:"#a3d160",icon:"!",desc:"Casi tan buena como la mejor opción."},
+    good:{label:"Buena",plural:"Buenas",color:"#7fb0d9",icon:"✓",desc:"Una jugada correcta que no compromete la posición."},
+    inaccuracy:{label:"Imprecisión",plural:"Imprecisiones",color:"#f7c631",icon:"?!",desc:"Había opciones mejores, aunque la posición sigue siendo jugable."},
+    mistake:{label:"Error",plural:"Errores",color:"#e8912d",icon:"?",desc:"Cede una parte importante de la ventaja."},
+    blunder:{label:"Error grave",plural:"Errores graves",color:"#ca3431",icon:"??",desc:"Cambia el rumbo de la partida de golpe."},
+    missed:{label:"Omisión de victoria",plural:"Omisiones",color:"#b34ea3",icon:"✗",desc:"Tenías una posición ganadora y la has soltado."}
   };
+  const CAT_ORDER=["brilliant","best","excellent","good","inaccuracy","mistake","blunder","missed"];
+  const winPct=cp=>50+50*(2/(1+Math.exp(-0.00368208*Math.max(-1500,Math.min(1500,cp))))-1);   // cp = centipeones, punto de vista blancas
+  const fmtEval=e=>Math.abs(e)>=90?(e>0?"":"-")+"M"+Math.max(0,Math.round(100-Math.abs(e))):(e>0?"+":"")+e.toFixed(1);
+  const sideName=c=>myColor?(c===myColor?"Tú":"Rival"):botEnabled?(c===botColor?"Bot":"Tú"):(c==="w"?"Blancas":"Negras");
+  
   async function analyzeGame(){
     if(analysisRunning)return;
     if(botThinking){showToast("Espera a que el bot termine su jugada");return}
     if(online()&&!getResult()){showToast("Puedes analizar la partida cuando haya terminado");return}
     const history=game.history({verbose:true});
     if(!history.length){showToast("Juega o carga una partida antes de analizarla");return}
-    analysisRunning=true;analysisCancelled=false;
+    analysisRunning=true;analysisCancelled=false;report=null;reviewing=false;
     $("analyzeBtn").disabled=true;$("stopAnalyzeBtn").disabled=false;
-    const results=$("engineResults");results.innerHTML="";
+    $("endStopAnalyze").disabled=false;
+    const results=analysisResults();results.innerHTML="";
     try{
-      $("engineStatus").textContent="Cargando Stockfish…";
+      analysisStatus().textContent="Cargando Stockfish…";
       await ensureEngine();
-      const replay=new Chess(),positions=[{fen:replay.fen()}];
-      history.forEach(m=>{replay.move({from:m.from,to:m.to,promotion:m.promotion||"q"});positions.push({fen:replay.fen()})});
+      const replay=new Chess(),positions=[{fen:replay.fen(),term:null}];
+      history.forEach(m=>{
+        replay.move({from:m.from,to:m.to,promotion:m.promotion||"q"});
+        // Posiciones terminales: no se buscan con el motor (no hay jugada) y se evalúan a mano.
+        let term=null;
+        if(replay.in_checkmate())term=replay.turn()==="w"?-100:100;
+        else if(replay.game_over())term=0;
+        positions.push({fen:replay.fen(),term});
+      });
       const evals=[],bestMoves=[];
       for(let i=0;i<positions.length;i++){
         if(analysisCancelled)break;
-        $("engineStatus").textContent="Analizando posición "+(i+1)+" de "+positions.length+"…";
-        const r=await engineSearch(positions[i].fen,12,15);
+        analysisStatus().textContent="Analizando posición "+(i+1)+" de "+positions.length+"…";
+        const pg=$("endProg");if(pg)pg.style.width=((i+1)/positions.length*100)+"%";
+        if(positions[i].term!==null){evals.push(positions[i].term);bestMoves.push("");continue}
+        const r=await engineSearch(positions[i].fen,12,20,200);   // nivel 20: el análisis siempre a fuerza completa
         const turn=positions[i].fen.split(" ")[1];
         evals.push((turn==="w"?r.score:-r.score)/100);
         bestMoves.push(r.move);
       }
-      if(analysisCancelled){$("engineStatus").textContent="Análisis detenido. Los resultados pueden estar incompletos.";return}
-      const counts={brilliant:0,best:0,excellent:0,good:0,inaccuracy:0,mistake:0,blunder:0,missed:0};
-      const labels={brilliant:"Brillante",best:"Mejor jugada",excellent:"Excelente",good:"Buena",inaccuracy:"Imprecisión",mistake:"Error",blunder:"Error grave",missed:"Omisión de victoria"};
+      if(analysisCancelled){analysisStatus().textContent="Análisis detenido. Los resultados pueden estar incompletos.";return}
       const pieceValue={p:1,n:3,b:3,r:5,q:9,k:99};
-      const fragment=document.createDocumentFragment();
+      const rows=[];
       history.forEach((m,i)=>{
         const before=evals[i],after=evals[i+1];
         if(before===undefined||after===undefined)return;
-        // Evalúa la pérdida desde el punto de vista del jugador que acaba de mover.
         const playerBefore=m.color==="w"?before:-before;
         const playerAfter=m.color==="w"?after:-after;
-        const lost=Math.max(0,playerBefore-playerAfter);
+        let lost=Math.max(0,playerBefore-playerAfter);
         const uci=m.from+m.to+(m.promotion||"");
-        const isBest=(bestMoves[i]||"").slice(0,4)===uci.slice(0,4);
-        // Heurística conservadora para señalar posibles sacrificios brillantes; no sustituye el análisis humano.
-        const sacrifice=!!m.captured && (pieceValue[m.piece]||0)>(pieceValue[m.captured]||0) && playerAfter>=playerBefore-0.2;
+        const isBest=(bestMoves[i]||"").slice(0,4)===uci.slice(0,4)||Math.abs(positions[i+1].term??0)===100;   // dar mate siempre es la mejor
+        if(isBest)lost=Math.min(lost,0.1);   // la jugada del propio motor no puede ser un error
+        // Sacrificio real: la pieza movida (no peón/rey) queda atacada y se pierde al menos 2 puntos de material neto,
+        // sin dar mate y sin estar ya la partida decidida. Es una heurística, no un juicio humano.
+        let sacrifice=false;
+        if(!positions[i+1].term&&m.piece!=="p"&&m.piece!=="k"&&playerBefore<=6&&playerAfter>=-0.5&&playerAfter>=playerBefore-0.2){
+          const net=(pieceValue[m.piece]||0)-(pieceValue[m.captured]||0);
+          if(net>=2){try{sacrifice=new Chess(positions[i+1].fen).moves({verbose:true}).some(x=>x.to===m.to&&x.captured)}catch(_){}}
+        }
         let key;
-        if(playerBefore>=3 && playerAfter<=1 && lost>=1.5){key="missed"}
-        else if(sacrifice && lost<=0.2){key="brilliant"}
-        else if(isBest && lost<=0.5){key="best"}
-        else if(lost<=0.15){key="excellent"}
-        else if(lost<=0.5){key="good"}
-        else if(lost<=1.5){key="inaccuracy"}
-        else if(lost<=3){key="mistake"}
-        else{key="blunder"}
-        counts[key]++;
-        const cls=(key==="brilliant"?"brilliant":(["best"].includes(key)?"best":(["inaccuracy","mistake","blunder","missed"].includes(key)?"bad":"good")));
-        const row=document.createElement("div");row.className="engine-result "+cls;
-        const no=document.createElement("span");no.textContent=(Math.floor(i/2)+1)+(m.color==="w"?".":"…");
-        const mv=document.createElement("span");mv.textContent=m.san+" · "+labels[key];
-        const ev=document.createElement("span");ev.className="engine-eval";ev.textContent=(after>0?"+":"")+after.toFixed(1);
-        row.append(no,mv,ev);row.title="Pérdida estimada: "+lost.toFixed(2)+" peones · Pulsa para revisar";row.onclick=()=>goPly(i+1);fragment.appendChild(row);
+        if(playerBefore>=3&&playerAfter<=1&&lost>=1.5)key="missed";
+        else if(sacrifice&&lost<=0.2)key="brilliant";
+        else if(isBest&&lost<=0.5)key="best";
+        else if(lost<=0.15)key="excellent";
+        else if(lost<=0.5)key="good";
+        else if(lost<=1.5)key="inaccuracy";
+        else if(lost<=3)key="mistake";
+        else key="blunder";
+        // Precisión por jugada (fórmula tipo Chess.com, sobre la probabilidad de ganar)
+        const wpB=m.color==="w"?winPct(before*100):100-winPct(before*100);
+        const wpA=m.color==="w"?winPct(after*100):100-winPct(after*100);
+        const acc=isBest?100:Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*Math.max(0,wpB-wpA))-3.1669));
+        let bestSan="";
+        if(!isBest&&bestMoves[i]&&bestMoves[i]!=="(none)"){
+          try{const t=new Chess(positions[i].fen);const bm=t.move({from:bestMoves[i].slice(0,2),to:bestMoves[i].slice(2,4),promotion:bestMoves[i][4]||"q"});if(bm)bestSan=bm.san}catch(_){}
+        }
+        rows.push({i,m,key,lost,before,after,acc,isBest,bestSan,bestUci:bestMoves[i]||"",fen:positions[i+1].fen});
       });
-      const summary=document.createElement("div");summary.className="engine-summary";
-      const stats=[
-        [counts.brilliant,"Brillantes"],[counts.best,"Mejores"],[counts.excellent,"Excelentes"],
-        [counts.good,"Buenas"],[counts.inaccuracy,"Imprecisiones"],[counts.mistake,"Errores"],
-        [counts.blunder,"Errores graves"],[counts.missed,"Omisiones"],[history.length,"Jugadas"]
-      ];
-      stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="engine-stat";const strong=document.createElement("strong");strong.textContent=value;const caption=document.createElement("span");caption.textContent=label;card.append(strong,caption);summary.appendChild(card)});
-      results.appendChild(summary);results.appendChild(fragment);
-      $("engineStatus").textContent="Análisis terminado. Las categorías son estimaciones de Stockfish; las brillantes y omisiones se detectan mediante heurísticas. Pulsa una jugada para revisar la posición.";
-    }catch(e){$("engineStatus").textContent=e.message||"Error durante el análisis.";showToast(e.message||"Error al analizar")}
-    finally{analysisRunning=false;$("analyzeBtn").disabled=false;$("stopAnalyzeBtn").disabled=true}
+      report={rows,evals,startFen:positions[0].fen};
+      if(results===$("endAnalysisResults")){
+        renderReport(results,report);
+      }else{
+        renderSidebarList(results,rows);
+      }
+      analysisStatus().textContent="Análisis terminado · las categorías son estimaciones del motor.";
+      renderReviewPanel();
+    }catch(e){analysisStatus().textContent=e.message||"Error durante el análisis.";showToast(e.message||"Error al analizar")}
+    finally{analysisRunning=false;$("analyzeBtn").disabled=false;$("stopAnalyzeBtn").disabled=true;$("endStopAnalyze").disabled=true}
   }
+
+  // Lista compacta del panel lateral (comportamiento anterior)
+  function renderSidebarList(results,rows){
+    const counts={};CAT_ORDER.forEach(k=>counts[k]=0);
+    const frag=document.createDocumentFragment();
+    rows.forEach(r=>{
+      counts[r.key]++;
+      const cls=r.key==="brilliant"?"brilliant":r.key==="best"?"best":["inaccuracy","mistake","blunder","missed"].includes(r.key)?"bad":"good";
+      const row=document.createElement("div");row.className="engine-result "+cls;
+      const no=document.createElement("span");no.textContent=(Math.floor(r.i/2)+1)+(r.m.color==="w"?".":"…");
+      const mv=document.createElement("span");mv.textContent=r.m.san+" · "+CATS[r.key].label;
+      const ev=document.createElement("span");ev.className="engine-eval";ev.textContent=fmtEval(r.after);
+      row.append(no,mv,ev);row.title="Pérdida estimada: "+r.lost.toFixed(2)+" peones · Pulsa para revisar";row.onclick=()=>{closeEnd();goPly(r.i+1)};frag.appendChild(row);
+    });
+    const summary=document.createElement("div");summary.className="engine-summary";
+    CAT_ORDER.map(k=>[counts[k],CATS[k].plural]).concat([[rows.length,"Jugadas"]]).forEach(([v,l])=>{
+      const c=document.createElement("div");c.className="engine-stat";const st=document.createElement("strong");st.textContent=v;const sp=document.createElement("span");sp.textContent=l;c.append(st,sp);summary.appendChild(c);
+    });
+    results.append(summary,frag);
+  }
+
+  // Gráfica de evaluación (probabilidad de ganar de las blancas); compartida por el modal y el panel de revisión
+  function drawGraph(svg,evals){
+    const W=600,H=64,n=evals.length;
+    const X=k=>n>1?k*W/(n-1):0,Y=e=>H*(1-winPct(e*100)/100);
+    let d="M0,"+H+" ";evals.forEach((e,k)=>{d+="L"+X(k).toFixed(1)+","+Y(e).toFixed(1)+" "});d+="L"+W+","+H+" Z";
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.setAttribute("preserveAspectRatio","none");
+    svg.innerHTML='<rect width="'+W+'" height="'+H+'" fill="#3b3a37"/><path d="'+d+'" fill="#f2f0ea"/><line x1="0" x2="'+W+'" y1="'+H/2+'" y2="'+H/2+'" stroke="#8a867e" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/><line class="gc" x1="-9" x2="-9" y1="0" y2="'+H+'" stroke="#81b64c" stroke-width="3"/>';
+  }
+  const graphPly=(svg,e,n)=>{const r=svg.getBoundingClientRect();return Math.max(0,Math.min(n-1,Math.round((e.clientX-r.left)/(r.width||1)*(n-1))))};
+
+  // Modal compacto: 1) categorías 2) precisión 3) evolución; el repaso se hace en el tablero real
+  function renderReport(root,data){
+    const {rows,evals}=data;
+    root.innerHTML="";
+    const side={w:rows.filter(r=>r.m.color==="w"),b:rows.filter(r=>r.m.color==="b")};
+    const cnt={w:{},b:{}};
+    ["w","b"].forEach(c=>{CAT_ORDER.forEach(k=>cnt[c][k]=0);side[c].forEach(r=>cnt[c][r.key]++)});
+    const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!==undefined)e.innerHTML=html;return e};
+    const grid=el("div","rp-grid"),left=el("div","rp-col"),right=el("div","rp-col");
+
+    left.append(el("div","rp-h","Jugadas por categoría"));
+    let t='<table class="rp-table"><thead><tr><th></th><th>'+sideName("w")+' ♔</th><th>'+sideName("b")+' ♚</th></tr></thead><tbody>';
+    CAT_ORDER.forEach(k=>{
+      const c=CATS[k];
+      t+='<tr><td><span class="rp-dot" style="background:'+c.color+'">'+c.icon+'</span>'+c.plural+'</td>'+
+        ["w","b"].map(col=>'<td class="'+(cnt[col][k]?"":"zero")+'">'+cnt[col][k]+'</td>').join("")+'</tr>';
+    });
+    t+='<tr><td style="color:var(--muted)">Total</td><td>'+side.w.length+'</td><td>'+side.b.length+'</td></tr></tbody></table>';
+    left.insertAdjacentHTML("beforeend",t);
+
+    const stat=rs=>{
+      if(!rs.length)return{acc:0,acpl:0,best:0};
+      return{
+        acc:rs.reduce((a,r)=>a+r.acc,0)/rs.length,
+        acpl:rs.reduce((a,r)=>a+Math.min(r.lost,10),0)/rs.length,
+        best:rs.filter(r=>["brilliant","best","excellent"].includes(r.key)).length/rs.length*100
+      };
+    };
+    right.append(el("div","rp-h","Precisión"));
+    const mg=el("div","rp-metrics");
+    ["w","b"].forEach(c=>{
+      const m=stat(side[c]);
+      mg.append(el("div","rp-card",'<div class="who"><i style="background:'+(c==="w"?"#f2f0ea":"#3b3a37")+'"></i>'+sideName(c)+'</div>'+
+        '<div class="rp-acc">'+m.acc.toFixed(1)+'<small>%</small></div>'+
+        '<div class="rp-mini"><span><b>'+m.acpl.toFixed(2)+'</b>pérd. media (peones)</span><span><b>'+m.best.toFixed(0)+'%</b>jugadas top</span></div>'));
+    });
+    right.append(mg);
+    const gh=el("div","rp-h","Evolución · pulsa para ir a esa jugada");gh.style.marginTop="12px";right.append(gh);
+    const g=document.createElementNS("http://www.w3.org/2000/svg","svg");g.classList.add("rp-graph");drawGraph(g,evals);
+    g.addEventListener("click",e=>startReview(graphPly(g,e,evals.length)));
+    right.append(g);
+
+    grid.append(left,right);root.append(grid);
+    $("endAnalysis").classList.add("done");$("endBox").classList.add("analyzed");$("endReview").hidden=false;
+  }
+
+  /* ---------- Modo análisis sobre el tablero real ---------- */
+  function startReview(ply){
+    if(!report)return;
+    const n=game.history().length;
+    ply=Math.max(0,Math.min(n,ply||0));
+    reviewing=true;selected=null;legalTargets=[];
+    closeEnd();showTab("moves");
+    historyPly=ply===n?null:ply;
+    drawGraph($("rvGraph"),report.evals);
+    render();
+  }
+  function exitReview(){reviewing=false;render()}
+  function reviewArrows(){
+    if(!reviewing||!report)return[];
+    const k=curPly(),r=k>0?report.rows[k-1]:null;
+    if(!r||r.isBest||!r.bestUci||r.bestUci.length<4||r.bestUci==="(none)")return[];
+    return[{from:r.bestUci.slice(0,2),to:r.bestUci.slice(2,4),color:"#4aa3ff",marker:"arrowhead-rv"}];
+  }
+  function renderReviewPanel(){
+    const panel=$("reviewPanel");if(!panel)return;
+    $("reviewBtn").hidden=!(report&&!reviewing&&!analysisRunning);
+    panel.hidden=!(reviewing&&report);
+    if(panel.hidden)return;
+    const k=curPly(),r=k>0?report.rows[k-1]:null,e=report.evals[k],card=$("rvCard");
+    if(!r){
+      card.innerHTML='<div class="rv-move">Posición inicial<span class="rv-eval">'+fmtEval(e)+'</span></div><div class="rv-desc">Avanza con ← → o pulsa una jugada de la lista. Aquí verás cómo la califica el motor.</div>';
+    }else{
+      const c=CATS[r.key];
+      let extra="";
+      if(r.bestSan&&!r.isBest)extra+='<div class="rv-desc">Mejor era <b style="color:#4aa3ff">'+r.bestSan+'</b> (flecha azul en el tablero).</div>';
+      if(r.lost>=0.15)extra+='<div class="rv-desc" style="color:var(--muted)">Pérdida: '+r.lost.toFixed(2)+' peones · precisión de la jugada: '+r.acc.toFixed(0)+'%</div>';
+      card.innerHTML='<div class="rv-move"><span class="rp-dot" style="background:'+c.color+'">'+c.icon+'</span>'+(Math.floor(r.i/2)+1)+(r.m.color==="w"?". ":"… ")+r.m.san+'<span class="rv-eval">'+fmtEval(e)+'</span></div>'+
+        '<div class="rv-cat" style="color:'+c.color+'">'+c.label+' · '+sideName(r.m.color)+'</div><div class="rv-desc">'+c.desc+'</div>'+extra;
+    }
+    const gc=$("rvGraph").querySelector(".gc");
+    if(gc){const x=report.evals.length>1?k*600/(report.evals.length-1):0;gc.setAttribute("x1",x);gc.setAttribute("x2",x)}
+  }
+  $("rvExit").onclick=exitReview;
+  $("reviewBtn").onclick=()=>startReview(0);
+  $("rvGraph").addEventListener("click",e=>{if(report)goPly(graphPly($("rvGraph"),e,report.evals.length))});
+  $("endReview").onclick=()=>startReview(0);
+
+  /* ---------- Ajustes: piezas y tablero (assets de chess.com) ---------- */
+  const PIECE_SETS=["neo","classic","wood","neo_wood","alpha","glass","gothic","marble","metal","modern","nature","ocean","space","vintage","tournament","club","condal","game_room","icy_sea","maya","lolz","neon","newspaper","sky","tigers","graffiti","light","bases","book","cases","8_bit","bubblegum","dash","luca","3d_chesskid","3d_plastic","3d_staunton","3d_wood"];
+  const PIECE_NAMES={neo:"Neo",classic:"Clásico",wood:"Madera",neo_wood:"Neo madera",alpha:"Alpha",glass:"Cristal",gothic:"Gótico",marble:"Mármol",metal:"Metal",modern:"Moderno",nature:"Naturaleza",ocean:"Océano",space:"Espacio",vintage:"Vintage",tournament:"Torneo",club:"Club",condal:"Condal",game_room:"Sala de juegos",icy_sea:"Mar helado",maya:"Maya",lolz:"Lolz",neon:"Neón",newspaper:"Periódico",sky:"Cielo",tigers:"Tigres",graffiti:"Grafiti",light:"Claro",bases:"Bases",book:"Libro",cases:"Cases",bubblegum:"Chicle","8_bit":"8 bits","3d_chesskid":"3D Chesskid","3d_plastic":"3D plástico","3d_staunton":"3D Staunton","3d_wood":"3D madera"};
+  const COLOR_BOARDS=[
+    {id:"c-verde",name:"Verde",light:"#ebecd0",dark:"#779556"},
+    {id:"c-marron",name:"Marrón",light:"#edd6b0",dark:"#b88762"},
+    {id:"c-azul",name:"Azul",light:"#dee3e6",dark:"#8ca2ad"},
+    {id:"c-morado",name:"Morado",light:"#f0f1f0",dark:"#8476ba"},
+    {id:"c-arena",name:"Arena",light:"#f0d9b5",dark:"#b58863"},
+    {id:"c-hielo",name:"Hielo",light:"#e8f0f5",dark:"#7ba3c0"},
+    {id:"c-coral",name:"Coral",light:"#f6e3d3",dark:"#c5785f"},
+    {id:"c-gris",name:"Gris",light:"#e6e6e6",dark:"#8b8b8b"},
+    {id:"c-noche",name:"Noche",light:"#7d8796",dark:"#4b5563"}
+  ];
+  const IMG_BOARDS=["green","blue","brown","light","wood","dark_wood","walnut","burled_wood","marble","stone","metal","glass","icy_sea","sea","sand","parchment","newspaper","tournament","neon","graffiti","lolz","orange","purple","red","bubblegum","translucent","checkers","dash","8_bit","bases","overlay"];
+  const IMG_BOARD_NAMES={green:"Verde (chess.com)",blue:"Azul (chess.com)",brown:"Marrón (chess.com)",light:"Claro",wood:"Madera",dark_wood:"Madera oscura",walnut:"Nogal",burled_wood:"Raíz de madera",marble:"Mármol",stone:"Piedra",metal:"Metal",glass:"Cristal",icy_sea:"Mar helado",sea:"Mar",sand:"Arena",parchment:"Pergamino",newspaper:"Periódico",tournament:"Torneo",neon:"Neón",graffiti:"Grafiti",lolz:"Lolz",orange:"Naranja",purple:"Morado (chess.com)",red:"Rojo",bubblegum:"Chicle",translucent:"Translúcido",checkers:"Damas","8_bit":"8 bits",bases:"Bases",overlay:"Overlay",dash:"Dash"};
+  const prettyName=id=>id.replace(/_/g," ").replace(/^\w/,c=>c.toUpperCase());
+  const boardImgUrl=(id,size)=>"https://images.chesscomfiles.com/chess-themes/boards/"+id.slice(4)+"/"+size+".png";
+  const boardInfo=id=>id.startsWith("img:")?{id,img:true}:(COLOR_BOARDS.find(b=>b.id===id)||COLOR_BOARDS[0]);
+  let settingsBuilt={pieces:false,boards:false};
+
+  function applyBoard(){
+    const b=boardInfo(boardTheme),targets=[$("board"),$("stPreview")],root=document.documentElement.style;
+    if(b.img){
+      const url=boardImgUrl(b.id,150);
+      targets.forEach(t=>{t.style.backgroundImage='url("'+url+'")';t.style.backgroundSize="100% 100%"});
+      document.body.classList.add("board-img");
+      const probe=new Image();
+      probe.onerror=()=>{if(boardTheme===b.id){boardTheme="c-verde";store.set("ajedrez.board",boardTheme);applyBoard();syncSettings();showToast("No se pudo cargar ese tablero")}};
+      probe.src=url;
+    }else{
+      targets.forEach(t=>{t.style.backgroundImage="";t.style.backgroundSize=""});
+      document.body.classList.remove("board-img");
+      root.setProperty("--light",b.light);root.setProperty("--dark",b.dark);
+    }
+  }
+  function renderPreview(){
+    const pv=$("stPreview"),g=new Chess();pv.innerHTML="";
+    for(let r=7;r>=0;r--)for(let f=0;f<8;f++){
+      const sq=document.createElement("div");sq.className="pv-sq "+(((f+r+1)%2===0)?"light":"dark");
+      const pc=g.get(files[f]+(r+1));
+      if(pc){const im=document.createElement("img");im.src=PIECE(pc.color,pc.type);im.alt="";sq.appendChild(im)}
+      pv.appendChild(sq);
+    }
+  }
+  function syncSettings(){
+    document.querySelectorAll("#stPieces .st-card").forEach(c=>c.classList.toggle("sel",c.dataset.id===pieceSet));
+    document.querySelectorAll("#stBoards .st-card").forEach(c=>c.classList.toggle("sel",c.dataset.id===boardTheme));
+  }
+  function choosePieces(id){pieceSet=id;store.set("ajedrez.pieces",id);syncSettings();render();renderPreview()}
+  function chooseBoard(id){boardTheme=id;store.set("ajedrez.board",id);applyBoard();syncSettings()}
+  function buildPieceCards(){
+    const grid=$("stPieces");
+    PIECE_SETS.forEach(id=>{
+      const b=document.createElement("button");b.type="button";b.className="st-card";b.dataset.id=id;
+      const th=document.createElement("div");th.className="st-thumb";
+      const i1=new Image();i1.alt="";i1.onerror=()=>b.remove();i1.src=pieceUrl(id,"w","n");   // si el set no existe, la tarjeta desaparece
+      const i2=new Image();i2.alt="";i2.onerror=()=>{i2.style.display="none"};i2.src=pieceUrl(id,"b","q");
+      th.append(i1,i2);
+      const sp=document.createElement("span");sp.textContent=PIECE_NAMES[id]||prettyName(id);
+      b.append(th,sp);b.onclick=()=>choosePieces(id);grid.appendChild(b);
+    });
+  }
+  function buildBoardCards(){
+    const grid=$("stBoards");
+    COLOR_BOARDS.forEach(c=>{
+      const b=document.createElement("button");b.type="button";b.className="st-card";b.dataset.id=c.id;
+      const th=document.createElement("div");th.className="st-thumb bd";
+      th.style.background="repeating-conic-gradient("+c.dark+" 0 25%,"+c.light+" 0 50%) 0 0/50% 50%";
+      const sp=document.createElement("span");sp.textContent=c.name;
+      b.append(th,sp);b.onclick=()=>chooseBoard(c.id);grid.appendChild(b);
+    });
+    IMG_BOARDS.forEach(name=>{
+      const id="img:"+name,b=document.createElement("button");b.type="button";b.className="st-card";b.dataset.id=id;
+      const th=document.createElement("div");th.className="st-thumb bd";
+      const sp=document.createElement("span");sp.textContent=IMG_BOARD_NAMES[name]||prettyName(name);
+      b.append(th,sp);b.onclick=()=>chooseBoard(id);
+      // miniatura ligera (76) con reserva a 150; si ninguna carga, ese tablero no existe y se quita
+      const load=sizes=>{const im=new Image();im.onload=()=>{th.style.backgroundImage='url("'+im.src+'")'};im.onerror=()=>{sizes.length?load(sizes):b.remove()};im.src=boardImgUrl(id,sizes.shift())};
+      load([76,150]);
+      grid.appendChild(b);
+    });
+  }
+  function showSettingsTab(t){
+    document.querySelectorAll(".st-tab").forEach(b=>b.classList.toggle("active",b.dataset.st===t));
+    $("stPieces").hidden=t!=="pieces";$("stBoards").hidden=t!=="boards";
+    if(t==="boards"&&!settingsBuilt.boards){settingsBuilt.boards=true;buildBoardCards();syncSettings()}
+  }
+  function openSettings(){
+    if(!settingsBuilt.pieces){settingsBuilt.pieces=true;buildPieceCards()}
+    syncSettings();renderPreview();applyBoard();
+    $("settingsModal").style.display="flex";
+  }
+  const closeSettings=()=>{$("settingsModal").style.display="none"};
+  $("settingsBtn").onclick=openSettings;
+  $("stClose").onclick=$("stDone").onclick=closeSettings;
+  $("settingsModal").addEventListener("click",e=>{if(e.target===$("settingsModal"))closeSettings()});
+  document.querySelectorAll(".st-tab").forEach(b=>b.onclick=()=>showSettingsTab(b.dataset.st));
+  $("stReset").onclick=()=>{pieceSet="neo";boardTheme="c-verde";store.set("ajedrez.pieces",pieceSet);store.set("ajedrez.board",boardTheme);applyBoard();syncSettings();render();renderPreview()};
+  // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
+  document.addEventListener("keydown",e=>{
+    if($("settingsModal").style.display!=="flex")return;
+    if(e.key==="Escape"){e.stopImmediatePropagation();closeSettings()}
+    else if(e.key.startsWith("Arrow"))e.stopImmediatePropagation();
+  },true);
+  applyBoard();
 
   /* ---------- Navegación por Teclado ---------- */
   document.addEventListener("keydown",e=>{
@@ -985,15 +1350,15 @@ input:focus,select:focus{border-color:var(--green)}
     $("endMoves").textContent=Math.ceil(h.length/2);
     $("endCaps").textContent=h.filter(m=>/[ce]/.test(m.flags)).length;
     $("endChecks").textContent=h.filter(m=>/[+#]/.test(m.san)).length;
+    $("endAnalysis").hidden=true;$("endAnalysis").classList.remove("done");$("endBox").classList.remove("analyzed");$("endReview").hidden=true;$("endProg").style.width="0";$("endPgn").hidden=false;$("endAnalysisResults").innerHTML="";$("endAnalysisStatus").textContent="El análisis se ejecuta en tu navegador y puede tardar unos segundos.";
     $("endModal").style.display="flex";
   }
   const closeEnd=()=>{$("endModal").style.display="none"};
   $("endClose").onclick=closeEnd;
   $("endModal").onclick=e=>{if(e.target===$("endModal"))closeEnd()};
   $("endPgn").onclick=()=>{
-    closeEnd();
-    showTab("online");
-    showSubtab("bot");
+    $("endAnalysis").hidden=false;
+    $("endPgn").hidden=true;
     analyzeGame();
   };
   $("endNew").onclick=()=>{closeEnd();reset()};
@@ -1019,12 +1384,9 @@ input:focus,select:focus{border-color:var(--green)}
     }
   }
   function showOnlineSubtab(t){
-    document.querySelectorAll(".online-subtab").forEach(b=>b.classList.toggle("active",b.dataset.onlineSubtab===t));
-    document.querySelectorAll(".online-subpane").forEach(p=>p.hidden=p.id!=="online-subpane-"+t);
     if(t==="friends")pingAll();
   }
   document.querySelectorAll(".play-subtab").forEach(b=>b.onclick=()=>showSubtab(b.dataset.playSubtab));
-  document.querySelectorAll(".online-subtab").forEach(b=>b.onclick=()=>showOnlineSubtab(b.dataset.onlineSubtab));
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
   /* ---------- Control de Tiempo & Red ---------- */
@@ -1301,7 +1663,7 @@ input:focus,select:focus{border-color:var(--green)}
     if(!friendPeer||!friendPeer.open)showToast("Conectando con el servicio de amigos…");
     else {showToast("Buscando a tu amigo…");ping(f)}
   };
-  setInterval(()=>{if(!$("online-subpane-friends").hidden)pingAll()},30000);
+  setInterval(()=>{if(!$("subpane-online").hidden&&!$("pane-online").hidden)pingAll()},30000);
   window.addEventListener("beforeunload",()=>{try{friendPeer.destroy()}catch(_){}});
   renderFriends();startFriendPeer();
 
