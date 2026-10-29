@@ -23,7 +23,9 @@
       --green2: #a3d160;
       --light: #ebecd0;
       --dark: #779556;
-      --gold: #f6cf58
+      --gold: #f6cf58;
+      --accent: #81b64c;
+      --accent-soft: #a3d160
     }
 
     * {
@@ -119,7 +121,8 @@
     .cap {
       display: flex;
       align-items: center;
-      height: 16px;
+      flex-wrap: wrap;
+      min-height: 16px;
       font-size: 12px;
       color: var(--muted)
     }
@@ -128,6 +131,13 @@
       width: 16px;
       height: 16px;
       margin-right: -6px
+    }
+
+    .cap .elo {
+      margin-left: 8px;
+      color: var(--gold);
+      font-weight: 700;
+      white-space: nowrap
     }
 
     .cap b {
@@ -350,7 +360,8 @@
     }
 
     .tab small {
-      background: #3a3732;
+      background: var(--line);
+      color: var(--bright);
       border-radius: 9px;
       padding: 1px 7px;
       margin-left: 4px;
@@ -395,11 +406,11 @@
     }
 
     .move:hover {
-      background: #3a3732
+      background: var(--line)
     }
 
     .move.current {
-      background: #4b6b2f
+      background: rgba(129, 182, 76, .22)
     }
 
     .empty {
@@ -447,12 +458,13 @@
     }
 
     .secondary {
-      background: #3a3732;
-      color: var(--bright)
+      background: var(--card);
+      color: var(--bright);
+      border: 1px solid var(--line)
     }
 
     .secondary:hover:not(:disabled) {
-      background: #46433e
+      background: var(--line)
     }
 
     .stack {
@@ -482,9 +494,9 @@
     }
 
     .subtab.active {
-      background: #3b4d2e;
-      color: #fff;
-      border-color: #587a3c
+      background: var(--green);
+      color: var(--bright);
+      border-color: var(--green2)
     }
 
     .subpane {
@@ -612,6 +624,23 @@
       gap: 7px
     }
 
+    .local-time {
+      padding: 10px 12px 0
+    }
+
+    .local-time[hidden] {
+      display: none
+    }
+
+    .local-time .field {
+      margin: 0
+    }
+
+    .local-time select {
+      background: var(--card);
+      color: var(--bright)
+    }
+
     .friend {
       flex-wrap: wrap
     }
@@ -628,6 +657,39 @@
       gap: 8px
     }
 
+    .friend-main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 3px
+    }
+
+    .friend-main .friend-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px
+    }
+
+    .friend-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-left: auto
+    }
+
+    .friend-status {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .friend-elo {
+      color: var(--gold);
+      font-weight: 700
+    }
+
     .field {
       display: flex;
       flex-direction: column;
@@ -642,9 +704,9 @@
 
     input,
     select {
-      background: #171614;
+      background: var(--card);
       color: var(--bright);
-      border: 1px solid #46433e;
+      border: 1px solid var(--line);
       border-radius: 6px;
       padding: 9px 10px;
       width: 100%;
@@ -686,7 +748,7 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
-      background: #171614;
+      background: var(--card);
       border-radius: 8px;
       padding: 8px
     }
@@ -707,7 +769,7 @@
 
     .msg.them {
       align-self: flex-start;
-      background: #3a3732;
+      background: var(--line);
       color: var(--bright)
     }
 
@@ -775,13 +837,14 @@
     }
 
     .promo {
-      background: #3a3732;
+      background: var(--card);
+      border: 1px solid var(--line);
       border-radius: 8px;
       padding: 6px
     }
 
     .promo:hover {
-      background: #4b6b2f
+      background: var(--line)
     }
 
     .promo img {
@@ -1111,24 +1174,56 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px
+      gap: 8px
     }
 
     .friend {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(180deg, var(--card) 0%, var(--bg) 100%);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 10px
+    }
+
+    .friend-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .friend-top {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: #171614;
-      border-radius: 8px;
-      padding: 8px 10px
+      justify-content: space-between;
+      gap: 8px
     }
 
     .fname {
       flex: 1;
-      font-weight: 700;
-      color: #fff;
+      min-width: 0;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--bright);
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .friend-status {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap
+    }
+
+    .friend-elo {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 700;
       white-space: nowrap
     }
 
@@ -1137,20 +1232,52 @@
       height: 9px;
       border-radius: 50%;
       background: #6b6760;
-      flex: none
+      flex: none;
+      justify-self: center
     }
 
     .fdot.on {
       background: var(--green)
     }
 
+    .friend-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-left: auto
+    }
+
     .friend button {
-      padding: 5px 10px
+      padding: 7px 10px;
+      border-radius: 7px
+    }
+
+    .friend .primary {
+      padding: 7px 11px
+    }
+
+    .friend .secondary {
+      min-width: 36px;
+      padding: 7px 8px
     }
 
     .stack .tiny {
       font-size: 12px;
       color: var(--muted)
+    }
+
+    @media (max-width: 420px) {
+      .friend {
+        grid-template-columns: 10px minmax(0, 1fr);
+      }
+
+      .friend-actions {
+        grid-column: 2;
+        justify-self: stretch;
+        width: 100%;
+        justify-content: flex-end
+      }
     }
 
     /* ===== Informe de análisis en el modal ===== */
@@ -1187,7 +1314,7 @@
 
     .rp-table td {
       padding: 5px 8px;
-      border-top: 1px solid #302d29;
+      border-top: 1px solid var(--line);
       text-align: center;
       font-weight: 700;
       color: var(--bright);
@@ -1224,8 +1351,8 @@
     }
 
     .rp-card {
-      background: #1f1d1a;
-      border: 1px solid #39352f;
+      background: var(--card);
+      border: 1px solid var(--line);
       border-radius: 9px;
       padding: 10px 12px
     }
@@ -1278,7 +1405,7 @@
       height: 80px;
       display: block;
       border-radius: 7px;
-      background: #1f1d1a;
+      background: var(--card);
       cursor: pointer
     }
 
@@ -1347,7 +1474,7 @@
     .ea-prog {
       height: 5px;
       border-radius: 3px;
-      background: #3a3732;
+      background: var(--line);
       overflow: hidden;
       margin-bottom: 8px
     }
@@ -1488,8 +1615,8 @@
     }
 
     .rv-card {
-      background: #1f1d1a;
-      border: 1px solid #39352f;
+      background: var(--card);
+      border: 1px solid var(--line);
       border-radius: 9px;
       padding: 10px 12px
     }
@@ -1512,7 +1639,7 @@
     .rv-eval {
       margin-left: auto;
       font: 800 14px Manrope, sans-serif;
-      background: #2f2c28;
+      background: var(--line);
       padding: 3px 8px;
       border-radius: 6px
     }
@@ -1558,8 +1685,9 @@
     /* ===== Ajustes: piezas y tablero ===== */
     .gear {
       margin-left: auto;
-      background: #3a3732;
+      background: var(--card);
       color: var(--bright);
+      border: 1px solid var(--line);
       padding: 6px;
       border-radius: 8px;
       display: grid;
@@ -1567,7 +1695,7 @@
     }
 
     .gear:hover {
-      background: #46433e
+      background: var(--line)
     }
 
     .gear .material-symbols-rounded {
@@ -1666,12 +1794,12 @@
 
     .st-tab {
       flex: 1;
-      background: #3a3732;
+      background: var(--card);
       color: var(--muted);
       padding: 8px;
       border-radius: 7px;
       font-weight: 700;
-      border: 1px solid transparent
+      border: 1px solid var(--line)
     }
 
     .st-tab.active {
@@ -1700,8 +1828,8 @@
       gap: 5px;
       padding: 7px 4px 6px;
       border-radius: 9px;
-      background: #1f1d1a;
-      border: 2px solid transparent;
+      background: var(--card);
+      border: 2px solid var(--line);
       color: var(--text);
       font-size: 11.5px;
       font-weight: 600;
@@ -1709,11 +1837,12 @@
     }
 
     .st-card:hover {
-      background: #2a2825
+      background: var(--line)
     }
 
     .st-card.sel {
       border-color: var(--green);
+      background: rgba(129, 182, 76, .09);
       color: var(--bright)
     }
 
@@ -1734,6 +1863,85 @@
       border-radius: 5px;
       background-size: 100% 100%;
       background-color: #2f2c28
+    }
+
+    .st-thumb.theme {
+      width: 60px;
+      height: 60px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #111827 0%, #f5f5f5 100%);
+      position: relative;
+      overflow: hidden
+    }
+
+    .st-thumb.theme::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, 0));
+      pointer-events: none
+    }
+
+    .st-theme-page {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%
+    }
+
+    .st-theme-page[hidden],
+    .st-grid[hidden] {
+      display: none
+    }
+
+    .st-theme-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .st-theme-head {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .st-theme-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+      grid-template-rows: repeat(1, auto);
+      gap: 8px;
+      width: 100%
+    }
+
+    .st-theme-option {
+      min-width: 0;
+      min-height: 82px;
+      justify-content: center
+    }
+
+    .st-card[data-kind="accent"] {
+      min-height: 86px
+    }
+
+    .st-accent {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 76px;
+      height: 20px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1);
+      background: var(--card)
+    }
+
+    .st-accent span {
+      flex: 1;
+      height: 100%
     }
 
     .st-foot {
@@ -1801,6 +2009,16 @@
         </div>
 
         <div class="pane" id="pane-moves">
+          <div class="local-time">
+            <div class="field"><label for="localTcSelect">Control de tiempo</label><select id="localTcSelect">
+                <option value="180+0">Bullet (3 min)</option>
+                <option value="300+0">Blitz (5 min)</option>
+                <option value="300+3">Blitz (5 min + 3s)</option>
+                <option value="600+0" selected>Rápida (10 min)</option>
+                <option value="900+10">Clásica (15 min + 10s)</option>
+                <option value="0+0">Sin límite de tiempo</option>
+              </select></div>
+          </div>
           <div class="move-subpane" id="move-subpane-list">
             <div class="drawbar" id="drawBar" hidden><span>Tablas ofrecidas</span><button class="primary"
                 id="drawYes"><span class="material-symbols-rounded">check</span> Aceptar</button><button
@@ -1970,9 +2188,10 @@
         </div>
         <div class="st-main">
           <div class="st-tabs"><button class="st-tab active" data-st="pieces">Piezas</button><button class="st-tab"
-              data-st="boards">Tablero</button></div>
+              data-st="boards">Tablero</button><button class="st-tab" data-st="theme">Tema</button></div>
           <div class="st-grid" id="stPieces"></div>
           <div class="st-grid" id="stBoards" hidden></div>
+          <div class="st-grid" id="stTheme" hidden></div>
         </div>
       </div>
       <div class="st-foot"><button class="secondary" id="stReset">Restablecer</button><button class="primary"
@@ -2070,6 +2289,22 @@
       const store = { get: k => { try { return localStorage.getItem(k) } catch (_) { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch (_) { } } };
       let pieceSet = /^[a-z0-9_]+$/.test(store.get("ajedrez.pieces") || "") ? store.get("ajedrez.pieces") : "neo";
       let boardTheme = /^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board") || "") ? store.get("ajedrez.board") : "c-verde";
+      const UI_THEMES = {
+        dark: { id: "dark", name: "Oscuro", bg: "#211f1c", card: "#2b2926", line: "#3a3732", text: "#bab7b1", bright: "#ffffff", muted: "#8a867e" },
+        light: { id: "light", name: "Claro", bg: "#edf1f4", card: "#ffffff", line: "#d4dbe5", text: "#3a4758", bright: "#101827", muted: "#667085" }
+      };
+      const ACCENT_PRESETS = {
+        verde: { id: "verde", name: "Verde", dark: "#81b64c", light: "#5fb76b", accent: "#a3d160" },
+        azul: { id: "azul", name: "Azul", dark: "#3b82f6", light: "#2563eb", accent: "#93c5fd" },
+        rojo: { id: "rojo", name: "Rojo", dark: "#ef4444", light: "#dc2626", accent: "#fca5a5" },
+        morado: { id: "morado", name: "Morado", dark: "#8b5cf6", light: "#7c3aed", accent: "#c4b5fd" },
+        naranja: { id: "naranja", name: "Naranja", dark: "#f59e0b", light: "#ea580c", accent: "#fdba74" },
+        rosa: { id: "rosa", name: "Rosa", dark: "#ec4899", light: "#db2777", accent: "#f9a8d4" },
+        cian: { id: "cian", name: "Cian", dark: "#06b6d4", light: "#0891b2", accent: "#67e8f9" },
+        amarillo: { id: "amarillo", name: "Amarillo", dark: "#eab308", light: "#ca8a04", accent: "#fef08a" }
+      };
+      let uiTheme = /^(dark|light)$/.test(store.get("ajedrez.uiTheme") || "") ? store.get("ajedrez.uiTheme") : "dark";
+      let accentId = ACCENT_PRESETS[store.get("ajedrez.accent") || ""] ? store.get("ajedrez.accent") : "verde";
       const pieceUrl = (set, c, t) => "https://images.chesscomfiles.com/chess-themes/pieces/" + set + "/150/" + c + t + ".png";
       const PIECE = (c, t) => pieceUrl(pieceSet, c, t);
       const files = "abcdefgh";
@@ -2188,6 +2423,7 @@
 
         renderMoves();
         renderReviewPanel();
+        syncLocalTimeVisibility();
         renderStatus();
         drawAnnotations();
         updateClockUI();
@@ -2399,9 +2635,26 @@
         else if (game.inCheck()) text += " · Jaque";
         $("statusText").textContent = text;
         $("statusDot").className = "status-dot" + (warn ? " warn" : "");
+
         const top = flipped ? "w" : "b", bot = flipped ? "b" : "w";
-        const nm = c => botEnabled ? (c === botColor ? "Stockfish · nivel " + botSkill : "Tú") : myColor ? (c === myColor ? "Tú" : "Rival") : (c === "w" ? "Blancas" : "Negras");
-        $("topName").textContent = nm(top); $("bottomName").textContent = nm(bot);
+        const sideInfo = c => {
+          if (botEnabled) {
+            const isBot = c === botColor;
+            return {
+              name: isBot ? "Stockfish" : normalizeName(myName, "Yo"),
+              elo: isBot ? "Nivel " + botSkill : getEloText(myName)
+            };
+          }
+          if (myColor) {
+            const isMe = c === myColor;
+            const name = normalizeName(isMe ? myName : (activeOpponentName || "Rival"), isMe ? "Yo" : "Rival");
+            return { name, elo: getEloText(name) };
+          }
+          return { name: c === "w" ? "Blancas" : "Negras", elo: "" };
+        };
+
+        const topData = sideInfo(top), bottomData = sideInfo(bot);
+        $("topName").textContent = topData.name; $("bottomName").textContent = bottomData.name;
         $("topAvatar").src = PIECE(top, "k"); $("bottomAvatar").src = PIECE(bot, "k");
       }
 
@@ -2416,7 +2669,11 @@
         const top = flipped ? "w" : "b", bot = flipped ? "b" : "w";
         [["top", top], ["bottom", bot]].forEach(([k, c]) => {
           const d = score[c] - score[c === "w" ? "b" : "w"];
-          $(k + "Cap").innerHTML = html[c] + (d > 0 ? "<b>+" + d + "</b>" : "")
+          const elo = (() => {
+            const info = botEnabled ? (c === botColor ? { name: "Stockfish", elo: "Nivel " + botSkill } : { name: normalizeName(myName, "Yo"), elo: getEloText(myName) }) : myColor ? (c === myColor ? { name: normalizeName(myName, "Yo"), elo: getEloText(myName) } : { name: normalizeName(activeOpponentName || "Rival", "Rival"), elo: getEloText(activeOpponentName || "Rival") }) : { name: c === "w" ? "Blancas" : "Negras", elo: "" };
+            return info.elo;
+          })();
+          $(k + "Cap").innerHTML = html[c] + (elo ? '<span class="elo">' + elo + '</span>' : '') + (d > 0 ? "<b>+" + d + "</b>" : "");
         });
       }
 
@@ -2501,10 +2758,18 @@
 
       function flip() { flipped = !flipped; render() }
 
+      function syncLocalTimeVisibility() {
+        const wrapper = document.querySelector(".local-time");
+        if (!wrapper) return;
+        const started = game.history().length > 0 && !forced && !game.game_over() && !game.isDraw() && !game.isCheckmate() && !game.isStalemate() && !game.isThreefoldRepetition() && !game.isInsufficientMaterial();
+        wrapper.hidden = started;
+      }
+
       function resetLocal() {
         if (drag) cancelDrag();
         game.reset(); selected = null; legalTargets = []; marks.clear(); arrows = []; redoStack = []; historyPly = null; forced = null; clearDraw(); report = null; reviewing = false; endShown = false;
         parseTC();
+        syncLocalTimeVisibility();
         render();
       }
       function reset() {
@@ -2616,7 +2881,7 @@
         $("connDot").className = "status-dot";
         $("chatInput").disabled = true; $("chatSend").disabled = true;
         $("chatLog").innerHTML = '<div class="msg sys">Partida local contra Stockfish.</div>';
-        $("tcSelect").value = "0+0"; parseTC();
+        $("localTcSelect").value = "0+0"; $("tcSelect").value = "0+0"; parseTC();
         resetLocal();
         botEnabled = true;
         $("engineResults").innerHTML = "";
@@ -2876,7 +3141,7 @@
       const prettyName = id => id.replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase());
       const boardImgUrl = (id, size) => "https://images.chesscomfiles.com/chess-themes/boards/" + id.slice(4) + "/" + size + ".png";
       const boardInfo = id => id.startsWith("img:") ? { id, img: true } : (COLOR_BOARDS.find(b => b.id === id) || COLOR_BOARDS[0]);
-      let settingsBuilt = { pieces: false, boards: false };
+      let settingsBuilt = { pieces: false, boards: false, theme: false };
 
       function applyBoard() {
         const b = boardInfo(boardTheme), targets = [$("board"), $("stPreview")], root = document.documentElement.style;
@@ -2902,12 +3167,102 @@
           pv.appendChild(sq);
         }
       }
+      function applyUiTheme() {
+        const theme = UI_THEMES[uiTheme] || UI_THEMES.dark;
+        const accent = ACCENT_PRESETS[accentId] || ACCENT_PRESETS.verde;
+        const root = document.documentElement.style;
+        const accentStrong = uiTheme === "light" ? accent.light : accent.dark;
+        const accentSoft = uiTheme === "light" ? accent.accent : accent.accent;
+        root.setProperty("--bg", theme.bg);
+        root.setProperty("--card", theme.card);
+        root.setProperty("--line", theme.line);
+        root.setProperty("--text", theme.text);
+        root.setProperty("--bright", theme.bright);
+        root.setProperty("--muted", theme.muted);
+        root.setProperty("--green", accentStrong);
+        root.setProperty("--green2", accentSoft);
+        root.setProperty("--accent", accentStrong);
+        root.setProperty("--accent-soft", accentSoft);
+        document.body.style.background = theme.bg;
+        document.body.style.color = theme.text;
+      }
+
       function syncSettings() {
         document.querySelectorAll("#stPieces .st-card").forEach(c => c.classList.toggle("sel", c.dataset.id === pieceSet));
         document.querySelectorAll("#stBoards .st-card").forEach(c => c.classList.toggle("sel", c.dataset.id === boardTheme));
+        document.querySelectorAll("#stTheme .st-card").forEach(c => {
+          if (c.dataset.kind === "theme") c.classList.toggle("sel", c.dataset.id === uiTheme);
+          if (c.dataset.kind === "accent") c.classList.toggle("sel", c.dataset.id === accentId);
+        });
       }
       function choosePieces(id) { pieceSet = id; store.set("ajedrez.pieces", id); syncSettings(); render(); renderPreview() }
       function chooseBoard(id) { boardTheme = id; store.set("ajedrez.board", id); applyBoard(); syncSettings() }
+      function chooseUiTheme(id) { uiTheme = id; store.set("ajedrez.uiTheme", id); applyUiTheme(); if (settingsBuilt.theme) buildThemeCards(); syncSettings(); }
+      function chooseAccent(id) { accentId = id; store.set("ajedrez.accent", id); applyUiTheme(); if (settingsBuilt.theme) buildThemeCards(); syncSettings(); }
+      function buildThemeCards() {
+        const grid = $("stTheme");
+        grid.className = "st-grid st-theme-page";
+        grid.innerHTML = "";
+
+        const page = document.createElement("div");
+        page.className = "st-theme-page";
+
+        const themeSection = document.createElement("div");
+        themeSection.className = "st-theme-section";
+        const themeHead = document.createElement("div");
+        themeHead.className = "st-theme-head";
+        themeHead.textContent = "Tema";
+        const themeList = document.createElement("div");
+        themeList.className = "st-theme-list";
+        Object.values(UI_THEMES).forEach(theme => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "st-card st-theme-option";
+          b.dataset.id = theme.id;
+          b.dataset.kind = "theme";
+          const th = document.createElement("div");
+          th.className = "st-thumb theme";
+          th.style.background = "linear-gradient(135deg, " + theme.bg + " 0%, " + theme.card + " 55%, " + theme.line + " 100%)";
+          const sp = document.createElement("span");
+          sp.textContent = theme.name;
+          b.append(th, sp);
+          b.onclick = () => chooseUiTheme(theme.id);
+          themeList.appendChild(b);
+        });
+        themeSection.append(themeHead, themeList);
+
+        const accentSection = document.createElement("div");
+        accentSection.className = "st-theme-section";
+        const accentHead = document.createElement("div");
+        accentHead.className = "st-theme-head";
+        accentHead.textContent = "Acento";
+        const accentList = document.createElement("div");
+        accentList.className = "st-theme-list";
+        Object.values(ACCENT_PRESETS).forEach(accent => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "st-card st-theme-option";
+          b.dataset.id = accent.id;
+          b.dataset.kind = "accent";
+          const th = document.createElement("div");
+          th.className = "st-accent";
+          const a1 = document.createElement("span");
+          a1.style.background = uiTheme === "light" ? accent.light : accent.dark;
+          const a2 = document.createElement("span");
+          a2.style.background = accent.accent;
+          th.style.background = "linear-gradient(90deg, " + (uiTheme === "light" ? accent.light : accent.dark) + " 0%, " + accent.accent + " 100%)";
+          th.append(a1, a2);
+          const sp = document.createElement("span");
+          sp.textContent = accent.name;
+          b.append(th, sp);
+          b.onclick = () => chooseAccent(accent.id);
+          accentList.appendChild(b);
+        });
+        accentSection.append(accentHead, accentList);
+
+        page.append(themeSection, accentSection);
+        grid.appendChild(page);
+      }
       function buildPieceCards() {
         const grid = $("stPieces");
         PIECE_SETS.forEach(id => {
@@ -2942,11 +3297,13 @@
       }
       function showSettingsTab(t) {
         document.querySelectorAll(".st-tab").forEach(b => b.classList.toggle("active", b.dataset.st === t));
-        $("stPieces").hidden = t !== "pieces"; $("stBoards").hidden = t !== "boards";
+        $("stPieces").hidden = t !== "pieces"; $("stBoards").hidden = t !== "boards"; $("stTheme").hidden = t !== "theme";
         if (t === "boards" && !settingsBuilt.boards) { settingsBuilt.boards = true; buildBoardCards(); syncSettings() }
+        if (t === "theme" && !settingsBuilt.theme) { settingsBuilt.theme = true; buildThemeCards(); syncSettings() }
       }
       function openSettings() {
         if (!settingsBuilt.pieces) { settingsBuilt.pieces = true; buildPieceCards() }
+        if (!settingsBuilt.theme) { settingsBuilt.theme = true; buildThemeCards() }
         syncSettings(); renderPreview(); applyBoard();
         $("settingsModal").style.display = "flex";
       }
@@ -2955,7 +3312,7 @@
       $("stClose").onclick = $("stDone").onclick = closeSettings;
       $("settingsModal").addEventListener("click", e => { if (e.target === $("settingsModal")) closeSettings() });
       document.querySelectorAll(".st-tab").forEach(b => b.onclick = () => showSettingsTab(b.dataset.st));
-      $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); applyBoard(); syncSettings(); render(); renderPreview() };
+      $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview() };
       // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
       document.addEventListener("keydown", e => {
         if ($("settingsModal").style.display !== "flex") return;
@@ -2963,6 +3320,7 @@
         else if (e.key.startsWith("Arrow")) e.stopImmediatePropagation();
       }, true);
       applyBoard();
+      applyUiTheme();
 
       /* ---------- Navegación por Teclado ---------- */
       document.addEventListener("keydown", e => {
@@ -3100,15 +3458,22 @@
 
       /* ---------- Control de Tiempo & Red ---------- */
       function parseTC() {
-        const val = $("tcSelect").value.split("+");
+        const current = ($("localTcSelect") && $("localTcSelect").value) || ($("tcSelect") && $("tcSelect").value) || "600+0";
+        const val = current.split("+");
         const base = parseInt(val[0], 10);
         increment = parseInt(val[1], 10);
         timed = base > 0;
         whiteTime = base;
         blackTime = base;
+        if ($("localTcSelect")) $("localTcSelect").value = current;
+        if ($("tcSelect")) $("tcSelect").value = current;
         updateClockUI();
       }
-      $("tcSelect").onchange = parseTC;
+      $("localTcSelect").onchange = parseTC;
+      $("tcSelect").onchange = () => {
+        if ($("localTcSelect")) $("localTcSelect").value = $("tcSelect").value;
+        parseTC();
+      };
       parseTC();
       startClocks();
 
@@ -3324,9 +3689,18 @@
         if (!friends.length) { el.innerHTML = '<div class="empty">Añade el código de un amigo para ver si está conectado y retarle.</div>'; return }
         friends.forEach(f => {
           const d = document.createElement("div"); d.className = "friend";
-          d.innerHTML = '<span class="fdot' + (presence[f.code] ? " on" : "") + '"></span><div class="friend-main"><span class="fname"></span><span class="tiny friend-elo"></span></div><span class="tiny friend-status">' + (presence[f.code] ? "en línea" : presence[f.code] === false ? "sin conexión" : "comprobando…") + '</span><button class="primary"><span class="material-symbols-rounded">swords</span> Retar</button><button class="secondary" title="Quitar" aria-label="Quitar amigo"><span class="material-symbols-rounded">close</span></button>';
+          d.innerHTML = '<span class="fdot' + (presence[f.code] ? " on" : "") + '"></span>' +
+            '<div class="friend-main">' +
+            '<div class="friend-top"><span class="fname"></span><span class="friend-status"></span></div>' +
+            '<span class="friend-elo tiny"></span>' +
+            '</div>' +
+            '<div class="friend-actions">' +
+            '<button class="primary"><span class="material-symbols-rounded">swords</span> Retar</button>' +
+            '<button class="secondary" title="Quitar" aria-label="Quitar amigo"><span class="material-symbols-rounded">close</span></button>' +
+            '</div>';
           const name = f.name || f.code;
           d.querySelector(".fname").textContent = name;
+          d.querySelector(".friend-status").textContent = presence[f.code] ? "en línea" : presence[f.code] === false ? "sin conexión" : "comprobando…";
           d.querySelector(".friend-elo").textContent = getEloText(name);
           const [b1, b2] = d.querySelectorAll("button");
           b1.disabled = !presence[f.code];
@@ -3478,7 +3852,7 @@
         });
       }
       $("nameInput").value = myName;
-      $("nameInput").onchange = () => { myName = $("nameInput").value.trim().slice(0, 16) || myName; $("nameInput").value = myName; LS("aj_name", myName) };
+      $("nameInput").onchange = () => { myName = $("nameInput").value.trim().slice(0, 16) || myName; $("nameInput").value = myName; LS("aj_name", myName); render(); };
       $("myCode").value = myCode;
       $("refreshFriends").onclick = () => pingAll();
       $("copyCodeBtn").onclick = () => navigator.clipboard.writeText(myCode).then(() => showToast("Código copiado"));
