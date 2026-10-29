@@ -67,6 +67,14 @@ main{display:grid;grid-template-columns:minmax(320px,min(calc(100dvh - 140px),ca
 .subtab.active{background:#4b6b2f;color:#fff}
 .subpane{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
 .subpane[hidden]{display:none}
+.move-subpane{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto}
+.move-subpane[hidden]{display:none}
+#move-subpane-list .moves{flex:1;min-height:160px}
+.play-subpane{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto}
+.play-subpane[hidden],.online-subpane[hidden]{display:none}
+.play-subpane#subpane-bot .engine-panel{border-top:0;flex:1;overflow:auto}
+.inner-subtabs{padding-top:8px}
+.online-subpane{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto}
 .chat-panel{display:flex;flex-direction:column;gap:8px;min-height:0;flex:1;border:1px solid var(--line);border-radius:8px;padding:10px}
 .section-title{font:700 13px Manrope,sans-serif;color:var(--bright);display:flex;align-items:center;gap:7px}
 .friend{flex-wrap:wrap}.friend .tiny{white-space:nowrap}.friend button{white-space:nowrap}
@@ -87,6 +95,7 @@ input:focus,select:focus{border-color:var(--green)}
 .modal h3{margin:0 0 10px;font:700 16px Manrope;color:var(--bright)}
 .modal-buttons{display:flex;gap:8px}
 .promo{background:#3a3732;border-radius:8px;padding:6px}.promo:hover{background:#4b6b2f}.promo img{width:60px;height:60px;display:block}
+.engine-panel{border-top:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:9px}.engine-panel .section-title{margin-bottom:1px}.engine-row{display:flex;gap:7px;align-items:center}.engine-row>*{min-width:0;flex:1}.engine-status{font-size:12px;color:var(--muted);line-height:1.4}.engine-results{max-height:180px;overflow:auto;background:#171614;border-radius:7px;padding:8px;font-size:12px;line-height:1.55}.engine-results:empty{display:none}.engine-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}.engine-stat{background:#24221f;border:1px solid #39352f;border-radius:6px;padding:7px 5px;text-align:center}.engine-stat strong{display:block;font-size:18px;line-height:1.2}.engine-stat span{display:block;font-size:10px;color:#c0bbb2;margin-top:3px}.engine-result{display:grid;grid-template-columns:44px 1fr auto;gap:7px;padding:4px 2px;border-bottom:1px solid #302d29;cursor:pointer}.engine-result:last-child{border-bottom:0}.engine-result.bad{color:#ff9b8d}.engine-result.good{color:#b9e58b}.engine-result.best{color:#a9d7ff}.engine-result.brilliant{color:#55e5b1}.engine-eval{font-weight:700;text-align:right;white-space:nowrap}.engine-note{color:var(--muted);font-size:11px}
 @media(max-width:900px){main{grid-template-columns:minmax(0,640px);padding:10px}.card{position:static;min-height:560px}.moves{min-height:120px;max-height:220px}.sidebar{min-height:560px}}
 .end{width:min(360px,100%);background:#262522;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px #000a}
 .end-head{position:relative;text-align:center;padding:20px 52px;background:#2b2926}
@@ -136,11 +145,12 @@ input:focus,select:focus{border-color:var(--green)}
     <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Mueven blancas</span></div>
     <div class="drawbar" id="inviteBar" hidden><span id="inviteText"></span><button class="primary" id="invYes"><span class="material-symbols-rounded">check</span> Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span> No</button></div>
     <div class="tabs">
-      <button class="tab active" data-tab="moves">Jugadas <small id="moveCount">0</small></button>
-      <button class="tab" data-tab="online"><span class="material-symbols-rounded">wifi</span> Online</button>
+      <button class="tab active" data-tab="moves"><span class="material-symbols-rounded">history</span> PARTIDA <small id="moveCount">0</small></button>
+      <button class="tab" data-tab="online"><span class="material-symbols-rounded">sports_esports</span> JUGAR</button>
     </div>
 
     <div class="pane" id="pane-moves">
+      <div class="move-subpane" id="move-subpane-list">
       <div class="drawbar" id="drawBar" hidden><span>Tablas ofrecidas</span><button class="primary" id="drawYes"><span class="material-symbols-rounded">check</span> Aceptar</button><button class="secondary" id="drawNo"><span class="material-symbols-rounded">close</span> Rechazar</button></div>
       <div class="moves" id="moves"></div>
       <div class="nav">
@@ -156,14 +166,40 @@ input:focus,select:focus{border-color:var(--green)}
         <button class="secondary" id="resignBtn"><span class="material-symbols-rounded">flag</span> Rendirse</button>
         <button class="primary wide" id="newGameBtn">Nueva partida</button>
       </div>
+      </div>
+
     </div>
 
     <div class="pane" id="pane-online" hidden>
-      <div class="subtabs" role="tablist" aria-label="Secciones online">
-        <button class="subtab active" data-subtab="game"><span class="material-symbols-rounded">sports_esports</span> Partida</button>
-        <button class="subtab" data-subtab="friends"><span class="material-symbols-rounded">group</span> Amigos</button>
+      <div class="subtabs" role="tablist" aria-label="Opciones para jugar">
+        <button class="play-subtab subtab active" data-play-subtab="bot"><span class="material-symbols-rounded">smart_toy</span> Jugar contra bot</button>
+        <button class="play-subtab subtab" data-play-subtab="online"><span class="material-symbols-rounded">wifi</span> Jugar online</button>
       </div>
-      <div class="stack subpane" id="subpane-game">
+      <div class="play-subpane" id="subpane-bot" hidden>
+      <div class="engine-panel">
+        <div class="section-title"><span class="material-symbols-rounded">psychology</span> Stockfish · motor local</div>
+        <div class="engine-row"><select id="botLevel" aria-label="Nivel del bot"><option value="0">Bot principiante</option><option value="3">Bot fácil</option><option value="6" selected>Bot intermedio</option><option value="10">Bot avanzado</option><option value="15">Bot experto</option><option value="20">Bot máximo</option></select></div>
+        <div class="engine-row"><select id="botSide" aria-label="Color del jugador"><option value="w">Yo con blancas</option><option value="b">Yo con negras</option><option value="r" selected>Color aleatorio</option></select><button class="primary" id="startBotBtn"><span class="material-symbols-rounded">smart_toy</span> Jugar contra bot</button></div>
+        <div class="engine-row"><button class="secondary" id="analyzeBtn"><span class="material-symbols-rounded">query_stats</span> Analizar partida</button><button class="secondary" id="stopAnalyzeBtn" disabled><span class="material-symbols-rounded">stop</span> Detener</button></div>
+        <div class="engine-status" id="engineStatus">El motor se descarga al usarlo por primera vez. El cálculo se ejecuta en tu navegador.</div>
+        <div class="engine-results" id="engineResults" aria-live="polite"></div>
+        <div class="engine-note">Stockfish.js 10.0.2 · GPL-3.0. Necesita Internet para descargar el motor; el cálculo se hace en tu dispositivo.</div>
+      </div>
+      </div>
+      <div class="play-subpane" id="subpane-online" hidden>
+        <div class="subtabs inner-subtabs" role="tablist" aria-label="Opciones online">
+          <button class="online-subtab subtab active" data-online-subtab="friends"><span class="material-symbols-rounded">group</span> Amigos</button>
+          <button class="online-subtab subtab" data-online-subtab="code"><span class="material-symbols-rounded">vpn_key</span> Código de sala</button>
+        </div>
+      <div class="stack online-subpane" id="online-subpane-friends" hidden>
+        <div class="field"><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="16"></div>
+        <div class="field"><label>Tu código de amigo</label><div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn"><span class="material-symbols-rounded">content_copy</span> Copiar</button></div></div>
+        <div class="field"><label for="friendInput">Añadir amigo por código</label><div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="primary" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span> Añadir</button></div></div>
+        <div class="friends" id="friendList"></div>
+        <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span> Comprobar amigos</button>
+        <div class="tiny" id="friendNote">Conectando…</div>
+      </div>
+      <div class="stack online-subpane" id="online-subpane-code" hidden>
         <div class="field"><label for="tcSelect">Control de tiempo</label><select id="tcSelect"><option value="180+0">Bullet (3 min)</option><option value="300+0">Blitz (5 min)</option><option value="300+3">Blitz (5 min + 3s)</option><option value="600+0" selected>Rápida (10 min)</option><option value="900+10">Clásica (15 min + 10s)</option><option value="0+0">Sin límite de tiempo</option></select></div>
         <div class="field"><label for="colorSelect">Jugar con</label><select id="colorSelect"><option value="w">Blancas</option><option value="b">Negras</option><option value="r" selected>Aleatorio</option></select></div>
         <div class="row"><button class="primary" id="createRoomBtn"><span class="material-symbols-rounded">add_circle</span> Crear sala</button><button class="secondary" id="copyLinkBtn"><span class="material-symbols-rounded">link</span> Copiar enlace</button></div>
@@ -175,13 +211,7 @@ input:focus,select:focus{border-color:var(--green)}
           <div class="chat-form"><input id="chatInput" type="text" maxlength="300" placeholder="Escribe un mensaje…" disabled><button class="primary" id="chatSend" disabled aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
         </div>
       </div>
-      <div class="stack subpane" id="subpane-friends" hidden>
-        <div class="field"><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="16"></div>
-        <div class="field"><label>Tu código de amigo</label><div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn"><span class="material-symbols-rounded">content_copy</span> Copiar</button></div></div>
-        <div class="field"><label for="friendInput">Añadir amigo por código</label><div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="primary" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span> Añadir</button></div></div>
-        <div class="friends" id="friendList"></div>
-        <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span> Comprobar amigos</button>
-        <div class="tiny" id="friendNote">Conectando…</div>
+
       </div>
     </div>
   </section></aside>
@@ -212,7 +242,7 @@ input:focus,select:focus{border-color:var(--green)}
         <div><div class="sv"><i>✕</i><span id="endCaps" style="color:#fff;font-size:20px"></span></div><span>Capturas</span></div>
         <div><div class="sv"><i>♚</i><span id="endChecks" style="color:#fff;font-size:20px"></span></div><span>Jaques</span></div>
       </div>
-      <button class="end-pgn" id="endPgn"><span class="material-symbols-rounded">download</span> Exportar PGN</button>
+      <button class="end-pgn" id="endPgn"><span class="material-symbols-rounded">query_stats</span> Analizar partida</button>
       <div class="end-row"><button id="endNew">Nueva partida</button><button id="endRematch">Revancha</button></div>
     </div>
   </div>
@@ -245,6 +275,9 @@ input:focus,select:focus{border-color:var(--green)}
   let marks = new Map(), arrows = [], rightStart = null, rightMoved = false, dragFrom = null;
   let redoStack = [], pendingPromotion = null, analysis = false, justDragged = false;
   let historyPly = null;
+  let botEnabled=false, botColor="b", botSkill=6, botThinking=false;
+  let engineWorker=null, engineReady=false, engineInitPromise=null, activeSearch=null;
+  let analysisCancelled=false, analysisRunning=false;
 
   // Red y tiempo
   let role = null, myColor = null;
@@ -478,13 +511,14 @@ input:focus,select:focus{border-color:var(--green)}
     cancelDrag();
   });
 
-    function tryMove(from,to,promotion,noAnim){
+    function tryMove(from,to,promotion,noAnim,fromBot=false){
     historyPly = null;
     if(forced||timedOut()){showToast("La partida ha terminado");return}
     const p=game.get(from);
     if(!p){selected=null;legalTargets=[];render();return}
     if(myColor&&p.color!==myColor){showToast("Esa pieza es del rival");selected=null;legalTargets=[];render();return}
     if(myColor&&game.turn()!==myColor){showToast("Es el turno del rival");return}
+    if(botEnabled&&!fromBot&&game.turn()===botColor){showToast("Está pensando el bot…");return}
     if(p.type==="p"&&(to[1]==="8"||to[1]==="1")&&!promotion){
       if(game.moves({square:from,verbose:true}).some(m=>m.to===to)){
         pendingPromotion={from,to,noAnim};
@@ -509,6 +543,7 @@ input:focus,select:focus{border-color:var(--green)}
     marks.clear();arrows=[];
     render();
     if(!noAnim)animateMove(move,false);
+    if(botEnabled&&!fromBot&&game.turn()===botColor)window.setTimeout(makeBotMove,180);
   }
 
   function openPromotion(color){
@@ -571,7 +606,7 @@ input:focus,select:focus{border-color:var(--green)}
     $("statusText").textContent=text;
     $("statusDot").className="status-dot"+(warn?" warn":"");
     const top=flipped?"w":"b",bot=flipped?"b":"w";
-    const nm=c=>myColor?(c===myColor?"Tú":"Rival"):(c==="w"?"Blancas":"Negras");
+    const nm=c=>botEnabled?(c===botColor?"Stockfish · nivel "+botSkill:"Tú"):myColor?(c===myColor?"Tú":"Rival"):(c==="w"?"Blancas":"Negras");
     $("topName").textContent=nm(top);$("bottomName").textContent=nm(bot);
     $("topAvatar").src=PIECE(top,"k");$("bottomAvatar").src=PIECE(bot,"k");
   }
@@ -678,6 +713,190 @@ input:focus,select:focus{border-color:var(--green)}
     resetLocal();
     sendPayload({type:"reset",whiteTime,blackTime});
     showToast("Partida reiniciada");
+    if(botEnabled&&botColor==="w")window.setTimeout(makeBotMove,180);
+  }
+
+  /* ---------- Stockfish: motor en Web Worker, bot y análisis ---------- */
+  const STOCKFISH_URL="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js";
+  function engineMessage(event){
+    const line=String(event.data||"");
+    if(line==="uciok"){
+      engineWorker.postMessage("isready");
+      return;
+    }
+    if(line==="readyok"){
+      engineReady=true;
+      if(engineInitResolve){engineInitResolve();engineInitResolve=null}
+      $("engineStatus").textContent="Stockfish listo · se ejecuta en tu navegador.";
+      return;
+    }
+    if(activeSearch){
+      const score=line.match(/\bscore (cp|mate) (-?\d+)/);
+      if(score){
+        let v=Number(score[2]);
+        activeSearch.score=score[1]==="mate"?(v>0?10000-Math.abs(v)*100:-10000+Math.abs(v)*100):v;
+      }
+      const best=line.match(/^bestmove\s+(\S+)/);
+      if(best){
+        const task=activeSearch;activeSearch=null;
+        task.resolve({move:best[1],score:task.score===null?0:task.score});
+      }
+    }
+  }
+  let engineInitResolve=null;
+  function ensureEngine(){
+    if(engineReady)return Promise.resolve();
+    if(engineInitPromise)return engineInitPromise;
+    engineInitPromise=new Promise((resolve,reject)=>{
+      engineInitResolve=resolve;
+      try{
+        const src='importScripts("'+STOCKFISH_URL+'");';
+        const blob=new Blob([src],{type:"text/javascript"});
+        engineWorker=new Worker(URL.createObjectURL(blob));
+        engineWorker.onmessage=engineMessage;
+        engineWorker.onerror=()=>{
+          engineInitPromise=null;engineReady=false;
+          const err=new Error("No se pudo cargar Stockfish. Comprueba la conexión a Internet o prueba desde un servidor local.");
+          if(engineInitResolve){engineInitResolve=null;reject(err)}
+          $("engineStatus").textContent=err.message;
+        };
+        engineWorker.postMessage("uci");
+        setTimeout(()=>{if(!engineReady&&engineInitResolve){engineInitResolve=null;engineInitPromise=null;reject(new Error("Stockfish tarda demasiado en cargar. Prueba de nuevo."))}},20000);
+      }catch(e){engineInitPromise=null;reject(e)}
+    });
+    return engineInitPromise;
+  }
+  async function engineSearch(fen,depth,skill=10){
+    await ensureEngine();
+    if(activeSearch)throw new Error("El motor ya está calculando otra posición.");
+    engineWorker.postMessage("setoption name Skill Level value "+Math.max(0,Math.min(20,skill)));
+    engineWorker.postMessage("position fen "+fen);
+    return new Promise((resolve,reject)=>{
+      activeSearch={resolve,reject,score:null};
+      engineWorker.postMessage("go depth "+depth);
+    });
+  }
+  function uciToMove(uci){
+    if(!uci||uci==="(none)"||uci==="0000")return null;
+    return {from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||"q"};
+  }
+  async function makeBotMove(){
+    if(!botEnabled||botThinking||game.game_over()||forced||game.turn()!==botColor||online())return;
+    botThinking=true;
+    $("engineStatus").textContent="Stockfish está pensando…";
+    try{
+      const result=await engineSearch(game.fen(),botSkill<=3?7:botSkill<=6?9:botSkill<=10?10:11,botSkill);
+      if(!botEnabled||game.turn()!==botColor||game.game_over())return;
+      const m=uciToMove(result.move);
+      if(!m){showToast("El bot no ha encontrado una jugada válida");return}
+      botThinking=false;
+      tryMove(m.from,m.to,m.promotion,true,true);
+      $("engineStatus").textContent="Bot activo · nivel "+botSkill+"/20.";
+    }catch(e){showToast(e.message||"Error al ejecutar Stockfish");$("engineStatus").textContent=e.message||"Error al cargar el motor."}
+    finally{botThinking=false}
+  }
+  async function startBotGame(){
+    if(analysisRunning){showToast("Espera a que termine o detén el análisis primero");return}
+    if(online()&&!confirm("Se cerrará la partida online actual para empezar una partida contra el bot. ¿Continuar?"))return;
+    if(peerJSConn){try{peerJSConn.close()}catch(_){}peerJSConn=null}
+    if(peerJSInstance){try{peerJSInstance.destroy()}catch(_){}peerJSInstance=null}
+    role=null;myColor=null;botEnabled=false;botThinking=false;
+    botSkill=Number($("botLevel").value)||0;
+    const side=$("botSide").value;
+    const playerColor=side==="r"?(Math.random()<.5?"w":"b"):side;
+    botColor=playerColor==="w"?"b":"w";
+    flipped=playerColor==="b";
+    $("connText").textContent="Partida local contra Stockfish · nivel "+botSkill;
+    $("connDot").className="status-dot";
+    $("chatInput").disabled=true;$("chatSend").disabled=true;
+    $("chatLog").innerHTML='<div class="msg sys">Partida local contra Stockfish.</div>';
+    $("tcSelect").value="0+0";parseTC();
+    resetLocal();
+    botEnabled=true;
+    $("engineResults").innerHTML="";
+    $("engineStatus").textContent="Cargando Stockfish…";
+    showTab("online");showSubtab("bot");render();
+    try{
+      await ensureEngine();
+      $("engineStatus").textContent="Partida contra bot iniciada · nivel "+botSkill+"/20.";
+      if(botColor==="w")makeBotMove();
+    }catch(e){botEnabled=false;showToast(e.message||"No se pudo cargar Stockfish");$("engineStatus").textContent=e.message||"No se pudo cargar Stockfish."}
+  }
+  $("startBotBtn").onclick=startBotGame;
+  $("analyzeBtn").onclick=analyzeGame;
+  $("stopAnalyzeBtn").onclick=()=>{
+    analysisCancelled=true;
+    if(engineWorker&&activeSearch)engineWorker.postMessage("stop");
+    $("stopAnalyzeBtn").disabled=true;
+    $("engineStatus").textContent="Deteniendo el análisis…";
+  };
+  async function analyzeGame(){
+    if(analysisRunning)return;
+    if(botThinking){showToast("Espera a que el bot termine su jugada");return}
+    if(online()&&!getResult()){showToast("Puedes analizar la partida cuando haya terminado");return}
+    const history=game.history({verbose:true});
+    if(!history.length){showToast("Juega o carga una partida antes de analizarla");return}
+    analysisRunning=true;analysisCancelled=false;
+    $("analyzeBtn").disabled=true;$("stopAnalyzeBtn").disabled=false;
+    const results=$("engineResults");results.innerHTML="";
+    try{
+      $("engineStatus").textContent="Cargando Stockfish…";
+      await ensureEngine();
+      const replay=new Chess(),positions=[{fen:replay.fen()}];
+      history.forEach(m=>{replay.move({from:m.from,to:m.to,promotion:m.promotion||"q"});positions.push({fen:replay.fen()})});
+      const evals=[],bestMoves=[];
+      for(let i=0;i<positions.length;i++){
+        if(analysisCancelled)break;
+        $("engineStatus").textContent="Analizando posición "+(i+1)+" de "+positions.length+"…";
+        const r=await engineSearch(positions[i].fen,12,15);
+        const turn=positions[i].fen.split(" ")[1];
+        evals.push((turn==="w"?r.score:-r.score)/100);
+        bestMoves.push(r.move);
+      }
+      if(analysisCancelled){$("engineStatus").textContent="Análisis detenido. Los resultados pueden estar incompletos.";return}
+      const counts={brilliant:0,best:0,excellent:0,good:0,inaccuracy:0,mistake:0,blunder:0,missed:0};
+      const labels={brilliant:"Brillante",best:"Mejor jugada",excellent:"Excelente",good:"Buena",inaccuracy:"Imprecisión",mistake:"Error",blunder:"Error grave",missed:"Omisión de victoria"};
+      const pieceValue={p:1,n:3,b:3,r:5,q:9,k:99};
+      const fragment=document.createDocumentFragment();
+      history.forEach((m,i)=>{
+        const before=evals[i],after=evals[i+1];
+        if(before===undefined||after===undefined)return;
+        // Evalúa la pérdida desde el punto de vista del jugador que acaba de mover.
+        const playerBefore=m.color==="w"?before:-before;
+        const playerAfter=m.color==="w"?after:-after;
+        const lost=Math.max(0,playerBefore-playerAfter);
+        const uci=m.from+m.to+(m.promotion||"");
+        const isBest=(bestMoves[i]||"").slice(0,4)===uci.slice(0,4);
+        // Heurística conservadora para señalar posibles sacrificios brillantes; no sustituye el análisis humano.
+        const sacrifice=!!m.captured && (pieceValue[m.piece]||0)>(pieceValue[m.captured]||0) && playerAfter>=playerBefore-0.2;
+        let key;
+        if(playerBefore>=3 && playerAfter<=1 && lost>=1.5){key="missed"}
+        else if(sacrifice && lost<=0.2){key="brilliant"}
+        else if(isBest && lost<=0.5){key="best"}
+        else if(lost<=0.15){key="excellent"}
+        else if(lost<=0.5){key="good"}
+        else if(lost<=1.5){key="inaccuracy"}
+        else if(lost<=3){key="mistake"}
+        else{key="blunder"}
+        counts[key]++;
+        const cls=(key==="brilliant"?"brilliant":(["best"].includes(key)?"best":(["inaccuracy","mistake","blunder","missed"].includes(key)?"bad":"good")));
+        const row=document.createElement("div");row.className="engine-result "+cls;
+        const no=document.createElement("span");no.textContent=(Math.floor(i/2)+1)+(m.color==="w"?".":"…");
+        const mv=document.createElement("span");mv.textContent=m.san+" · "+labels[key];
+        const ev=document.createElement("span");ev.className="engine-eval";ev.textContent=(after>0?"+":"")+after.toFixed(1);
+        row.append(no,mv,ev);row.title="Pérdida estimada: "+lost.toFixed(2)+" peones · Pulsa para revisar";row.onclick=()=>goPly(i+1);fragment.appendChild(row);
+      });
+      const summary=document.createElement("div");summary.className="engine-summary";
+      const stats=[
+        [counts.brilliant,"Brillantes"],[counts.best,"Mejores"],[counts.excellent,"Excelentes"],
+        [counts.good,"Buenas"],[counts.inaccuracy,"Imprecisiones"],[counts.mistake,"Errores"],
+        [counts.blunder,"Errores graves"],[counts.missed,"Omisiones"],[history.length,"Jugadas"]
+      ];
+      stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="engine-stat";const strong=document.createElement("strong");strong.textContent=value;const caption=document.createElement("span");caption.textContent=label;card.append(strong,caption);summary.appendChild(card)});
+      results.appendChild(summary);results.appendChild(fragment);
+      $("engineStatus").textContent="Análisis terminado. Las categorías son estimaciones de Stockfish; las brillantes y omisiones se detectan mediante heurísticas. Pulsa una jugada para revisar la posición.";
+    }catch(e){$("engineStatus").textContent=e.message||"Error durante el análisis.";showToast(e.message||"Error al analizar")}
+    finally{analysisRunning=false;$("analyzeBtn").disabled=false;$("stopAnalyzeBtn").disabled=true}
   }
 
   /* ---------- Navegación por Teclado ---------- */
@@ -771,7 +990,12 @@ input:focus,select:focus{border-color:var(--green)}
   const closeEnd=()=>{$("endModal").style.display="none"};
   $("endClose").onclick=closeEnd;
   $("endModal").onclick=e=>{if(e.target===$("endModal"))closeEnd()};
-  $("endPgn").onclick=downloadPGN;
+  $("endPgn").onclick=()=>{
+    closeEnd();
+    showTab("online");
+    showSubtab("bot");
+    analyzeGame();
+  };
   $("endNew").onclick=()=>{closeEnd();reset()};
   $("endRematch").onclick=()=>{closeEnd();reset();if(!myColor){flipped=!flipped;render()}};
 
@@ -781,14 +1005,26 @@ input:focus,select:focus{border-color:var(--green)}
   function showTab(t){
     document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
     document.querySelectorAll("#pane-moves, #pane-online").forEach(p=>p.hidden=p.id!=="pane-"+t);
-    if(t==="online")showSubtab(document.querySelector(".subtab.active")?.dataset.subtab||"game");
+    if(t==="online"){
+      const active=document.querySelector(".play-subtab.active")?.dataset.playSubtab||"bot";
+      showSubtab(active);
+    }
   }
   function showSubtab(t){
-    document.querySelectorAll(".subtab").forEach(b=>b.classList.toggle("active",b.dataset.subtab===t));
-    document.querySelectorAll(".subpane").forEach(p=>p.hidden=p.id!=="subpane-"+t);
+    document.querySelectorAll(".play-subtab").forEach(b=>b.classList.toggle("active",b.dataset.playSubtab===t));
+    document.querySelectorAll(".play-subpane").forEach(p=>p.hidden=p.id!=="subpane-"+t);
+    if(t==="online"){
+      const active=document.querySelector(".online-subtab.active")?.dataset.onlineSubtab||"friends";
+      showOnlineSubtab(active);
+    }
+  }
+  function showOnlineSubtab(t){
+    document.querySelectorAll(".online-subtab").forEach(b=>b.classList.toggle("active",b.dataset.onlineSubtab===t));
+    document.querySelectorAll(".online-subpane").forEach(p=>p.hidden=p.id!=="online-subpane-"+t);
     if(t==="friends")pingAll();
   }
-  document.querySelectorAll(".subtab").forEach(b=>b.onclick=()=>showSubtab(b.dataset.subtab));
+  document.querySelectorAll(".play-subtab").forEach(b=>b.onclick=()=>showSubtab(b.dataset.playSubtab));
+  document.querySelectorAll(".online-subtab").forEach(b=>b.onclick=()=>showOnlineSubtab(b.dataset.onlineSubtab));
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
   /* ---------- Control de Tiempo & Red ---------- */
@@ -852,6 +1088,7 @@ input:focus,select:focus{border-color:var(--green)}
   }
 
   function initPeerJS(targetCode = null, onReady = null){
+    botEnabled=false;botThinking=false;
     if(peerJSConn){const o=peerJSConn;peerJSConn=null;try{o.close()}catch(_){}}
     if(peerJSInstance) peerJSInstance.destroy();
     role=null;myColor=null;flipped=false;
@@ -1064,7 +1301,7 @@ input:focus,select:focus{border-color:var(--green)}
     if(!friendPeer||!friendPeer.open)showToast("Conectando con el servicio de amigos…");
     else {showToast("Buscando a tu amigo…");ping(f)}
   };
-  setInterval(()=>{if(!$("subpane-friends").hidden)pingAll()},30000);
+  setInterval(()=>{if(!$("online-subpane-friends").hidden)pingAll()},30000);
   window.addEventListener("beforeunload",()=>{try{friendPeer.destroy()}catch(_){}});
   renderFriends();startFriendPeer();
 
