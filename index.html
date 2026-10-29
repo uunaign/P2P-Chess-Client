@@ -568,7 +568,8 @@
     }
 
     .primary,
-    .secondary, .primarySmall {
+    .secondary,
+    .primarySmall {
       border-radius: 6px;
       padding: 9px 12px;
       font-weight: 700;
@@ -791,7 +792,14 @@
     }
 
     .friends {
-      gap: 8px
+      gap: 8px;
+      scrollbar-width: none;
+
+      -ms-overflow-style: none;
+    }
+
+    .friends::-webkit-scrollbar {
+      display: none;
     }
 
     .friend-main {
@@ -2502,10 +2510,10 @@
             </div>
           </div>
           <div class="subtabs game-subtabs" role="tablist" aria-label="Contenido de la partida" hidden>
-            <button class="game-subtab subtab active" id="gameMovesTab" type="button" role="tab"
-              aria-selected="true" aria-controls="move-subpane-list" data-game-subtab="moves">Movimientos</button>
-            <button class="game-subtab subtab" id="gameChatTab" type="button" role="tab"
-              aria-selected="false" aria-controls="move-subpane-chat" data-game-subtab="chat">Chat</button>
+            <button class="game-subtab subtab active" id="gameMovesTab" type="button" role="tab" aria-selected="true"
+              aria-controls="move-subpane-list" data-game-subtab="moves">Movimientos</button>
+            <button class="game-subtab subtab" id="gameChatTab" type="button" role="tab" aria-selected="false"
+              aria-controls="move-subpane-chat" data-game-subtab="chat">Chat</button>
           </div>
           <div class="move-subpane" id="move-subpane-list" role="tabpanel" aria-labelledby="gameMovesTab">
             <div class="rv" id="reviewPanel" hidden>
@@ -2541,8 +2549,8 @@
               <div class="chat-log" id="chatLog" aria-live="polite">
                 <div class="msg sys">Conéctate a una partida para chatear.</div>
               </div>
-              <div class="chat-form"><input id="chatInput" type="text" maxlength="300"
-                  placeholder="Escribe un mensaje…" disabled><button class="primarySmall noTextButton" id="chatSend" disabled
+              <div class="chat-form"><input id="chatInput" type="text" maxlength="300" placeholder="Escribe un mensaje…"
+                  disabled><button class="primarySmall noTextButton" id="chatSend" disabled
                   aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
             </div>
           </div>
@@ -2631,7 +2639,8 @@
   <div class="notif-stack" id="notifStack" aria-live="polite">
     <div class="notif" id="inviteBar" hidden><span class="material-symbols-rounded notif-ico">sports_esports</span><span
         class="notif-text" id="inviteText"></span>
-      <div class="notif-actions"><button class="primarySmall" id="invYes"><span class="material-symbols-rounded">check</span>
+      <div class="notif-actions"><button class="primarySmall" id="invYes"><span
+            class="material-symbols-rounded">check</span>
           Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span>
           No</button></div>
     </div>
