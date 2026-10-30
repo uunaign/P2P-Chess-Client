@@ -706,6 +706,82 @@
       overflow: auto
     }
 
+    .friend-tools {
+      flex: none;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px
+    }
+
+    .friend-tools summary {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+      padding: 3px 0
+    }
+
+    .friend-profile {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: none;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .friend-profile-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--bright);
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .profile-avatar {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      border-radius: 7px;
+      background: var(--card)
+    }
+
+    .friend-profile .row button {
+      flex: 0 0 38px;
+      padding: 8px
+    }
+
+    .friend-profile #nameInput {
+      text-align: left;
+      text-transform: none;
+      letter-spacing: normal
+    }
+
+    .friend-tools summary::-webkit-details-marker {
+      display: none
+    }
+
+    .friend-tools summary:after {
+      content: "＋";
+      float: right;
+      color: var(--muted)
+    }
+
+    .friend-tools[open] summary:after {
+      content: "−"
+    }
+
+    .friend-tools-body {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding-top: 9px
+    }
+
     .room-details {
       border-top: 1px solid var(--line);
       padding-top: 10px
@@ -2668,16 +2744,29 @@
           </div>
           <div class="play-subpane" id="subpane-online" hidden>
             <div class="stack online-subpane" id="online-subpane-friends">
-              <div class="field"><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="16"></div>
-              <div class="field"><label>Tu código de amigo</label>
-                <div class="row"><input id="myCode" readonly><button class="secondary" id="copyCodeBtn"><span
-                      class="material-symbols-rounded">content_copy</span> Copiar</button></div>
+              <div class="friend-profile">
+                <div class="row"><div class="friend-profile-title"><img id="profileAvatar" class="profile-avatar" alt=""> Mi perfil</div>
+                  <input id="nameInput" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="16">
+                </div>
+                <div class="row"><input id="myCode" aria-label="Tu código de amigo" title="Código de amigo" readonly>
+                  <button class="secondary noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span
+                      class="material-symbols-rounded">content_copy</span></button></div>
               </div>
-              <div class="field"><label for="friendInput">Añadir amigo por código</label>
-                <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button
-                    class="primarySmall" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span>
-                    Añadir</button></div>
-              </div>
+              <details class="friend-tools">
+                <summary><span class="material-symbols-rounded">person_add</span> Añadir amigos</summary>
+                <div class="friend-tools-body">
+                  <div class="field"><label for="friendNameInput">Buscar por nombre</label>
+                    <div class="row"><input id="friendNameInput" placeholder="NOMBRE EXACTO" maxlength="16" title="El nombre debe ser único; si no aparece, puedes buscar al jugador por su código."><button
+                        class="primarySmall" id="findFriendBtn"><span class="material-symbols-rounded">person_search</span>
+                        Buscar</button></div>
+                  </div>
+                  <div class="field"><label for="friendInput">Añadir por código</label>
+                    <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button
+                        class="primarySmall" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span>
+                        Añadir</button></div>
+                  </div>
+                </div>
+              </details>
               <div class="friends" id="friendList"></div>
               <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span>
                 Actualizar lista</button>
@@ -4547,11 +4636,20 @@
       let myCode = LS("aj_code"); if (!myCode) { myCode = rnd(8); LS("aj_code", myCode) }
       let myName = LS("aj_name") || "Jugador" + rnd(3);
       let friends = []; try { friends = JSON.parse(LS("aj_friends") || "[]") } catch (_) { }
-      const presence = {}, playing = {}, FID = c => "AJEDREZ-U" + c, saveFriends = () => LS("aj_friends", JSON.stringify(friends));
+      const presence = {}, playing = {}, FID = c => "AJEDREZ-U" + c, NAME_FID = name => {
+        const normalized = normalizeName(name).normalize("NFKC").toLowerCase();
+        let hashA = 2166136261, hashB = 2246822519;
+        for (let i = 0; i < normalized.length; i++) {
+          const code = normalized.charCodeAt(i);
+          hashA = Math.imul(hashA ^ code, 16777619) >>> 0;
+          hashB = Math.imul(hashB ^ code, 3266489917) >>> 0;
+        }
+        return "AJEDREZ-N" + hashA.toString(16).padStart(8, "0") + hashB.toString(16).padStart(8, "0");
+      }, saveFriends = () => LS("aj_friends", JSON.stringify(friends));
       const ELO_KEY = "aj_elo_by_name";
       let playerRatings = {}; try { playerRatings = JSON.parse(LS(ELO_KEY) || "{}") || {}; } catch (_) { playerRatings = {} }
       let activeOpponentName = "Rival";
-      let friendPeer = null, pendingInvite = null, pendingRematch = null;
+      let friendPeer = null, namePeer = null, pendingInvite = null, pendingRematch = null;
       const ratedResults = new Map();
       const confirmLeave = () => !online() || confirm("Se cerrará la partida online actual. ¿Continuar?");
       const isPlayingOnline = () => !!online();
@@ -4719,7 +4817,7 @@
 
       function renderFriends() {
         const el = $("friendList"); el.innerHTML = "";
-        if (!friends.length) { el.innerHTML = '<div class="empty">Añade el código de un amigo para ver si está conectado y retarle.</div>'; return }
+        if (!friends.length) { el.innerHTML = '<div class="empty">Busca a un amigo por nombre o añádelo con su código para ver si está conectado y retarle.</div>'; return }
         const activeFriends = friends.filter(f => presence[f.code] === true);
         const inactiveFriends = friends.filter(f => presence[f.code] !== true);
         const divider = label => {
@@ -4777,6 +4875,52 @@
         c.on("error", () => { clearTimeout(t); presence[f.code] = false; delete playing[f.code]; renderFriends() });
       }
       function pingAll() { friends.forEach(ping) }
+      function findFriendByName() {
+        const name = normalizeName($("friendNameInput").value, "").slice(0, 16);
+        if (!name) { showToast("Escribe el nombre del jugador"); return }
+        if (playerKey(name) === playerKey(myName)) { showToast("Ese es tu propio nombre"); return }
+        if (!friendPeer || !friendPeer.open) { showToast("Tu conexión de amigos aún no está lista"); return }
+
+        const c = friendPeer.connect(NAME_FID(name), { reliable: true });
+        let completed = false;
+        const timeout = setTimeout(() => {
+          if (completed) return;
+          completed = true;
+          try { c.close() } catch (_) { }
+          showToast("No se encontró a " + name + ". Prueba con su código de amigo.");
+        }, 8000);
+        c.on("open", () => c.send({ type: "nameLookup" }));
+        c.on("data", d => {
+          if (completed || !d || d.type !== "nameResult") return;
+          completed = true;
+          clearTimeout(timeout);
+          try { c.close() } catch (_) { }
+          if (!/^[A-Z0-9]{8}$/.test(String(d.code))) {
+            showToast("La respuesta del jugador no es válida");
+            return;
+          }
+          if (d.code === myCode) { showToast("Ese es tu propio código"); return }
+
+          let f = friends.find(x => x.code === d.code);
+          const foundName = normalizeName(d.name || name);
+          if (!f) { f = { code: d.code, name: foundName, ack: false }; friends.push(f) }
+          else f.name = foundName;
+          if (typeof d.elo === "number") setPlayerElo(foundName, d.elo);
+          presence[d.code] = true;
+          playing[d.code] = d.playing === true;
+          saveFriends();
+          $("friendNameInput").value = "";
+          renderFriends();
+          showToast("Encontrado: " + foundName);
+          ping(f);
+        });
+        c.on("error", () => {
+          if (completed) return;
+          completed = true;
+          clearTimeout(timeout);
+          showToast("No se encontró a " + name + ". Prueba con su código de amigo.");
+        });
+      }
       let challengeTarget = null;
       function challenge(f) {
         if (!confirmLeave()) return;
@@ -4917,11 +5061,30 @@
           else $("friendNote").textContent = "Error de conexión con amigos: " + err.type;
         });
       }
+      function startNamePeer() {
+        if (typeof Peer === "undefined") return;
+        if (namePeer) namePeer.destroy();
+        namePeer = new Peer(NAME_FID(myName), { config: RTC_CONFIG });
+        namePeer.on("connection", c => {
+          c.on("data", d => {
+            if (d && d.type === "nameLookup")
+              c.send({ type: "nameResult", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline() });
+          });
+        });
+        namePeer.on("error", err => {
+          if (err.type === "unavailable-id")
+            $("friendNote").textContent = "Ese nombre ya está en uso. La búsqueda por nombre requiere nombres únicos; usa el código de amigo.";
+          else $("friendNote").textContent = "Error al publicar la búsqueda por nombre: " + err.type;
+        });
+      }
       $("nameInput").value = myName;
-      $("nameInput").onchange = () => { myName = $("nameInput").value.trim().slice(0, 16) || myName; $("nameInput").value = myName; LS("aj_name", myName); render(); pingAll() };
+      setPlayerAvatar($("profileAvatar"), myName, "w");
+      $("nameInput").onchange = () => { myName = $("nameInput").value.trim().slice(0, 16) || myName; $("nameInput").value = myName; LS("aj_name", myName); setPlayerAvatar($("profileAvatar"), myName, "w"); startNamePeer(); render(); pingAll() };
       $("myCode").value = myCode;
       $("refreshFriends").onclick = () => pingAll();
       $("copyCodeBtn").onclick = () => navigator.clipboard.writeText(myCode).then(() => showToast("Código copiado"));
+      $("findFriendBtn").onclick = findFriendByName;
+      $("friendNameInput").onkeydown = event => { if (event.key === "Enter") findFriendByName() };
       $("addFriendBtn").onclick = () => {
         const c = $("friendInput").value.trim().toUpperCase().replace(/^AJEDREZ-U/, "");
         if (!/^[A-Z0-9]{8}$/.test(c)) { showToast("El código de amigo tiene 8 caracteres"); return }
@@ -4931,9 +5094,10 @@
         if (!friendPeer || !friendPeer.open) showToast("Conectando con el servicio de amigos…");
         else { showToast("Buscando a tu amigo…"); ping(f) }
       };
+      $("friendInput").onkeydown = event => { if (event.key === "Enter") $("addFriendBtn").click() };
       setInterval(pingAll, 30000);
-      window.addEventListener("beforeunload", () => { try { friendPeer.destroy() } catch (_) { } });
-      renderFriends(); startFriendPeer();
+      window.addEventListener("beforeunload", () => { try { friendPeer.destroy() } catch (_) { } try { namePeer.destroy() } catch (_) { } });
+      renderFriends(); startFriendPeer(); startNamePeer();
 
       /* ---------- Chat ---------- */
       function addMsg(kind, text) {
