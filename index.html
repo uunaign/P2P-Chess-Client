@@ -3460,12 +3460,17 @@
       }
 
       /* ---------- Stockfish: motor en Web Worker, bot y análisis ---------- */
-      const SF19 = "https://cdn.jsdelivr.net/npm/stockfish@19.0.1/bin/stockfish-19-lite-single";
+      // jsDelivr bloquea (403) el paquete stockfish@19 por tamaño, así que se prueba unpkg primero y luego otras opciones
+      const SF19 = "https://unpkg.com/stockfish@19.0.1/bin/stockfish-19-lite-single";
+      const SF16J = "https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish-nnue-16-single";
+      const SF16U = "https://unpkg.com/stockfish@16.0.0/src/stockfish-nnue-16-single";
       const ENGINES = [
         { name: "Stockfish 19 NNUE", js: SF19 + ".js", wasm: SF19 + ".wasm", modern: true },
+        { name: "Stockfish 16 NNUE", js: SF16J + ".js", wasm: SF16J + ".wasm", modern: true },
+        { name: "Stockfish 16 NNUE", js: SF16U + ".js", wasm: SF16U + ".wasm", modern: true },
         { name: "Stockfish 10 (respaldo)", js: "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js", modern: false }
       ];
-      let engineInfo = ENGINES[1];
+      let engineInfo = ENGINES[ENGINES.length - 1];
       let engineLoadErrors = [];
       async function loadEngine(cfg) {
         // Motor moderno: se descarga el .js, se le fija la ruta del .wasm y se lanza desde un blob (sin depender del hash de la URL)
@@ -3531,7 +3536,7 @@
           engineWorker.onerror = () => { engineReady = false; engineInitPromise = null; engineWorker = null; $("engineStatus").textContent = "El motor se ha detenido. Vuelve a intentarlo." };
           if (engineInfo.modern) engineWorker.postMessage("setoption name Hash value 32");
           engineReady = true;
-          $("engineStatus").textContent = engineInfo.name + " listo · se ejecuta en tu navegador." + (engineInfo.modern ? "" : " (Stockfish 19 no ha cargado: " + engineLoadErrors[0] + ")");
+          $("engineStatus").textContent = engineInfo.name + " listo · se ejecuta en tu navegador." + (engineInfo === ENGINES[0] ? "" : " (Stockfish 19 no ha cargado: " + engineLoadErrors[0] + ")");
           const n = $("engineNote"); if (n) n.textContent = engineInfo.name + " · GPL-3.0. Necesita Internet para descargar el motor; el cálculo se hace en tu dispositivo.";
         })();
         return engineInitPromise;
