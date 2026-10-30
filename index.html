@@ -166,12 +166,6 @@
       color: var(--muted)
     }
 
-    .cap img {
-      width: 16px;
-      height: 16px;
-      margin-right: -6px
-    }
-
     .cap .elo {
       margin-left: 8px;
       color: var(--gold);
@@ -179,8 +173,93 @@
       white-space: nowrap
     }
 
-    .cap b {
-      margin-left: 12px
+    .board-area {
+      display: grid;
+      grid-template-columns: minmax(68px, 84px) minmax(0, 1fr);
+      align-items: stretch;
+      gap: 8px;
+      min-width: 0;
+      --material-rail-width: 84px;
+      --board-area-gap: 8px;
+      container-type: inline-size
+    }
+
+    .material-rail {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+      padding: 5px 0;
+      overflow-y: auto;
+      scrollbar-width: thin
+    }
+
+    .material-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 0;
+      flex: 0 0 auto
+    }
+
+    .material-heading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1.15;
+      text-align: center
+    }
+
+    .material-heading span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%
+    }
+
+    .material-total {
+      color: var(--gold);
+      font: 800 13px Manrope, sans-serif;
+      white-space: nowrap
+    }
+
+    .material-pieces {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 0
+    }
+
+    .material-piece-group {
+      display: flex;
+      flex-direction: column;
+      justify-content: center
+    }
+
+    .material-piece {
+      width: clamp(16px, calc((100cqw - var(--material-rail-width) - var(--board-area-gap)) / 16), 40px);
+      height: clamp(16px, calc((100cqw - var(--material-rail-width) - var(--board-area-gap)) / 16), 40px);
+      object-fit: contain
+    }
+
+    .material-piece + .material-piece {
+      margin-top: clamp(-20px, calc((var(--material-rail-width) + var(--board-area-gap) - 100cqw) / 32), -8px)
+    }
+
+    .material-piece-group-dense .material-piece + .material-piece {
+      margin-top: clamp(-28px, calc((var(--material-rail-width) + var(--board-area-gap) - 100cqw) / 24), -10px)
+    }
+
+    .material-empty {
+      color: var(--muted);
+      font-size: 9px;
+      opacity: .7
     }
 
     .clock {
@@ -343,6 +422,22 @@
       box-shadow: inset 0 0 0 4px #a78bfa;
       pointer-events: none;
       z-index: 1;
+    }
+
+    .piece.premove-origin {
+      opacity: .28
+    }
+
+    .premove-ghost {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: .55;
+      filter: drop-shadow(0 2px 3px #0008);
+      pointer-events: none
     }
 
     .square.legal:after {
@@ -1307,6 +1402,11 @@
         padding: 10px
       }
 
+      .board-area {
+        grid-template-columns: 72px minmax(0, 1fr);
+        --material-rail-width: 72px
+      }
+
       .card {
         position: static;
         min-height: 560px
@@ -1847,6 +1947,13 @@
     }
 
     @media (max-width: 420px) {
+      .board-area {
+        grid-template-columns: 58px minmax(0, 1fr);
+        gap: 5px;
+        --material-rail-width: 58px;
+        --board-area-gap: 5px
+      }
+
       .friend {
         grid-template-columns: 10px minmax(0, 1fr);
       }
@@ -2620,13 +2727,25 @@
         </div>
         <span class="clock" id="topClock">10:00</span>
       </div>
-      <div class="board-wrap" id="boardWrap">
-        <div id="board" aria-label="Tablero de ajedrez"></div>
-        <svg id="overlay" viewBox="0 0 800 800" preserveAspectRatio="none"></svg>
-        <div class="board-loading" id="boardLoading" hidden role="status" aria-live="polite">
-          <div class="loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-          <strong>Esperando al rival</strong>
-          <small>El tablero se activará cuando se conecte</small>
+      <div class="board-area">
+        <aside class="material-rail" aria-label="Material capturado">
+          <div class="material-side">
+            <div class="material-heading"><span id="topMaterialName">Negras</span><strong class="material-total" id="topMaterialTotal">0</strong></div>
+            <div class="material-pieces" id="topMaterialPieces"></div>
+          </div>
+          <div class="material-side">
+            <div class="material-heading"><span id="bottomMaterialName">Blancas</span><strong class="material-total" id="bottomMaterialTotal">0</strong></div>
+            <div class="material-pieces" id="bottomMaterialPieces"></div>
+          </div>
+        </aside>
+        <div class="board-wrap" id="boardWrap">
+          <div id="board" aria-label="Tablero de ajedrez"></div>
+          <svg id="overlay" viewBox="0 0 800 800" preserveAspectRatio="none"></svg>
+          <div class="board-loading" id="boardLoading" hidden role="status" aria-live="polite">
+            <div class="loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <strong>Esperando al rival</strong>
+            <small>El tablero se activará cuando se conecte</small>
+          </div>
         </div>
       </div>
       <div class="player">
@@ -3081,9 +3200,22 @@
           if (p) {
             const piece = document.createElement("img");
             piece.className = "piece " + (p.color === "w" ? "white" : "black");
+            if (pendingPremove && pendingPremove.from === name) piece.classList.add("premove-origin");
             piece.src = PIECE(p.color, p.type);
             piece.draggable = false;
             sq.appendChild(piece);
+          }
+
+          if (pendingPremove && pendingPremove.to === name && pendingPremove.promotion) {
+            const queuedPiece = displayGame.get(pendingPremove.from);
+            if (queuedPiece && queuedPiece.type === "p" && (pendingPremove.to[1] === "1" || pendingPremove.to[1] === "8")) {
+              const ghost = document.createElement("img");
+              ghost.className = "premove-ghost";
+              ghost.src = PIECE(queuedPiece.color, pendingPremove.promotion);
+              ghost.alt = "";
+              ghost.setAttribute("aria-hidden", "true");
+              sq.appendChild(ghost);
+            }
           }
 
           if ((!flipped && file === 0) || (flipped && file === 7)) {
@@ -3213,8 +3345,10 @@
         if (!piece || !myColor || piece.color !== myColor || from === to) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
         if (!getPremoveTargets(from).includes(to)) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
         if (game.turn() === myColor) { tryMove(from, to, undefined, true); return; }
-        pendingPremove = { from, to, promotion: piece.type === "p" && (to[1] === "1" || to[1] === "8") ? "q" : undefined };
+        const promotes = piece.type === "p" && (to[1] === "1" || to[1] === "8");
+        pendingPremove = { from, to, promotion: undefined };
         selected = null; legalTargets = []; premoveMode = false; render();
+        if (promotes) openPromotion(piece.color, true);
       }
       function cancelPremove() {
         if (!pendingPremove) return false;
@@ -3222,9 +3356,12 @@
       }
       function executePremove() {
         if (!pendingPremove) return;
-        const pm = pendingPremove; pendingPremove = null;
+        const pm = pendingPremove;
         const piece = game.get(pm.from);
-        if (!piece || piece.color !== game.turn() || (myColor && piece.color !== myColor)) { render(); return; }
+        if (!piece || (myColor && piece.color !== myColor)) { pendingPremove = null; render(); return; }
+        if (piece.color !== game.turn()) { render(); return; }
+        if (piece.type === "p" && (pm.to[1] === "1" || pm.to[1] === "8") && !pm.promotion) { render(); return; }
+        pendingPremove = null;
         if (!game.moves({ square: pm.from, verbose: true }).some(m => m.to === pm.to)) { render(); return; }
         tryMove(pm.from, pm.to, pm.promotion, false);
       }
@@ -3341,8 +3478,9 @@
         if (botEnabled && !fromBot && game.turn() === botColor) window.setTimeout(makeBotMove, 180);
       }
 
-      function openPromotion(color) {
+      function openPromotion(color, forPremove = false) {
         const modal = $("promotionModal"), choices = $("promotionChoices");
+        modal.querySelector("h3").textContent = forPremove ? "Elige la promoción del premove" : "Coronar peón";
         choices.innerHTML = "";
         ["q", "r", "b", "n"].forEach(type => {
           const b = document.createElement("button");
@@ -3350,6 +3488,12 @@
           b.innerHTML = '<img src="' + PIECE(color, type) + '" alt="' + pieceNames[type] + '">';
           b.onclick = () => {
             modal.style.display = "none";
+            if (forPremove && pendingPremove) {
+              pendingPremove.promotion = type;
+              if (game.turn() === myColor) executePremove();
+              else render();
+              return;
+            }
             if (pendingPromotion) {
               const m = pendingPromotion;
               pendingPromotion = null;
@@ -3428,21 +3572,53 @@
       }
 
       function renderCaptured(g) {
-        const start = { p: 8, n: 2, b: 2, r: 2, q: 1 }, val = { p: 1, n: 3, b: 3, r: 5, q: 9 };
-        const cnt = { w: { p: 0, n: 0, b: 0, r: 0, q: 0 }, b: { p: 0, n: 0, b: 0, r: 0, q: 0 } }, score = { w: 0, b: 0 }, html = { w: "", b: "" };
-        g.board().forEach(r => r.forEach(q => { if (q && q.type !== "k") cnt[q.color][q.type]++ }));
-        ["w", "b"].forEach(c => {
-          const o = c === "w" ? "b" : "w";
-          ["q", "r", "b", "n", "p"].forEach(t => { const m = Math.max(0, start[t] - cnt[o][t]); score[c] += m * val[t]; html[c] += ('<img src="' + PIECE(o, t) + '" alt="">').repeat(m) });
+        const val = { p: 1, n: 3, b: 3, r: 5, q: 9 };
+        const pieceNamesEs = { p: "peón", n: "caballo", b: "alfil", r: "torre", q: "dama" };
+        const captured = { w: [], b: [] }, score = { w: 0, b: 0 };
+        g.history({ verbose: true }).forEach(move => {
+          if (!move.captured) return;
+          captured[move.color].push({ color: move.color === "w" ? "b" : "w", type: move.captured });
+          score[move.color] += val[move.captured] || 0;
         });
         const top = flipped ? "w" : "b", bot = flipped ? "b" : "w";
         [["top", top], ["bottom", bot]].forEach(([k, c]) => {
-          const d = score[c] - score[c === "w" ? "b" : "w"];
+          const isOpponent = myColor ? c !== myColor : c === top;
           const elo = (() => {
             const info = botEnabled ? (c === botColor ? { name: "Stockfish", elo: "Nivel " + botSkill } : { name: normalizeName(myName, "Yo"), elo: getEloText(myName) }) : myColor ? (c === myColor ? { name: normalizeName(myName, "Yo"), elo: getEloText(myName) } : { name: normalizeName(activeOpponentName || "Rival", "Rival"), elo: getEloText(activeOpponentName || "Rival") }) : { name: c === "w" ? "Blancas" : "Negras", elo: "" };
             return info.elo;
           })();
-          $(k + "Cap").innerHTML = html[c] + (elo ? '<span class="elo">' + elo + '</span>' : '') + (d > 0 ? "<b>+" + d + "</b>" : "");
+          const pieces = $(k + "MaterialPieces");
+          pieces.replaceChildren();
+          const order = { q: 0, r: 1, b: 2, n: 3, p: 4 };
+          const orderDirection = isOpponent ? -1 : 1;
+          let groupKey = "";
+          let group;
+          captured[c].sort((a, b) => orderDirection * (order[a.type] - order[b.type]) || a.color.localeCompare(b.color)).forEach(piece => {
+            const key = piece.color + piece.type;
+            if (key !== groupKey) {
+              groupKey = key;
+              group = document.createElement("div");
+              group.className = "material-piece-group";
+              pieces.appendChild(group);
+            }
+            const image = document.createElement("img");
+            image.className = "material-piece";
+            image.src = PIECE(piece.color, piece.type);
+            image.alt = pieceNamesEs[piece.type] || "";
+            image.title = image.alt;
+            group.appendChild(image);
+            if (group.children.length === 4) group.classList.add("material-piece-group-dense");
+          });
+          if (!captured[c].length) {
+            const empty = document.createElement("span");
+            empty.className = "material-empty";
+            empty.textContent = "Sin capturas";
+            pieces.appendChild(empty);
+          }
+          $(k + "MaterialName").textContent = $(k + "Name").textContent;
+          const advantage = score[c] - score[c === "w" ? "b" : "w"];
+          $(k + "MaterialTotal").textContent = advantage > 0 ? "+" + advantage : "";
+          $(k + "Cap").innerHTML = elo ? '<span class="elo">' + elo + '</span>' : "";
         });
       }
 
@@ -4175,6 +4351,8 @@
         else if (e.key === "Escape") {
           cancelDrag();
           $("promotionModal").style.display = "none";
+          if (pendingPremove && pendingPremove.promotion === undefined && game.get(pendingPremove.from)?.type === "p" && ["1", "8"].includes(pendingPremove.to[1])) pendingPremove = null;
+          pendingPromotion = null;
           marks.clear(); arrows = []; selected = null; legalTargets = []; render();
         }
       });
