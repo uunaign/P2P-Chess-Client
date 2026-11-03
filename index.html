@@ -3327,11 +3327,20 @@
       };
       let uiTheme = /^(dark|light)$/.test(store.get("ajedrez.uiTheme") || "") ? store.get("ajedrez.uiTheme") : "dark";
       let accentId = ACCENT_PRESETS[store.get("ajedrez.accent") || ""] ? store.get("ajedrez.accent") : "verde";
+      const isBlindPieceSet = set => /^blind_/.test(String(set || ""));
+      function getPieceSetForContext(context = "normal") {
+        if (!isBlindPieceSet(pieceSet)) return pieceSet;
+        if (context === "promotion" || context === "friend_watch") return "neo";
+        return pieceSet;
+      }
+      function PIECE_FOR(context, c, t) {
+        return pieceUrl(getPieceSetForContext(context), c, t);
+      }
       const BLIND_PIECE_SETS = {
-        blind_few: { name: "Blind: pocas damas", queenTypes: new Set(["q"]) },
-        blind_many: { name: "Blind: muchas damas", queenTypes: new Set(["p", "n", "b", "r"]) },
-        blind_all: { name: "Blind: todas damas", queenTypes: new Set(["p", "n", "b", "r", "q", "k"]) },
-        blind_transparent: { name: "Blind: 100% transparentes", transparent: true }
+        blind_easy: { name: "Blind: fácil", queenTypes: new Set(["n", "b"]) },
+        blind_medium: { name: "Blind: medio", queenTypes: new Set(["p", "n", "b"]) },
+        blind_hard: { name: "Blind: difícil", queenTypes: new Set(["p", "n", "b", "r", "q", "k"]) },
+        blind_transparent: { name: "Blind: todo", transparent: true }
       };
       const blindPieceSvg = (c, mode) => {
         const dark = c === "b";
@@ -3357,7 +3366,7 @@
         }
         return "https://images.chesscomfiles.com/chess-themes/pieces/" + set + "/150/" + c + t + ".png";
       };
-      const PIECE = (c, t) => pieceUrl(pieceSet, c, t);
+      const PIECE = (c, t) => PIECE_FOR("normal", c, t);
       const files = "abcdefgh";
       const pieceNames = { q: "Dama", r: "Torre", b: "Alfil", n: "Caballo" };
 
@@ -3757,7 +3766,7 @@
         ["q", "r", "b", "n"].forEach(type => {
           const b = document.createElement("button");
           b.className = "promo"; b.title = pieceNames[type];
-          b.innerHTML = '<img src="' + PIECE(color, type) + '" alt="' + pieceNames[type] + '">';
+          b.innerHTML = '<img src="' + PIECE_FOR("promotion", color, type) + '" alt="' + pieceNames[type] + '">';
           b.onclick = () => {
             modal.style.display = "none";
             if (forPremove && pendingPremove) {
@@ -4419,8 +4428,8 @@
       $("rvPrevErr").onclick = () => jumpErr(-1);
 
       /* ---------- Ajustes: piezas y tablero (assets de chess.com) ---------- */
-      const PIECE_SETS = ["neo", "classic", "wood", "neo_wood", "alpha", "glass", "gothic", "marble", "metal", "modern", "nature", "ocean", "space", "vintage", "tournament", "club", "condal", "game_room", "icy_sea", "maya", "lolz", "neon", "newspaper", "sky", "tigers", "graffiti", "light", "bases", "book", "cases", "8_bit", "bubblegum", "dash", "luca", "3d_chesskid", "3d_plastic", "3d_staunton", "3d_wood", "blind_few", "blind_many", "blind_all", "blind_transparent"];
-      const PIECE_NAMES = { blind_few: "Blind: pocas damas", blind_many: "Blind: muchas damas", blind_all: "Blind: todas damas", blind_transparent: "Blind: 100% transparentes", neo: "Neo", classic: "Clásico", wood: "Madera", neo_wood: "Neo madera", alpha: "Alpha", glass: "Cristal", gothic: "Gótico", marble: "Mármol", metal: "Metal", modern: "Moderno", nature: "Naturaleza", ocean: "Océano", space: "Espacio", vintage: "Vintage", tournament: "Torneo", club: "Club", condal: "Condal", game_room: "Sala de juegos", icy_sea: "Mar helado", maya: "Maya", lolz: "Lolz", neon: "Neón", newspaper: "Periódico", sky: "Cielo", tigers: "Tigres", graffiti: "Grafiti", light: "Claro", bases: "Bases", book: "Libro", cases: "Cases", bubblegum: "Chicle", "8_bit": "8 bits", "3d_chesskid": "3D Chesskid", "3d_plastic": "3D plástico", "3d_staunton": "3D Staunton", "3d_wood": "3D madera" };
+      const PIECE_SETS = ["neo", "classic", "wood", "neo_wood", "alpha", "glass", "gothic", "marble", "metal", "modern", "nature", "ocean", "space", "vintage", "tournament", "club", "condal", "game_room", "icy_sea", "maya", "lolz", "neon", "newspaper", "sky", "tigers", "graffiti", "light", "bases", "book", "cases", "8_bit", "bubblegum", "dash", "luca", "3d_chesskid", "3d_plastic", "3d_staunton", "3d_wood", "blind_easy", "blind_medium", "blind_hard", "blind_transparent"];
+      const PIECE_NAMES = { blind_easy: "Blind: fácil", blind_medium: "Blind: medio", blind_hard: "Blind: difícil", blind_transparent: "Blind: todo", neo: "Neo", classic: "Clásico", wood: "Madera", neo_wood: "Neo madera", alpha: "Alpha", glass: "Cristal", gothic: "Gótico", marble: "Mármol", metal: "Metal", modern: "Moderno", nature: "Naturaleza", ocean: "Océano", space: "Espacio", vintage: "Vintage", tournament: "Torneo", club: "Club", condal: "Condal", game_room: "Sala de juegos", icy_sea: "Mar helado", maya: "Maya", lolz: "Lolz", neon: "Neón", newspaper: "Periódico", sky: "Cielo", tigers: "Tigres", graffiti: "Grafiti", light: "Claro", bases: "Bases", book: "Libro", cases: "Cases", bubblegum: "Chicle", "8_bit": "8 bits", "3d_chesskid": "3D Chesskid", "3d_plastic": "3D plástico", "3d_staunton": "3D Staunton", "3d_wood": "3D madera" };
       const COLOR_BOARDS = [
         { id: "c-verde", name: "Verde", light: "#ebecd0", dark: "#779556" },
         { id: "c-marron", name: "Marrón", light: "#edd6b0", dark: "#b88762" },
@@ -5736,7 +5745,7 @@
           if (p) {
             const img = document.createElement("img");
             img.className = "piece " + (p.color === "w" ? "white" : "black");
-            img.src = PIECE(p.color, p.type);
+            img.src = PIECE_FOR("friend_watch", p.color, p.type);
             img.alt = "";
             sq.appendChild(img);
           }
