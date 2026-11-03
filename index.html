@@ -3327,7 +3327,36 @@
       };
       let uiTheme = /^(dark|light)$/.test(store.get("ajedrez.uiTheme") || "") ? store.get("ajedrez.uiTheme") : "dark";
       let accentId = ACCENT_PRESETS[store.get("ajedrez.accent") || ""] ? store.get("ajedrez.accent") : "verde";
-      const pieceUrl = (set, c, t) => "https://images.chesscomfiles.com/chess-themes/pieces/" + set + "/150/" + c + t + ".png";
+      const BLIND_PIECE_SETS = {
+        blind_few: { name: "Blind: pocas damas", queenTypes: new Set(["q"]) },
+        blind_many: { name: "Blind: muchas damas", queenTypes: new Set(["p", "n", "b", "r"]) },
+        blind_all: { name: "Blind: todas damas", queenTypes: new Set(["p", "n", "b", "r", "q", "k"]) },
+        blind_transparent: { name: "Blind: 100% transparentes", transparent: true }
+      };
+      const blindPieceSvg = (c, mode) => {
+        const dark = c === "b";
+        const fill = dark ? "#1f2937" : "#f8fafc";
+        const stroke = dark ? "#dfe7f4" : "#111827";
+        const opacity = mode === "transparent" ? 0 : 1;
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+            <rect width="64" height="64" fill="rgba(0,0,0,0)"/>
+            <circle cx="32" cy="32" r="18" fill="${mode === "transparent" ? "rgba(255,255,255,0)" : fill}" stroke="${stroke}" stroke-width="3" opacity="${opacity}"/>
+            <circle cx="32" cy="32" r="7" fill="${dark ? "#e5e7eb" : "#111827"}" opacity="${mode === "transparent" ? 0 : 0.9}"/>
+          </svg>
+        `;
+        return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+      };
+      const pieceUrl = (set, c, t) => {
+        if (set.startsWith("blind_")) {
+          const mode = BLIND_PIECE_SETS[set];
+          if (!mode) return "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/" + c + t + ".png";
+          if (mode.transparent) return blindPieceSvg(c, "transparent");
+          if (mode.queenTypes && mode.queenTypes.has(t)) return blindPieceSvg(c, "queen");
+          return pieceUrl("neo", c, t);
+        }
+        return "https://images.chesscomfiles.com/chess-themes/pieces/" + set + "/150/" + c + t + ".png";
+      };
       const PIECE = (c, t) => pieceUrl(pieceSet, c, t);
       const files = "abcdefgh";
       const pieceNames = { q: "Dama", r: "Torre", b: "Alfil", n: "Caballo" };
@@ -4390,8 +4419,8 @@
       $("rvPrevErr").onclick = () => jumpErr(-1);
 
       /* ---------- Ajustes: piezas y tablero (assets de chess.com) ---------- */
-      const PIECE_SETS = ["neo", "classic", "wood", "neo_wood", "alpha", "glass", "gothic", "marble", "metal", "modern", "nature", "ocean", "space", "vintage", "tournament", "club", "condal", "game_room", "icy_sea", "maya", "lolz", "neon", "newspaper", "sky", "tigers", "graffiti", "light", "bases", "book", "cases", "8_bit", "bubblegum", "dash", "luca", "3d_chesskid", "3d_plastic", "3d_staunton", "3d_wood"];
-      const PIECE_NAMES = { neo: "Neo", classic: "Clásico", wood: "Madera", neo_wood: "Neo madera", alpha: "Alpha", glass: "Cristal", gothic: "Gótico", marble: "Mármol", metal: "Metal", modern: "Moderno", nature: "Naturaleza", ocean: "Océano", space: "Espacio", vintage: "Vintage", tournament: "Torneo", club: "Club", condal: "Condal", game_room: "Sala de juegos", icy_sea: "Mar helado", maya: "Maya", lolz: "Lolz", neon: "Neón", newspaper: "Periódico", sky: "Cielo", tigers: "Tigres", graffiti: "Grafiti", light: "Claro", bases: "Bases", book: "Libro", cases: "Cases", bubblegum: "Chicle", "8_bit": "8 bits", "3d_chesskid": "3D Chesskid", "3d_plastic": "3D plástico", "3d_staunton": "3D Staunton", "3d_wood": "3D madera" };
+      const PIECE_SETS = ["neo", "classic", "wood", "neo_wood", "alpha", "glass", "gothic", "marble", "metal", "modern", "nature", "ocean", "space", "vintage", "tournament", "club", "condal", "game_room", "icy_sea", "maya", "lolz", "neon", "newspaper", "sky", "tigers", "graffiti", "light", "bases", "book", "cases", "8_bit", "bubblegum", "dash", "luca", "3d_chesskid", "3d_plastic", "3d_staunton", "3d_wood", "blind_few", "blind_many", "blind_all", "blind_transparent"];
+      const PIECE_NAMES = { blind_few: "Blind: pocas damas", blind_many: "Blind: muchas damas", blind_all: "Blind: todas damas", blind_transparent: "Blind: 100% transparentes", neo: "Neo", classic: "Clásico", wood: "Madera", neo_wood: "Neo madera", alpha: "Alpha", glass: "Cristal", gothic: "Gótico", marble: "Mármol", metal: "Metal", modern: "Moderno", nature: "Naturaleza", ocean: "Océano", space: "Espacio", vintage: "Vintage", tournament: "Torneo", club: "Club", condal: "Condal", game_room: "Sala de juegos", icy_sea: "Mar helado", maya: "Maya", lolz: "Lolz", neon: "Neón", newspaper: "Periódico", sky: "Cielo", tigers: "Tigres", graffiti: "Grafiti", light: "Claro", bases: "Bases", book: "Libro", cases: "Cases", bubblegum: "Chicle", "8_bit": "8 bits", "3d_chesskid": "3D Chesskid", "3d_plastic": "3D plástico", "3d_staunton": "3D Staunton", "3d_wood": "3D madera" };
       const COLOR_BOARDS = [
         { id: "c-verde", name: "Verde", light: "#ebecd0", dark: "#779556" },
         { id: "c-marron", name: "Marrón", light: "#edd6b0", dark: "#b88762" },
