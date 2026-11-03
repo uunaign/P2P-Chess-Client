@@ -58,6 +58,21 @@
       margin-right: 0
     }
 
+    html,
+    body,
+    * {
+      scrollbar-width: none;
+      -ms-overflow-style: none
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none
+    }
+
     body {
       margin: 0;
       background: var(--bg);
@@ -551,7 +566,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 10px 10px 20px;
+      padding: 10px 10px 10px 15px;
       font: 700 15px Manrope, sans-serif;
       color: var(--bright);
       border-bottom: 1px solid var(--line)
@@ -1228,6 +1243,35 @@
     .history-item:hover {
       border-color: var(--green);
       background: rgba(88, 114, 69, 0.08)
+    }
+
+    .history-context-menu {
+      position: fixed;
+      z-index: 1200;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 150px;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, .28)
+    }
+
+    .history-context-menu button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      color: var(--bright);
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: left
+    }
+
+    .history-context-menu button:hover {
+      border-color: var(--green);
+      background: rgba(129, 182, 76, .12)
     }
 
     .history-left {
@@ -4727,6 +4771,10 @@
         try { store.set(MATCH_HISTORY_KEY, JSON.stringify(matchHistory)); } catch (_) { }
       }
       let historyPreviewing = false;
+      function suppressHistoryPersistForPreview() {
+        historyPreviewing = true;
+        setTimeout(() => { historyPreviewing = false; }, 1500);
+      }
       function renderHistoryMiniBoard(entry, mount) {
         const mini = new Chess();
         const fen = entry && (entry.fen || entry.finalFen || "");
@@ -4758,21 +4806,64 @@
         mount.appendChild(board);
       }
       function openHistoryEntry(entry) {
-        if (!entry || (!entry.pgn && !entry.fen)) return;
+        if (!entry || (!entry.pgn && !entry.fen && !entry.finalFen && !Array.isArray(entry.moves))) return;
         try {
-          const targetFen = String(entry.fen || entry.finalFen || "").trim();
           const pgnText = String(entry.pgn || "").trim();
-          if (targetFen) {
-            game.load(targetFen);
-          } else if (pgnText) {
-            game.loadPgn(pgnText);
-          } else {
+          const targetFen = String(entry.fen || entry.finalFen || "").trim();
+          const moveList = Array.isArray(entry.moves) ? entry.moves.filter(Boolean) : [];
+          let loaded = false;
+
+          if (pgnText) {
+            try {
+              const probe = new Chess();
+              if (probe.loadPgn(pgnText)) {
+                game.loadPgn(pgnText);
+                loaded = true;
+              }
+            } catch (_) { }
+          }
+
+          if (!loaded && moveList.length) {
+            try {
+              const replay = new Chess();
+              let ok = true;
+              for (const san of moveList) {
+                const mv = replay.move(san);
+                if (!mv) { ok = false; break; }
+              }
+              if (ok) {
+                game.load(replay.fen());
+                loaded = true;
+              }
+            } catch (_) { }
+          }
+
+          if (!loaded && targetFen) {
+            try {
+              game.load(targetFen);
+              loaded = true;
+            } catch (_) { }
+          }
+
+          if (!loaded) {
+            historyPreviewing = false;
+            showToast("No se pudo abrir la partida");
             return;
           }
-          historyPly = null;
+
+          if (!game.history().length && moveList.length) {
+            const replay = new Chess();
+            for (const san of moveList) {
+              const mv = replay.move(san);
+              if (!mv) break;
+            }
+            if (replay.history().length) game.load(replay.fen());
+          }
+
+          historyPly = 0;
           reviewing = false;
           report = null;
-          historyPreviewing = true;
+          suppressHistoryPersistForPreview();
           closeHistory();
           showTab("moves");
           render();
@@ -4784,8 +4875,37 @@
           }
         } catch (_) {
           historyPreviewing = false;
-          showToast("No se pudo abrir esta partida");
+          showToast("No se pudo abrir la partida");
         }
+      }
+      function removeHistoryEntry(index) {
+        const entries = getMatchHistory();
+        const next = entries.filter((_, i) => i !== index);
+        saveMatchHistory(next);
+        renderHistoryList();
+        showToast("Partida eliminada del historial");
+      }
+      function showHistoryContextMenu(event, index) {
+        event.preventDefault();
+        const existing = document.getElementById("historyContextMenu");
+        if (existing) existing.remove();
+        const menu = document.createElement("div");
+        menu.id = "historyContextMenu";
+        menu.className = "history-context-menu";
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "Eliminar";
+        removeBtn.onclick = () => {
+          removeHistoryEntry(index);
+          menu.remove();
+        };
+        menu.appendChild(removeBtn);
+        menu.style.left = (event.clientX + 8) + "px";
+        menu.style.top = (event.clientY + 8) + "px";
+        document.body.appendChild(menu);
+        const close = () => menu.remove();
+        setTimeout(() => document.addEventListener("click", close, { once: true }), 0);
+        setTimeout(() => document.addEventListener("contextmenu", close, { once: true }), 0);
       }
       function renderHistoryList() {
         const list = $("historyList");
@@ -4795,7 +4915,7 @@
           return;
         }
         list.innerHTML = "";
-        entries.forEach(entry => {
+        entries.forEach((entry, index) => {
           const card = document.createElement("div");
           card.className = "history-item";
           card.tabIndex = 0;
@@ -4817,6 +4937,7 @@
             openHistoryEntry(entry);
           };
           card.addEventListener("click", open);
+          card.addEventListener("contextmenu", e => showHistoryContextMenu(e, index));
           card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e) } });
           list.appendChild(card);
         });
@@ -4828,6 +4949,7 @@
         const resultText = !r.w ? "Empate" : (r.w === myRole ? "Victoria" : "Derrota");
         const pgn = game.pgn({ max_width: 60, newline_char: "\n" }).trim();
         const fen = game.fen();
+        const moves = game.history({ verbose: true }).map(m => m.san || "").filter(Boolean);
         const summary = pgn.replace(/\s+/g, " ").trim();
         const entry = {
           opponent: opponentName,
@@ -4835,9 +4957,16 @@
           when: new Date().toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }),
           pgn: pgn || "",
           fen: fen || "",
+          moves: moves.length ? moves : [],
           summary: summary ? summary.slice(0, 120) + (summary.length > 120 ? "…" : "") : "Partida completada"
         };
         const items = getMatchHistory();
+        const duplicate = items.some(item => {
+          const samePGN = item && item.pgn && entry.pgn && item.pgn === entry.pgn;
+          const sameFEN = item && item.fen && entry.fen && item.fen === entry.fen;
+          return samePGN || sameFEN;
+        });
+        if (duplicate) return;
         items.unshift(entry);
         saveMatchHistory(items);
         renderHistoryList();
