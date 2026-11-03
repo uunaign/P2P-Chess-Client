@@ -557,6 +557,17 @@
       border-bottom: 1px solid var(--line)
     }
 
+    .status-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .status-actions .gear {
+      margin-left: 0
+    }
+
     .tabs {
       display: flex;
       border-bottom: 1px solid var(--line)
@@ -951,6 +962,10 @@
     }
 
     .friend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       flex-wrap: wrap
     }
 
@@ -975,6 +990,7 @@
 
     .friend-main {
       display: flex;
+      flex: 1 1 180px;
       flex-direction: column;
       min-width: 0;
       gap: 3px
@@ -992,7 +1008,8 @@
       align-items: center;
       justify-content: flex-end;
       gap: 6px;
-      margin-left: auto
+      margin-left: auto;
+      flex-shrink: 0
     }
 
     .friend-status {
@@ -1179,6 +1196,191 @@
     .modal-buttons {
       display: flex;
       gap: 8px
+    }
+
+    .history-modal,
+    .watch-modal {
+      width: min(520px, calc(100vw - 24px));
+      max-height: 74vh;
+      overflow: auto
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color .12s ease, transform .12s ease, background .12s ease
+    }
+
+    .history-item:hover {
+      border-color: var(--green);
+      background: rgba(88, 114, 69, 0.08)
+    }
+
+    .history-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-width: 0
+    }
+
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .history-vs {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0
+    }
+
+    .history-vs strong {
+      color: var(--bright);
+      font-size: 14px
+    }
+
+    .history-vs span {
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .history-result {
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 4px 8px;
+      text-transform: uppercase
+    }
+
+    .history-result.win {
+      background: rgba(97, 179, 103, 0.18);
+      color: #a4ef8b
+    }
+
+    .history-result.loss {
+      background: rgba(214, 91, 91, 0.18);
+      color: #ff9d9d
+    }
+
+    .history-result.draw {
+      background: rgba(164, 172, 192, 0.18);
+      color: #dfe8ff
+    }
+
+    .history-pgn {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-wrap: anywhere
+    }
+
+    .history-mini-board {
+      display: grid;
+      grid-template-columns: repeat(8, 8px);
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      flex-shrink: 0
+    }
+
+    .history-mini-square {
+      width: 8px;
+      height: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative
+    }
+
+    .history-mini-square.light {
+      background: #f0f0ee
+    }
+
+    .history-mini-square.dark {
+      background: #8ea285
+    }
+
+    .history-mini-square img {
+      width: 82%;
+      height: 82%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none
+    }
+
+    .watch-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px
+    }
+
+    .watch-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .watch-board-wrap {
+      display: flex;
+      justify-content: center
+    }
+
+    #watchBoard {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(30px, 1fr));
+      width: min(620px, 82vw);
+      max-width: 82vw;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line)
+    }
+
+    #watchBoard .square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 28px
+    }
+
+    #watchBoard .square.light {
+      background: #f0f0ee
+    }
+
+    #watchBoard .square.dark {
+      background: #8ea285
+    }
+
+    #watchBoard .piece {
+      width: 80%;
+      height: 80%;
+      object-fit: contain
     }
 
     .promo {
@@ -1924,7 +2126,8 @@
       align-items: center;
       justify-content: flex-end;
       gap: 6px;
-      margin-left: auto
+      margin-left: auto;
+      flex-shrink: 0
     }
 
     .friend button {
@@ -2764,8 +2967,14 @@
     <aside class="sidebar">
       <section class="card">
         <div class="status"><span id="statusText">Mueven
-            blancas</span><button class="gear" id="settingsBtn" title="Ajustes" aria-label="Ajustes"><span
-              class="material-symbols-rounded">settings</span></button></div>
+            blancas</span>
+          <div class="status-actions">
+            <button class="gear" id="historyBtn" title="Historial" aria-label="Historial"><span
+                class="material-symbols-rounded">book_2</span></button>
+            <button class="gear" id="settingsBtn" title="Ajustes" aria-label="Ajustes"><span
+                class="material-symbols-rounded">settings</span></button>
+          </div>
+        </div>
         <div class="tabs">
           <button class="tab active" data-tab="moves"><span class="material-symbols-rounded">chess_pawn</span> PARTIDA
             <small id="moveCount">0</small></button>
@@ -2977,6 +3186,33 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal history-modal" role="dialog" aria-label="Historial de partidas">
+      <div class="st-head">
+        <h3><span class="material-symbols-rounded">book_2</span> Historial</h3>
+        <button class="end-x" id="historyClose" aria-label="Cerrar"><span class="material-symbols-rounded"
+            style="margin:0">close</span></button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="watchModal">
+    <div class="modal watch-modal" role="dialog" aria-label="Partida en directo">
+      <div class="st-head">
+        <h3><span class="material-symbols-rounded">visibility</span> Partida en directo</h3>
+        <button class="end-x" id="watchClose" aria-label="Cerrar"><span class="material-symbols-rounded"
+            style="margin:0">close</span></button>
+      </div>
+      <div class="watch-content">
+        <div class="watch-meta" id="watchMeta"></div>
+        <div class="watch-board-wrap">
+          <div id="watchBoard" aria-label="Tablero en directo"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="promotionModal">
     <div class="modal">
       <h3>Coronar peón</h3>
@@ -3067,6 +3303,12 @@
       let opponentChatBubbleTimer = null;
 
       const store = { get: k => { try { return localStorage.getItem(k) } catch (_) { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch (_) { } } };
+      const MATCH_HISTORY_KEY = "aj_match_history";
+      const LIVE_GAMES_KEY = "aj_live_games";
+      let matchHistory = [];
+      try { matchHistory = JSON.parse(store.get(MATCH_HISTORY_KEY) || "[]") || []; } catch (_) { matchHistory = []; }
+      let liveMatches = {};
+      try { liveMatches = JSON.parse(store.get(LIVE_GAMES_KEY) || "{}") || {}; } catch (_) { liveMatches = {}; }
       let pieceSet = /^[a-z0-9_]+$/.test(store.get("ajedrez.pieces") || "") ? store.get("ajedrez.pieces") : "neo";
       let boardTheme = /^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board") || "") ? store.get("ajedrez.board") : "c-verde";
       const UI_THEMES = {
@@ -3474,6 +3716,7 @@
         clearDraw(); sendPayload({ type: "move", move: { from: move.from, to: move.to, promotion: move.promotion || undefined }, whiteTime, blackTime });
         marks.clear(); arrows = [];
         render();
+        broadcastLiveMatch();
         if (!noAnim) animateMove(move, false);
         if (botEnabled && !fromBot && game.turn() === botColor) window.setTimeout(makeBotMove, 180);
       }
@@ -4332,9 +4575,18 @@
         $("settingsModal").style.display = "flex";
       }
       const closeSettings = () => { $("settingsModal").style.display = "none" };
+      const openHistory = () => { renderHistoryList(); $("historyModal").style.display = "flex" };
+      const closeHistory = () => { $("historyModal").style.display = "none" };
+      let activeWatchCode = null;
+      const closeWatch = () => { activeWatchCode = null; $("watchModal").style.display = "none" };
       $("settingsBtn").onclick = openSettings;
+      $("historyBtn").onclick = openHistory;
+      $("historyClose").onclick = closeHistory;
+      $("watchClose").onclick = closeWatch;
       $("stClose").onclick = $("stDone").onclick = closeSettings;
       $("settingsModal").addEventListener("click", e => { if (e.target === $("settingsModal")) closeSettings() });
+      $("historyModal").addEventListener("click", e => { if (e.target === $("historyModal")) closeHistory() });
+      $("watchModal").addEventListener("click", e => { if (e.target === $("watchModal")) closeWatch() });
       document.querySelectorAll(".st-tab").forEach(b => b.onclick = () => showSettingsTab(b.dataset.st));
       $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview() };
       // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
@@ -4425,6 +4677,133 @@
         endShown = true;
         setTimeout(() => { const r2 = getResult(); if (r2) showEnd(r2) }, 650);
       }
+      function getMatchHistory() {
+        try {
+          const parsed = JSON.parse(store.get(MATCH_HISTORY_KEY) || "[]");
+          if (Array.isArray(parsed)) return parsed.slice(0, 30);
+        } catch (_) { }
+        return [];
+      }
+      function saveMatchHistory(entries) {
+        matchHistory = Array.isArray(entries) ? entries.slice(0, 30) : [];
+        try { store.set(MATCH_HISTORY_KEY, JSON.stringify(matchHistory)); } catch (_) { }
+      }
+      let historyPreviewing = false;
+      function renderHistoryMiniBoard(entry, mount) {
+        const mini = new Chess();
+        const fen = entry && (entry.fen || entry.finalFen || "");
+        if (fen) {
+          try { mini.load(fen) } catch (_) { }
+        } else if (entry && entry.pgn) {
+          try { mini.loadPgn(entry.pgn) } catch (_) { }
+        }
+        const board = document.createElement("div");
+        board.className = "history-mini-board";
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            const file = x;
+            const rank = 7 - y;
+            const name = files[file] + (rank + 1);
+            const square = document.createElement("div");
+            square.className = "history-mini-square " + (((file + rank) % 2 === 0) ? "light" : "dark");
+            const piece = mini.get(name);
+            if (piece) {
+              const img = document.createElement("img");
+              img.src = PIECE(piece.color, piece.type);
+              img.alt = "";
+              square.appendChild(img);
+            }
+            board.appendChild(square);
+          }
+        }
+        mount.innerHTML = "";
+        mount.appendChild(board);
+      }
+      function openHistoryEntry(entry) {
+        if (!entry || (!entry.pgn && !entry.fen)) return;
+        try {
+          const targetFen = String(entry.fen || entry.finalFen || "").trim();
+          const pgnText = String(entry.pgn || "").trim();
+          if (targetFen) {
+            game.load(targetFen);
+          } else if (pgnText) {
+            game.loadPgn(pgnText);
+          } else {
+            return;
+          }
+          historyPly = null;
+          reviewing = false;
+          report = null;
+          historyPreviewing = true;
+          closeHistory();
+          showTab("moves");
+          render();
+          const finalResult = getResult();
+          if (finalResult) {
+            showEnd(finalResult);
+          } else {
+            showToast("Esta partida no tiene resultado final para mostrar");
+          }
+        } catch (_) {
+          historyPreviewing = false;
+          showToast("No se pudo abrir esta partida");
+        }
+      }
+      function renderHistoryList() {
+        const list = $("historyList");
+        const entries = getMatchHistory();
+        if (!entries.length) {
+          list.innerHTML = '<div class="empty">Aún no hay partidas guardadas. Cuando termine una partida aparecerá aquí con el rival y el resultado.</div>';
+          return;
+        }
+        list.innerHTML = "";
+        entries.forEach(entry => {
+          const card = document.createElement("div");
+          card.className = "history-item";
+          card.tabIndex = 0;
+          card.setAttribute("role", "button");
+          card.title = "Abrir partida";
+          const badge = entry.result === "Victoria" ? "win" : entry.result === "Derrota" ? "loss" : "draw";
+          const label = entry.opponent || "Rival";
+          const short = entry.summary || entry.pgn || "Partida completada";
+          const left = document.createElement("div");
+          left.className = "history-left";
+          left.innerHTML = '<div class="history-head"><div class="history-vs"><strong>' + label + '</strong><span>' + (entry.when || "") + '</span></div><span class="history-result ' + badge + '">' + entry.result + '</span></div>' +
+            '<div class="history-pgn">' + short.slice(0, 120) + (short.length > 120 ? "…" : "") + '</div>';
+          const miniWrap = document.createElement("div");
+          miniWrap.className = "history-mini-wrap";
+          renderHistoryMiniBoard(entry, miniWrap);
+          card.append(left, miniWrap);
+          const open = (event) => {
+            if (event) event.preventDefault();
+            openHistoryEntry(entry);
+          };
+          card.addEventListener("click", open);
+          card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(e) } });
+          list.appendChild(card);
+        });
+      }
+      function persistFinalMatch(r) {
+        if (!r) return;
+        const opponentName = botEnabled ? "Stockfish" : normalizeName(activeOpponentName || "Rival");
+        const myRole = botEnabled ? (botColor === "w" ? "b" : "w") : (myColor || "w");
+        const resultText = !r.w ? "Empate" : (r.w === myRole ? "Victoria" : "Derrota");
+        const pgn = game.pgn({ max_width: 60, newline_char: "\n" }).trim();
+        const fen = game.fen();
+        const summary = pgn.replace(/\s+/g, " ").trim();
+        const entry = {
+          opponent: opponentName,
+          result: resultText,
+          when: new Date().toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }),
+          pgn: pgn || "",
+          fen: fen || "",
+          summary: summary ? summary.slice(0, 120) + (summary.length > 120 ? "…" : "") : "Partida completada"
+        };
+        const items = getMatchHistory();
+        items.unshift(entry);
+        saveMatchHistory(items);
+        renderHistoryList();
+      }
       function reportMatchResult(r) {
         if (!myColor || !online()) return;
         const outcome = !r.w ? 0.5 : (r.w === myColor ? 1 : 0);
@@ -4446,6 +4825,8 @@
         $("endCaps").textContent = h.filter(m => /[ce]/.test(m.flags)).length;
         $("endChecks").textContent = h.filter(m => /[+#]/.test(m.san)).length;
         $("endAnalysis").hidden = true; $("endAnalysis").classList.remove("done"); $("endBox").classList.remove("analyzed"); $("endReview").hidden = true; $("endProg").style.width = "0"; $("endPgn").hidden = false; $("endAnalysisResults").innerHTML = ""; $("endAnalysisStatus").textContent = "El análisis se ejecuta en tu navegador y puede tardar unos segundos.";
+        if (!historyPreviewing) persistFinalMatch(r);
+        historyPreviewing = false;
         reportMatchResult(r);
         $("endModal").style.display = "flex";
       }
@@ -4673,6 +5054,7 @@
             clockLastUpdate = performance.now();
             cancelDrag(); selected = null; legalTargets = []; redoStack = []; historyPly = null; marks.clear(); arrows = []; clearDraw();
             render(); animateMove(m, false);
+            broadcastLiveMatch();
             if (pendingPremove && !game.game_over()) window.setTimeout(executePremove, 0);
           }
         } else if (d.type === "reset") {
@@ -4680,6 +5062,7 @@
           if (d.whiteTime) whiteTime = d.whiteTime;
           if (d.blackTime) blackTime = d.blackTime;
           render();
+          broadcastLiveMatch();
         } else if (d.type === "sync") {
           if (d.name) activeOpponentName = normalizeName(d.name, "Rival");
           if (d.host) {
@@ -5021,20 +5404,24 @@
             '<div class="friend-meta"><span class="friend-status"></span><span class="friend-elo"></span></div>' +
             '</div>' +
             '<div class="friend-actions">' +
-            '<button class="primarySmall"><span class="material-symbols-rounded">swords</span> Retar</button>' +
+            '<button class="primarySmall watch-btn" hidden><span class="material-symbols-rounded">visibility</span> Ver</button>' +
+            '<button class="primarySmall challenge-btn"><span class="material-symbols-rounded">swords</span> Retar</button>' +
             '<button class="secondary noTextButton" title="Quitar" aria-label="Quitar amigo"><span class="material-symbols-rounded">close</span></button>' +
             '</div>';
           const name = f.name || f.code;
           d.querySelector(".fname").textContent = name;
           setPlayerAvatar(d.querySelector(".friend-avatar"), name, "w");
           const status = d.querySelector(".friend-status");
-          status.textContent = playing[f.code] ? "en partida" : "no está jugando partida";
+          const hasLiveGame = !!liveMatches[f.code] && liveMatches[f.code].playing !== false;
+          status.textContent = playing[f.code] ? (hasLiveGame ? "en partida en directo" : "en partida") : "no está jugando partida";
           status.hidden = !presence[f.code];
           d.querySelector(".friend-elo").textContent = getEloText(name);
-          const [b1, b2] = d.querySelectorAll("button");
-          b1.disabled = !presence[f.code];
-          b1.onclick = () => challenge(f);
-          b2.onclick = () => { friends = friends.filter(x => x.code !== f.code); saveFriends(); renderFriends() };
+          const [watchBtn, challengeBtn, removeBtn] = d.querySelectorAll("button");
+          watchBtn.hidden = f.code === myCode || !hasLiveGame || !presence[f.code];
+          watchBtn.onclick = () => openWatchModal(f.code);
+          challengeBtn.disabled = !presence[f.code] || f.code === myCode;
+          challengeBtn.onclick = () => challenge(f);
+          removeBtn.onclick = () => { friends = friends.filter(x => x.code !== f.code); saveFriends(); renderFriends() };
           el.appendChild(d);
         };
         divider("ACTIVOS");
@@ -5046,7 +5433,10 @@
         if (!friendPeer || !friendPeer.open) return;
         const c = friendPeer.connect(FID(f.code), { reliable: true });
         const t = setTimeout(() => { presence[f.code] = false; delete playing[f.code]; renderFriends(); try { c.close() } catch (_) { } }, 10000);
-        c.on("open", () => c.send({ type: "hello", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline() }));
+        c.on("open", () => {
+          c.send({ type: "hello", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline(), fen: game.fen(), pgn: game.pgn({ max_width: 60, newline_char: "\n" }) });
+          if (isPlayingOnline()) c.send(prepareLiveGamePayload());
+        });
         c.on("data", d => {
           if (!d) return;
           if (d.type === "hello") {
@@ -5054,10 +5444,15 @@
             if (d.name && d.name !== f.name) { f.name = String(d.name).slice(0, 16); saveFriends() }
             if (typeof d.elo === "number") setPlayerElo(d.name, d.elo);
             playing[f.code] = d.playing === true;
+            if (d.code && d.code !== myCode && d.playing === true && d.fen) {
+              updateLiveMatch(d);
+            }
             renderFriends();
             if (!f.ack) { c.send({ type: "friend", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline() }); f.ack = true; saveFriends() }
+            if (isPlayingOnline()) c.send(prepareLiveGamePayload());
             setTimeout(() => { try { c.close() } catch (_) { } }, 500);
           } else if (d.type === "friendAck") { f.ack = true; saveFriends(); try { c.close() } catch (_) { } }
+          else if (d.type === "liveGame") { updateLiveMatch(d); renderFriends(); try { c.close() } catch (_) { } }
         });
         c.on("error", () => { clearTimeout(t); presence[f.code] = false; delete playing[f.code]; renderFriends() });
       }
@@ -5211,6 +5606,114 @@
         pendingRematch = null;
       };
 
+      function prepareLiveGamePayload() {
+        const result = getResult();
+        const opponentName = botEnabled ? "Stockfish" : normalizeName(activeOpponentName || "Rival");
+        return {
+          type: "liveGame",
+          code: myCode,
+          name: myName,
+          opponent: opponentName,
+          fen: game.fen(),
+          pgn: game.pgn({ max_width: 60, newline_char: "\n" }),
+          playing: isPlayingOnline(),
+          result: result ? { w: result.w, why: result.why } : null,
+          moveCount: game.history().length,
+          tc: ($("tcSelect") && $("tcSelect").value) || ($("localTcSelect") && $("localTcSelect").value) || "600+0",
+          whiteTime,
+          blackTime
+        };
+      }
+      function updateLiveMatch(d) {
+        if (!d || !d.code) return;
+        const code = String(d.code);
+        if (code === myCode) return;
+        const item = {
+          code,
+          name: normalizeName(d.name || code, "Jugador"),
+          opponent: normalizeName(d.opponent || "Rival", "Rival"),
+          fen: String(d.fen || "startpos"),
+          pgn: String(d.pgn || ""),
+          playing: d.playing !== false,
+          result: d.result || null,
+          moveCount: Number(d.moveCount) || 0,
+          tc: String(d.tc || "600+0"),
+          updatedAt: Date.now()
+        };
+        liveMatches[code] = item;
+        try { store.set(LIVE_GAMES_KEY, JSON.stringify(liveMatches)) } catch (_) { }
+        presence[code] = true;
+        playing[code] = item.playing;
+        if (activeWatchCode === code && $("watchModal").style.display === "flex") {
+          const statusText = item.opponent ? item.name + " vs " + item.opponent : item.name + " · partida en directo";
+          $("watchMeta").innerHTML = '<div><strong>' + statusText + '</strong></div><div>' + (item.moveCount || 0) + ' jugadas · ' + (item.result && item.result.why ? item.result.why : 'en curso') + '</div>';
+          const watchGame = new Chess();
+          try { watchGame.load(item.fen || "startpos") } catch (_) { }
+          renderWatchBoard(watchGame);
+        }
+        renderFriends();
+      }
+      function broadcastLiveMatch() {
+        if (!friendPeer || !friendPeer.open || !friends.length) return;
+        const payload = prepareLiveGamePayload();
+        friends.forEach(f => {
+          if (!f || !f.code || f.code === myCode || !presence[f.code]) return;
+          try {
+            const c = friendPeer.connect(FID(f.code), { reliable: true });
+            c.on("open", () => c.send(payload));
+            c.on("data", d => { if (d && d.type === "liveGame") updateLiveMatch(d) });
+            c.on("error", () => {});
+          } catch (_) { }
+        });
+      }
+      function openWatchModal(code) {
+        const data = liveMatches[code];
+        if (!data) { showToast("Esta partida no está disponible en directo ahora mismo"); return }
+        activeWatchCode = code;
+        const statusText = data.opponent ? data.name + " vs " + data.opponent : data.name + " · partida en directo";
+        $("watchMeta").innerHTML = '<div><strong>' + statusText + '</strong></div><div>' + (data.moveCount || 0) + ' jugadas · ' + (data.result && data.result.why ? data.result.why : 'en curso') + '</div>';
+        const watchGame = new Chess();
+        try { watchGame.load(data.fen || "startpos") } catch (_) { }
+        renderWatchBoard(watchGame);
+        $("watchModal").style.display = "flex";
+      }
+      function renderWatchBoard(gameState) {
+        const board = $("watchBoard");
+        board.innerHTML = "";
+        const b = boardInfo(boardTheme);
+        if (b.img) {
+          board.style.backgroundImage = 'url("' + boardImgUrl(b.id, 150) + '")';
+          board.style.backgroundSize = "100% 100%";
+          board.style.backgroundRepeat = "no-repeat";
+        } else {
+          board.style.backgroundImage = "";
+          board.style.backgroundSize = "";
+          board.style.backgroundRepeat = "";
+        }
+        for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+          const file = x;
+          const rank = 7 - y;
+          const name = files[file] + (rank + 1);
+          const sq = document.createElement("div");
+          const isLight = ((file + rank) % 2 === 0);
+          sq.className = "square " + (isLight ? "light" : "dark");
+          if (!b.img) {
+            const root = getComputedStyle(document.documentElement);
+            sq.style.background = isLight ? (root.getPropertyValue("--light").trim() || "#ebecd0") : (root.getPropertyValue("--dark").trim() || "#779556");
+          } else {
+            sq.style.background = "transparent";
+          }
+          const p = gameState.get(name);
+          if (p) {
+            const img = document.createElement("img");
+            img.className = "piece " + (p.color === "w" ? "white" : "black");
+            img.src = PIECE(p.color, p.type);
+            img.alt = "";
+            sq.appendChild(img);
+          }
+          board.appendChild(sq);
+        }
+      }
       function startFriendPeer() {
         if (typeof Peer === "undefined") return;
         friendPeer = new Peer(FID(myCode), { config: RTC_CONFIG });
@@ -5219,12 +5722,13 @@
           c.on("data", d => {
             if (!d) return;
             if (d.type === "hello") {
-              c.send({ type: "hello", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline() });
+              c.send({ type: "hello", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline(), fen: game.fen(), pgn: game.pgn({ max_width: 60, newline_char: "\n" }) });
               if (/^[A-Z0-9]{8}$/.test(String(d.code)) && d.code !== myCode) {
                 const code = String(d.code), nm = String(d.name || code).slice(0, 16);
                 let f = friends.find(x => x.code === code);
                 if (!f) { f = { code, name: nm, ack: true }; friends.push(f) } else { f.name = nm; f.ack = true }
                 presence[code] = true; playing[code] = d.playing === true;
+                if (d.fen) updateLiveMatch({ code, name: nm, opponent: normalizeName(activeOpponentName || "Rival"), fen: d.fen, pgn: d.pgn, playing: d.playing === true });
                 saveFriends(); renderFriends(); c.send({ type: "friendAck" });
               }
             }
@@ -5239,6 +5743,7 @@
               c.send({ type: "friendAck" });
             }
             else if (d.type === "invite" && /^[A-Z0-9]{6}$/.test(String(d.room))) showInvite(d, c);
+            else if (d.type === "liveGame") { updateLiveMatch(d); c.send({ type: "liveGame", code: myCode, name: myName, opponent: normalizeName(activeOpponentName || "Rival"), fen: game.fen(), pgn: game.pgn({ max_width: 60, newline_char: "\n" }), playing: isPlayingOnline(), result: getResult() ? { w: getResult().w, why: getResult().why } : null, moveCount: game.history().length, tc: ($("tcSelect") && $("tcSelect").value) || ($("localTcSelect") && $("localTcSelect").value) || "600+0" }); }
           });
         });
         friendPeer.on("disconnected", () => { $("friendNote").textContent = "Reconectando…"; try { friendPeer.reconnect() } catch (_) { } });
