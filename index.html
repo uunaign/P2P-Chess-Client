@@ -3246,6 +3246,11 @@
                 <div class="row"><input id="myCode" aria-label="Tu código de amigo" title="Código de amigo" readonly>
                   <button class="secondary noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span
                       class="material-symbols-rounded">content_copy</span></button></div>
+                <div class="row">
+                  <button class="secondary" id="exportEloBtn" title="Guardar una copia de tu progreso Elo"><span class="material-symbols-rounded">download</span>Exportar Elo</button>
+                  <button class="secondary" id="importEloBtn" title="Recuperar tu progreso desde un archivo"><span class="material-symbols-rounded">upload</span>Importar Elo</button>
+                  <input id="importEloFile" type="file" accept=".txt,text/plain" hidden>
+                </div>
               </div>
               <details class="friend-tools">
                 <summary><span class="material-symbols-rounded">person_add</span> Añadir amigos</summary>
@@ -3517,14 +3522,15 @@
       };
       const blindPieceSvg = (c, mode) => {
         const dark = c === "b";
-        const fill = dark ? "#1f2937" : "#f8fafc";
-        const stroke = dark ? "#dfe7f4" : "#111827";
+        const fill = dark ? "#111827" : "#fffdf5";
+        const stroke = dark ? "#facc15" : "#111827";
         const opacity = mode === "transparent" ? 0 : 1;
         const svg = `
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
             <rect width="64" height="64" fill="rgba(0,0,0,0)"/>
-            <circle cx="32" cy="32" r="18" fill="${mode === "transparent" ? "rgba(255,255,255,0)" : fill}" stroke="${stroke}" stroke-width="3" opacity="${opacity}"/>
-            <circle cx="32" cy="32" r="7" fill="${dark ? "#e5e7eb" : "#111827"}" opacity="${mode === "transparent" ? 0 : 0.9}"/>
+            ${dark
+              ? `<circle cx="32" cy="32" r="23" fill="${fill}" stroke="${stroke}" stroke-width="5" opacity="${opacity}"/><circle cx="32" cy="32" r="7" fill="#fff" opacity="${opacity}"/>`
+              : `<path d="M32 7 55 32 32 57 9 32Z" fill="${fill}" stroke="${stroke}" stroke-width="5" stroke-linejoin="round" opacity="${opacity}"/><circle cx="32" cy="32" r="7" fill="#111827" opacity="${opacity}"/>`}
           </svg>
         `;
         return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
@@ -5121,11 +5127,11 @@
         renderHistoryList();
       }
       function reportMatchResult(r) {
-        if (!myColor || !online()) return;
+        if (!myColor || (!online() && !botEnabled)) return;
         const outcome = !r.w ? 0.5 : (r.w === myColor ? 1 : 0);
-        const opponent = normalizeName(activeOpponentName || "Rival");
+        const opponent = botEnabled ? botProfileByElo(botElo).name : normalizeName(activeOpponentName || "Rival");
         applyEloResult(myName, opponent, outcome);
-        sendPayload({ type: "matchResult", name: myName, opponentName: opponent, outcome });
+        if (online()) sendPayload({ type: "matchResult", name: myName, opponentName: opponent, outcome });
       }
       function showEnd(r) {
         const h = game.history({ verbose: true }), win = r.w && myColor ? r.w === myColor : null;
@@ -5693,23 +5699,86 @@
       function ensurePlayerElo(name) {
         const clean = normalizeName(name, "Jugador");
         const key = playerKey(clean);
-        if (!playerRatings[key]) setPlayerElo(clean, 1200);
+        if (!playerRatings[key]) setPlayerElo(clean, 500);
         else if (playerRatings[key].name !== clean) playerRatings[key].name = clean;
         return getPlayerElo(clean);
       }
-      function getPlayerElo(name, fallback = 1200) {
+      function getPlayerElo(name, fallback = 500) {
         const key = playerKey(name);
         const entry = playerRatings[key];
         const value = Number(entry && (typeof entry === "object" ? (entry.rating ?? entry.value) : entry));
-        if (Number.isFinite(value)) return Math.max(100, Math.min(3000, Math.round(value)));
-        return Number.isFinite(fallback) ? Math.max(100, Math.min(3000, Math.round(fallback))) : 1200;
+        if (Number.isFinite(value)) return Math.max(0, Math.round(value));
+        return Number.isFinite(fallback) ? Math.max(0, Math.round(fallback)) : 500;
+      }
+      function getPlayerRatedGames(name) {
+        const entry = playerRatings[playerKey(name)];
+        return Math.max(0, Math.floor(Number(entry && typeof entry === "object" ? entry.games : 0) || 0));
+      }
+      function setPlayerRating(name, rating, games) {
+        const clean = normalizeName(name, "Jugador");
+        playerRatings[playerKey(clean)] = { name: clean, rating, games };
+        try { LS(ELO_KEY, JSON.stringify(playerRatings)); } catch (_) { }
       }
       function setPlayerElo(name, value) {
         const clean = normalizeName(name, "Jugador");
-        const rating = Math.max(100, Math.min(3000, Math.round(Number(value) || 1200)));
-        playerRatings[playerKey(clean)] = { name: clean, rating };
+        const rating = Math.max(0, Math.round(Number(value) || 500));
+        const previous = playerRatings[playerKey(clean)];
+        playerRatings[playerKey(clean)] = { name: clean, rating, games: Math.max(0, Math.floor(Number(previous && typeof previous === "object" ? previous.games : 0) || 0)) };
         try { LS(ELO_KEY, JSON.stringify(playerRatings)); } catch (_) { }
         return rating;
+      }
+      function encodeProgressText(payload) {
+        const bytes = new TextEncoder().encode(JSON.stringify(payload));
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        const code = btoa(binary);
+        let hash = 2166136261;
+        for (let i = 0; i < code.length; i++) hash = Math.imul(hash ^ code.charCodeAt(i), 16777619) >>> 0;
+        return "AJEDREZ-ELO-1\n" + code.match(/.{1,64}/g).join("\n") + "\nFIRMA:" + hash.toString(16).padStart(8, "0");
+      }
+      function decodeProgressText(contents) {
+        const lines = String(contents || "").trim().split(/\r?\n/);
+        if (lines.shift() !== "AJEDREZ-ELO-1") throw new Error("El archivo no es una copia de Elo válida.");
+        const signature = lines.pop();
+        const code = lines.join("").trim();
+        let hash = 2166136261;
+        for (let i = 0; i < code.length; i++) hash = Math.imul(hash ^ code.charCodeAt(i), 16777619) >>> 0;
+        if (!/^FIRMA:[0-9a-f]{8}$/i.test(signature || "") || signature.slice(7).toLowerCase() !== hash.toString(16).padStart(8, "0")) throw new Error("El archivo está incompleto o ha sido modificado.");
+        const binary = atob(code), bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        const data = JSON.parse(new TextDecoder().decode(bytes));
+        if (!data || data.version !== 1 || !data.player || !Number.isFinite(data.rating) || !Number.isInteger(data.games) || data.games < 0 || data.rating < 0 || data.rating > 100000) throw new Error("Los datos de Elo del archivo no son válidos.");
+        return { name: normalizeName(data.player), rating: Math.round(data.rating), games: data.games };
+      }
+      function exportEloProgress() {
+        const name = normalizeName(myName, "Yo");
+        const content = encodeProgressText({ version: 1, player: name, rating: getPlayerElo(name), games: getPlayerRatedGames(name) });
+        const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "ajedrez-elo-" + playerKey(name).replace(/[^a-z0-9-]/g, "-") + ".txt";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast("Copia de Elo descargada");
+      }
+      async function importEloProgress(file) {
+        try {
+          if (!file || file.size > 1024 * 1024) throw new Error("El archivo está vacío o supera el tamaño permitido.");
+          const progress = decodeProgressText(await file.text());
+          if (!confirm("¿Importar el progreso de " + progress.name + " (Elo " + progress.rating + ")? Se reemplazará ese perfil en este dispositivo.")) return;
+          setPlayerRating(progress.name, progress.rating, progress.games);
+          myName = progress.name;
+          LS("aj_name", myName);
+          $("nameInput").value = myName;
+          setPlayerAvatar($("profileAvatar"), myName, "w");
+          startNamePeer();
+          render();
+          pingAll();
+          showToast("Progreso Elo recuperado");
+        } catch (error) {
+          showToast(error.message || "No se pudo importar el archivo");
+        } finally {
+          $("importEloFile").value = "";
+        }
       }
       function getEloText(name) { return "Elo " + getPlayerElo(name); }
       function applyEloResult(playerName, opponentName, scoreForPlayer) {
@@ -5726,11 +5795,13 @@
         const score = Math.max(0, Math.min(1, Number(scoreForPlayer) || 0.5));
         const expectedA = 1 / (1 + Math.pow(10, (b - a) / 400));
         const expectedB = 1 / (1 + Math.pow(10, (a - b) / 400));
-        const k = 32;
-        const nextA = Math.max(100, Math.round(a + k * (score - expectedA)));
-        const nextB = Math.max(100, Math.round(b + k * ((1 - score) - expectedB)));
-        setPlayerElo(aName, nextA);
-        setPlayerElo(bName, nextB);
+        const gamesA = getPlayerRatedGames(aName), gamesB = getPlayerRatedGames(bName);
+        const kA = gamesA < 30 ? 40 : a >= 2400 ? 10 : 20;
+        const kB = gamesB < 30 ? 40 : b >= 2400 ? 10 : 20;
+        const nextA = Math.max(0, Math.round(a + kA * (score - expectedA)));
+        const nextB = Math.max(0, Math.round(b + kB * ((1 - score) - expectedB)));
+        setPlayerRating(aName, nextA, gamesA + 1);
+        setPlayerRating(bName, nextB, gamesB + 1);
       }
 
       function renderFriends() {
@@ -6231,6 +6302,9 @@
       }
       $("nameInput").value = myName;
       setPlayerAvatar($("profileAvatar"), myName, "w");
+      $("exportEloBtn").onclick = exportEloProgress;
+      $("importEloBtn").onclick = () => $("importEloFile").click();
+      $("importEloFile").onchange = event => importEloProgress(event.target.files && event.target.files[0]);
       $("nameInput").onchange = () => { myName = $("nameInput").value.trim().slice(0, 16) || myName; $("nameInput").value = myName; LS("aj_name", myName); setPlayerAvatar($("profileAvatar"), myName, "w"); startNamePeer(); render(); pingAll() };
       $("myCode").value = myCode;
       $("refreshFriends").onclick = () => pingAll();
