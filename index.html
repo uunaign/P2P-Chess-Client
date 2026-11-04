@@ -2893,6 +2893,19 @@
       display: none
     }
 
+    .settings-general {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: auto;
+      padding: 8px 2px;
+      color: var(--bright)
+    }
+
+    .settings-general[hidden] { display: none }
+    .settings-general input[type="color"] { width: 58px; height: 38px; padding: 3px; background: var(--card); border: 1px solid var(--line); border-radius: 6px }
+    .settings-check { display: flex; align-items: center; gap: 9px; cursor: pointer }
+
     .st-card {
       display: flex;
       flex-direction: column;
@@ -3254,11 +3267,6 @@
                 <div class="row"><input id="myCode" aria-label="Tu código de amigo" title="Código de amigo" readonly>
                   <button class="secondary noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span
                       class="material-symbols-rounded">content_copy</span></button></div>
-                <div class="row">
-                  <button class="secondary" id="exportEloBtn" title="Guardar una copia de tu progreso Elo"><span class="material-symbols-rounded">download</span>Exportar Elo</button>
-                  <button class="secondary" id="importEloBtn" title="Recuperar tu progreso desde un archivo"><span class="material-symbols-rounded">upload</span>Importar Elo</button>
-                  <input id="importEloFile" type="file" accept=".txt,text/plain" hidden>
-                </div>
               </div>
               <details class="friend-tools">
                 <summary><span class="material-symbols-rounded">person_add</span> Añadir amigos</summary>
@@ -3357,10 +3365,15 @@
         </div>
         <div class="st-main">
           <div class="st-tabs"><button class="st-tab active" data-st="pieces">Piezas</button><button class="st-tab"
-              data-st="boards">Tablero</button><button class="st-tab" data-st="theme">Tema</button></div>
+              data-st="boards">Tablero</button><button class="st-tab" data-st="theme">Tema</button><button class="st-tab" data-st="general">General</button></div>
           <div class="st-grid" id="stPieces"></div>
           <div class="st-grid" id="stBoards" hidden></div>
           <div class="st-grid" id="stTheme" hidden></div>
+          <div id="stGeneral" class="settings-general" hidden>
+            <div class="field"><label for="markColorInput">Color de marcación</label><input id="markColorInput" type="color" value="#e34f4f"></div>
+            <label class="settings-check"><input id="persistentMarksInput" type="checkbox"> Mantener las marcas al mover piezas</label>
+            <div class="field"><label>Progreso Elo</label><div class="row"><button class="secondary" id="exportEloBtn"><span class="material-symbols-rounded">download</span>Exportar Elo</button><button class="secondary" id="importEloBtn"><span class="material-symbols-rounded">upload</span>Importar Elo</button><input id="importEloFile" type="file" accept=".txt,text/plain" hidden></div></div>
+          </div>
         </div>
       </div>
       <div class="st-foot"><button class="secondary" id="stReset">Restablecer</button><button class="primary"
@@ -3839,7 +3852,7 @@
         if (e.button === 2) { cancelDrag(); if (cancelPremove()) { rightStart = null; return; } rightStart = name; return; }
         if (e.button !== 0) return;
         if (historyPly !== null) { historyPly = null; render(); return }
-        if (marks.size || arrows.length) { marks.clear(); arrows = []; drawAnnotations() }
+        if (!persistentMarks && (marks.size || arrows.length)) { marks.clear(); arrows = []; drawAnnotations() }
         const p = game.get(name), waitingForTurn = !!(myColor && game.turn() !== myColor);
         if (waitingForTurn) {
           if (p && p.color === myColor) {
@@ -3941,7 +3954,7 @@
         redoStack = [];
 
         clearDraw(); sendPayload({ type: "move", move: { from: move.from, to: move.to, promotion: move.promotion || undefined }, whiteTime, blackTime });
-        marks.clear(); arrows = [];
+        if (!persistentMarks) { marks.clear(); arrows = [] }
         render();
         broadcastLiveMatch();
         if (!noAnim) animateMove(move, false);
@@ -4092,7 +4105,21 @@
         });
       }
 
-      let markColor = "#e34f4f";
+      const MARK_SETTINGS_KEY = "aj_mark_settings";
+      let markSettings = {};
+      try { markSettings = JSON.parse(store.get(MARK_SETTINGS_KEY) || "{}") || {} } catch (_) { markSettings = {} }
+      let markColor = /^#[0-9a-f]{6}$/i.test(markSettings.color || "") ? markSettings.color : "#e34f4f";
+      let persistentMarks = markSettings.persistent === true;
+      $("markColorInput").value = markColor;
+      $("persistentMarksInput").checked = persistentMarks;
+      function saveMarkSettings() { try { store.set(MARK_SETTINGS_KEY, JSON.stringify({ color: markColor, persistent: persistentMarks })) } catch (_) { } }
+      $("markColorInput").oninput = () => {
+        markColor = $("markColorInput").value;
+        marks.forEach((_, square) => marks.set(square, markColor));
+        arrows = arrows.map(arrow => ({ ...arrow, color: markColor }));
+        saveMarkSettings(); drawAnnotations();
+      };
+      $("persistentMarksInput").onchange = () => { persistentMarks = $("persistentMarksInput").checked; saveMarkSettings() };
       function toggleMark(name) {
         marks.has(name) ? marks.delete(name) : marks.set(name, markColor);
         drawAnnotations();
@@ -4796,7 +4823,7 @@
       }
       function showSettingsTab(t) {
         document.querySelectorAll(".st-tab").forEach(b => b.classList.toggle("active", b.dataset.st === t));
-        $("stPieces").hidden = t !== "pieces"; $("stBoards").hidden = t !== "boards"; $("stTheme").hidden = t !== "theme";
+        $("stPieces").hidden = t !== "pieces"; $("stBoards").hidden = t !== "boards"; $("stTheme").hidden = t !== "theme"; $("stGeneral").hidden = t !== "general";
         if (t === "boards" && !settingsBuilt.boards) { settingsBuilt.boards = true; buildBoardCards(); syncSettings() }
         if (t === "theme" && !settingsBuilt.theme) { settingsBuilt.theme = true; buildThemeCards(); syncSettings() }
       }
@@ -4835,7 +4862,7 @@
       $("historyModal").addEventListener("click", e => { if (e.target === $("historyModal")) closeHistory() });
       $("watchModal").addEventListener("click", e => { if (e.target === $("watchModal")) closeWatch() });
       document.querySelectorAll(".st-tab").forEach(b => b.onclick = () => showSettingsTab(b.dataset.st));
-      $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview() };
+      $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; markColor = "#e34f4f"; persistentMarks = false; $("markColorInput").value = markColor; $("persistentMarksInput").checked = false; saveMarkSettings(); store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview(); drawAnnotations() };
       // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
       document.addEventListener("keydown", e => {
         if ($("settingsModal").style.display !== "flex") return;
@@ -4861,7 +4888,7 @@
           $("promotionModal").style.display = "none";
           if (pendingPremove && pendingPremove.promotion === undefined && game.get(pendingPremove.from)?.type === "p" && ["1", "8"].includes(pendingPremove.to[1])) pendingPremove = null;
           pendingPromotion = null;
-          marks.clear(); arrows = []; selected = null; legalTargets = []; render();
+          if (!persistentMarks) { marks.clear(); arrows = [] } selected = null; legalTargets = []; render();
         }
       });
 
@@ -4938,7 +4965,11 @@
       let historyPreviewing = false;
       function suppressHistoryPersistForPreview() {
         historyPreviewing = true;
-        setTimeout(() => { historyPreviewing = false; }, 1500);
+      }
+      function loadSavedPgn(chess, pgn) {
+        if (typeof chess.load_pgn === "function") return chess.load_pgn(pgn);
+        if (typeof chess.loadPgn === "function") return chess.loadPgn(pgn);
+        return false;
       }
       function renderHistoryMiniBoard(entry, mount) {
         const mini = new Chess();
@@ -4946,7 +4977,7 @@
         if (fen) {
           try { mini.load(fen) } catch (_) { }
         } else if (entry && entry.pgn) {
-          try { mini.loadPgn(entry.pgn) } catch (_) { }
+          try { loadSavedPgn(mini, entry.pgn) } catch (_) { }
         }
         const board = document.createElement("div");
         board.className = "history-mini-board";
@@ -4976,55 +5007,33 @@
           const pgnText = String(entry.pgn || "").trim();
           const targetFen = String(entry.fen || entry.finalFen || "").trim();
           const moveList = Array.isArray(entry.moves) ? entry.moves.filter(Boolean) : [];
-          let loaded = false;
-
-          if (pgnText) {
-            try {
-              const probe = new Chess();
-              if (probe.loadPgn(pgnText)) {
-                game.loadPgn(pgnText);
-                loaded = true;
-              }
-            } catch (_) { }
+          let replay = null;
+          if (moveList.length) {
+            const candidate = new Chess();
+            let valid = true;
+            for (const san of moveList) {
+              try { if (!candidate.move(String(san))) { valid = false; break } } catch (_) { valid = false; break }
+            }
+            if (valid) replay = candidate;
           }
-
-          if (!loaded && moveList.length) {
-            try {
-              const replay = new Chess();
-              let ok = true;
-              for (const san of moveList) {
-                const mv = replay.move(san);
-                if (!mv) { ok = false; break; }
-              }
-              if (ok) {
-                game.load(replay.fen());
-                loaded = true;
-              }
-            } catch (_) { }
+          if (!replay && pgnText) {
+            const candidate = new Chess();
+            try { if (loadSavedPgn(candidate, pgnText)) replay = candidate } catch (_) { }
           }
-
-          if (!loaded && targetFen) {
-            try {
-              game.load(targetFen);
-              loaded = true;
-            } catch (_) { }
+          if (replay) {
+            game.reset();
+            replay.history({ verbose: true }).forEach(move => game.move({ from: move.from, to: move.to, promotion: move.promotion || "q" }));
+          } else if (targetFen) {
+            try { if (game.load(targetFen)) replay = game } catch (_) { replay = null }
           }
-
-          if (!loaded) {
+          if (!replay) {
             historyPreviewing = false;
             showToast("No se pudo abrir la partida");
             return;
           }
-
-          if (!game.history().length && moveList.length) {
-            const replay = new Chess();
-            for (const san of moveList) {
-              const mv = replay.move(san);
-              if (!mv) break;
-            }
-            if (replay.history().length) game.load(replay.fen());
-          }
-
+          const resultSide = entry.resultSide;
+          forced = resultSide === "draw" ? { w: null, why: entry.resultWhy || "por tablas" } : ["w", "b"].includes(resultSide) ? { w: resultSide, why: entry.resultWhy || "resultado guardado" } : null;
+          endShown = false;
           historyPly = 0;
           reviewing = false;
           report = null;
@@ -5036,6 +5045,7 @@
           if (finalResult) {
             showEnd(finalResult);
           } else {
+            historyPreviewing = false;
             showToast("Esta partida no tiene resultado final para mostrar");
           }
         } catch (_) {
@@ -5119,6 +5129,8 @@
         const entry = {
           opponent: opponentName,
           result: resultText,
+          resultSide: r.w === null ? "draw" : r.w,
+          resultWhy: r.why || "",
           when: new Date().toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }),
           pgn: pgn || "",
           fen: fen || "",
@@ -5157,10 +5169,10 @@
         $("endCaps").textContent = h.filter(m => /[ce]/.test(m.flags)).length;
         $("endChecks").textContent = h.filter(m => /[+#]/.test(m.san)).length;
         $("endAnalysis").hidden = true; $("endAnalysis").classList.remove("done"); $("endBox").classList.remove("analyzed"); $("endReview").hidden = true; $("endProg").style.width = "0"; $("endPgn").hidden = false; $("endAnalysisResults").innerHTML = ""; $("endAnalysisStatus").textContent = "El análisis se ejecuta en tu navegador y puede tardar unos segundos.";
-        if (!historyPreviewing) persistFinalMatch(r);
+        const isHistoryPreview = historyPreviewing;
+        if (!isHistoryPreview) { persistFinalMatch(r); reportMatchResult(r) }
         historyPreviewing = false;
-        reportMatchResult(r);
-        if (friendPeer && friendPeer.open) {
+        if (!isHistoryPreview && friendPeer && friendPeer.open) {
           setTimeout(() => broadcastLiveMatch(), 60);
         }
         $("endModal").style.display = "flex";
