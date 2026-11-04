@@ -1472,31 +1472,62 @@
     }
 
     .bot-level-picker {
-      position: relative;
-      flex: 1;
+      width: 100%;
       min-width: 0
     }
 
-    .bot-level-trigger {
+    .bot-level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px
+    }
+
+    .bot-level-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02)
+    }
+
+    .bot-level-group-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 0 4px
+    }
+
+    .bot-level-option {
       width: 100%;
       display: flex;
       align-items: center;
-      gap: 9px;
-      padding: 7px 10px;
-      color: var(--bright);
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      text-align: left
+      gap: 8px;
+      padding: 8px 7px;
+      color: var(--text);
+      background: var(--bg2);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .12s ease, transform .12s ease, background .12s ease
     }
 
-    .bot-level-trigger:focus-visible,
+    .bot-level-option:hover,
+    .bot-level-option[aria-selected="true"] {
+      color: var(--bright);
+      background: rgba(129, 182, 76, 0.12);
+      border-color: rgba(129, 182, 76, 0.5)
+    }
+
     .bot-level-option:focus-visible {
       outline: 2px solid var(--green);
       outline-offset: 2px
     }
 
-    .bot-level-trigger-avatar,
     .bot-level-option-avatar {
       width: 34px;
       height: 34px;
@@ -1505,53 +1536,23 @@
       background: var(--bg)
     }
 
-    .bot-level-trigger-label {
-      flex: 1;
-      min-width: 0
-    }
-
-    .bot-level-trigger .material-symbols-rounded {
-      color: var(--muted);
-      margin: 0
-    }
-
-    .bot-level-panel {
-      position: absolute;
-      z-index: 20;
-      top: calc(100% + 6px);
-      left: 0;
-      width: 100%;
-      max-height: 3200px;
-      overflow-y: auto;
-      padding: 5px 5px 1px 5px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: 0 10px 24px #0008;
-      gap: 4px;
-    }
-
-    .bot-level-panel[hidden] {
-      display: none
-    }
-
-    .bot-level-option {
-      width: 100%;
+    .bot-level-option-text {
       display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 6px;
-      color: var(--text);
-      background: transparent;
-      border-radius: 6px;
-      text-align: left;
-      margin-bottom: 4px;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      line-height: 1.2
     }
 
-    .bot-level-option:hover,
-    .bot-level-option[aria-selected="true"] {
-      color: var(--bright);
-      background: var(--line)
+    .bot-level-option-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: inherit
+    }
+
+    .bot-level-option-elo {
+      font-size: 11px;
+      color: var(--muted)
     }
 
     .engine-status {
@@ -3087,16 +3088,8 @@
           </div>
           <div class="play-subpane" id="subpane-bot" hidden>
             <div class="engine-panel">
-              <div class="section-title"><span class="material-symbols-rounded">psychology</span> Stockfish · motor
-                local</div>
-              <div class="engine-row"><select id="botLevel" aria-label="Nivel del bot">
-                  <option value="0">Bot principiante</option>
-                  <option value="3">Bot fácil</option>
-                  <option value="6" selected>Bot intermedio</option>
-                  <option value="10">Bot avanzado</option>
-                  <option value="15">Bot experto</option>
-                  <option value="20">Bot máximo</option>
-                </select></div>
+              <div class="section-title"><span class="material-symbols-rounded">psychology</span> Bots · Elo y avatares</div>
+              <div class="engine-row"><select id="botLevel" aria-label="Elo del bot"></select></div>
               <div class="engine-row"><select id="botSide" aria-label="Color del jugador">
                   <option value="w">Yo con blancas</option>
                   <option value="b">Yo con negras</option>
@@ -3336,7 +3329,7 @@
       let marks = new Map(), arrows = [], rightStart = null, rightMoved = false, dragFrom = null;
       let redoStack = [], pendingPromotion = null, analysis = false, justDragged = false;
       let historyPly = null;
-      let botEnabled = false, botColor = "b", botSkill = 6, botThinking = false;
+      let botEnabled = false, botColor = "b", botElo = 1200, botSkill = 10, botThinking = false;
       let engineWorker = null, engineReady = false, engineInitPromise = null, activeSearch = null;
       let analysisCancelled = false, analysisRunning = false, report = null, reviewing = false;
 
@@ -3353,6 +3346,8 @@
       try { matchHistory = JSON.parse(store.get(MATCH_HISTORY_KEY) || "[]") || []; } catch (_) { matchHistory = []; }
       let liveMatches = {};
       try { liveMatches = JSON.parse(store.get(LIVE_GAMES_KEY) || "{}") || {}; } catch (_) { liveMatches = {}; }
+      let watchBoardState = null;
+      let liveBroadcastTimer = null;
       let pieceSet = /^[a-z0-9_]+$/.test(store.get("ajedrez.pieces") || "") ? store.get("ajedrez.pieces") : "neo";
       let boardTheme = /^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board") || "") ? store.get("ajedrez.board") : "c-verde";
       const UI_THEMES = {
@@ -3878,7 +3873,7 @@
             const isBot = c === botColor;
             return {
               name: playerDisplayName(c),
-              elo: isBot ? "Nivel " + botSkill : getEloText(myName)
+              elo: isBot ? "Elo " + botElo : getEloText(myName)
             };
           }
           if (myColor) {
@@ -3892,8 +3887,8 @@
         $("topName").textContent = topData.name; $("bottomName").textContent = bottomData.name;
         const topIsBot = botEnabled && top === botColor, bottomIsBot = botEnabled && bot === botColor;
         const usePieceAvatars = !botEnabled && !myColor;
-        setPlayerAvatar($("topAvatar"), topData.name, top, topIsBot, topIsBot ? botAvatarSeed(botSkill) : topData.name, usePieceAvatars);
-        setPlayerAvatar($("bottomAvatar"), bottomData.name, bot, bottomIsBot, bottomIsBot ? botAvatarSeed(botSkill) : bottomData.name, usePieceAvatars);
+        setPlayerAvatar($("topAvatar"), topData.name, top, topIsBot, topIsBot ? botAvatarSeed(botElo) : topData.name, usePieceAvatars);
+        setPlayerAvatar($("bottomAvatar"), bottomData.name, bot, bottomIsBot, bottomIsBot ? botAvatarSeed(botElo) : bottomData.name, usePieceAvatars);
       }
 
       function renderCaptured(g) {
@@ -3909,7 +3904,7 @@
         [["top", top], ["bottom", bot]].forEach(([k, c]) => {
           const isOpponent = myColor ? c !== myColor : c === top;
           const elo = (() => {
-            const info = botEnabled ? (c === botColor ? { name: "Stockfish", elo: "Nivel " + botSkill } : { name: normalizeName(myName, "Yo"), elo: getEloText(myName) }) : myColor ? (c === myColor ? { name: normalizeName(myName, "Yo"), elo: getEloText(myName) } : { name: normalizeName(activeOpponentName || "Rival", "Rival"), elo: getEloText(activeOpponentName || "Rival") }) : { name: c === "w" ? "Blancas" : "Negras", elo: "" };
+            const info = botEnabled ? (c === botColor ? { name: botProfileByElo(botElo).name, elo: "Elo " + botElo } : { name: normalizeName(myName, "Yo"), elo: getEloText(myName) }) : myColor ? (c === myColor ? { name: normalizeName(myName, "Yo"), elo: getEloText(myName) } : { name: normalizeName(activeOpponentName || "Rival", "Rival"), elo: getEloText(activeOpponentName || "Rival") }) : { name: c === "w" ? "Blancas" : "Negras", elo: "" };
             return info.elo;
           })();
           const pieces = $(k + "MaterialPieces");
@@ -4155,7 +4150,7 @@
       async function makeBotMove() {
         if (!botEnabled || botThinking || game.game_over() || forced || game.turn() !== botColor || online()) return;
         botThinking = true;
-        $("engineStatus").textContent = "Stockfish está pensando…";
+        $("engineStatus").textContent = "El bot está pensando…";
         try {
           const result = await engineSearch(game.fen(), botSkill <= 3 ? 7 : botSkill <= 6 ? 9 : botSkill <= 10 ? 10 : 11, botSkill, engineInfo.modern ? 250 + botSkill * 40 : 0);
           if (!botEnabled || game.turn() !== botColor || game.game_over()) return;
@@ -4163,9 +4158,12 @@
           if (!m) { showToast("El bot no ha encontrado una jugada válida"); return }
           botThinking = false;
           tryMove(m.from, m.to, m.promotion, true, true);
-          $("engineStatus").textContent = "Bot activo · nivel " + botSkill + "/20.";
+          $("engineStatus").textContent = "Bot activo · " + botProfileByElo(botElo).name + " · Elo " + botElo + ".";
         } catch (e) { showToast(e.message || "Error al ejecutar Stockfish"); $("engineStatus").textContent = e.message || "Error al cargar el motor." }
         finally { botThinking = false }
+      }
+      function eloToBotSkill(elo) {
+        return Math.max(0, Math.min(20, Math.round((Math.max(100, Math.min(3000, Number(elo) || 1200)) - 100) / 140)));
       }
       async function startBotGame() {
         if (analysisRunning) { showToast("Espera a que termine o detén el análisis primero"); return }
@@ -4173,15 +4171,17 @@
         if (peerJSConn) { try { peerJSConn.close() } catch (_) { } peerJSConn = null }
         if (peerJSInstance) { try { peerJSInstance.destroy() } catch (_) { } peerJSInstance = null }
         role = null; myColor = null; botEnabled = false; botThinking = false;
-        botSkill = Number($("botLevel").value) || 0;
+        botElo = Number($("botLevel").value) || 1200;
+        botSkill = eloToBotSkill(botElo);
         const side = $("botSide").value;
         const playerColor = side === "r" ? (Math.random() < .5 ? "w" : "b") : side;
         botColor = playerColor === "w" ? "b" : "w";
         flipped = playerColor === "b";
-        $("connText").textContent = "Partida local contra Stockfish · nivel " + botSkill;
+        const botProfile = botProfileByElo(botElo);
+        $("connText").textContent = "Partida local contra " + botProfile.name + " · Elo " + botElo;
         $("connDot").className = "status-dot";
         $("chatInput").disabled = true; $("chatSend").disabled = true;
-        $("chatLog").innerHTML = '<div class="msg sys">Partida local contra Stockfish.</div>';
+        $("chatLog").innerHTML = '<div class="msg sys">Partida local contra ' + botProfile.name + '.</div>';
         $("localTcSelect").value = "0+0"; $("tcSelect").value = "0+0"; parseTC();
         resetLocal();
         botEnabled = true;
@@ -4190,7 +4190,7 @@
         showTab("online"); showSubtab("bot"); render();
         try {
           await ensureEngine();
-          $("engineStatus").textContent = "Partida contra bot iniciada · nivel " + botSkill + "/20.";
+          $("engineStatus").textContent = "Partida contra " + botProfile.name + " iniciada · Elo " + botElo + ".";
           if (botColor === "w") makeBotMove();
         } catch (e) { botEnabled = false; showToast(e.message || "No se pudo cargar Stockfish"); $("engineStatus").textContent = e.message || "No se pudo cargar Stockfish." }
       }
@@ -4944,7 +4944,7 @@
       }
       function persistFinalMatch(r) {
         if (!r) return;
-        const opponentName = botEnabled ? "Stockfish" : normalizeName(activeOpponentName || "Rival");
+        const opponentName = botEnabled ? botProfileByElo(botElo).name : normalizeName(activeOpponentName || "Rival");
         const myRole = botEnabled ? (botColor === "w" ? "b" : "w") : (myColor || "w");
         const resultText = !r.w ? "Empate" : (r.w === myRole ? "Victoria" : "Derrota");
         const pgn = game.pgn({ max_width: 60, newline_char: "\n" }).trim();
@@ -4986,7 +4986,7 @@
         const endAvatarColor = r.w || myColor || "w";
         const endAvatarName = playerDisplayName(endAvatarColor);
         const endIsBot = botEnabled && endAvatarColor === botColor;
-        setPlayerAvatar($("endAvatar"), endAvatarName, endAvatarColor, endIsBot, endIsBot ? botAvatarSeed(botSkill) : endAvatarName, !botEnabled && !myColor);
+        setPlayerAvatar($("endAvatar"), endAvatarName, endAvatarColor, endIsBot, endIsBot ? botAvatarSeed(botElo) : endAvatarName, !botEnabled && !myColor);
         $("endMsg").textContent = !r.w ? "Tablas, ¡buen duelo!" : win === false ? "¡Ánimo, la próxima es tuya!" : "¡Buena partida!";
         $("endMoves").textContent = Math.ceil(h.length / 2);
         $("endCaps").textContent = h.filter(m => /[ce]/.test(m.flags)).length;
@@ -4995,6 +4995,9 @@
         if (!historyPreviewing) persistFinalMatch(r);
         historyPreviewing = false;
         reportMatchResult(r);
+        if (friendPeer && friendPeer.open) {
+          setTimeout(() => broadcastLiveMatch(), 60);
+        }
         $("endModal").style.display = "flex";
       }
       const closeEnd = () => { $("endModal").style.display = "none" };
@@ -5395,11 +5398,29 @@
         const clean = String(name || fallback).trim().replace(/\s+/g, " ").slice(0, max);
         return clean || fallback;
       }
-      function avatarUrl(name, isBot = false) {
-        return "https://api.dicebear.com/10.x/" + (isBot ? "bottts-neutral" : "marbles") +
-          "/svg?seed=" + encodeURIComponent(normalizeName(name).toLowerCase());
+      const BOT_PROFILES = [
+        { name: "Maya", seed: "maya", elo: 100 },
+        { name: "Leo", seed: "leo", elo: 400 },
+        { name: "Sara", seed: "sara", elo: 800 },
+        { name: "Iker", seed: "iker", elo: 1200 },
+        { name: "Nora", seed: "nora", elo: 1600 },
+        { name: "Omar", seed: "omar", elo: 2000 },
+        { name: "Luna", seed: "luna", elo: 2400 },
+        { name: "Daniel", seed: "daniel", elo: 2800 },
+        { name: "Ava", seed: "ava", elo: 3000 },
+        { name: "Mateo", seed: "mateo", elo: 3200 }
+      ];
+      function botProfileByElo(elo) {
+        const safe = Math.max(100, Math.min(3000, Math.round(Number(elo) || 1200)));
+        return BOT_PROFILES.reduce((best, current) => Math.abs(current.elo - safe) < Math.abs(best.elo - safe) ? current : best, BOT_PROFILES[0]);
       }
-      function botAvatarSeed(level) { return "stockfish-" + Number(level || 0) }
+      function botAvatarSeed(levelOrElo) {
+        return botProfileByElo(levelOrElo).seed || String(levelOrElo || 1200);
+      }
+      function avatarUrl(seed, isBot = false) {
+        const key = normalizeName(seed || "bot").toLowerCase();
+        return "https://api.dicebear.com/10.x/" + (isBot ? "avataaars" : "marbles") + "/svg?seed=" + encodeURIComponent(key);
+      }
       function chessPieceFallbackUrl(color) {
         const isWhite = color === "w";
         const piece = isWhite ? "♔" : "♚";
@@ -5424,87 +5445,88 @@
           img.src = PIECE(color, "k");
           return;
         }
-        img.src = avatarUrl(seed, isBot);
+        const safeSeed = String(seed || name || "bot");
+        img.src = avatarUrl(safeSeed, isBot);
       }
       (function initBotLevelPicker() {
         const select = $("botLevel");
         const root = document.createElement("div");
         root.className = "bot-level-picker";
-        root.innerHTML = '<button type="button" class="bot-level-trigger" role="combobox" aria-label="Nivel del bot" aria-haspopup="listbox" aria-expanded="false" aria-controls="botLevelOptions"><img class="bot-level-trigger-avatar" alt=""><span class="bot-level-trigger-label"></span><span class="material-symbols-rounded">expand_more</span></button><div class="bot-level-panel" id="botLevelOptions" role="listbox" hidden></div>';
         select.classList.add("bot-level-native");
         select.after(root);
 
-        const trigger = root.querySelector(".bot-level-trigger");
-        const triggerAvatar = root.querySelector(".bot-level-trigger-avatar");
-        const triggerLabel = root.querySelector(".bot-level-trigger-label");
-        const panel = root.querySelector(".bot-level-panel");
-        const entries = [...select.options].map(option => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "bot-level-option";
-          button.setAttribute("role", "option");
-          const image = document.createElement("img");
-          image.className = "bot-level-option-avatar";
-          image.alt = "";
-          const label = document.createElement("span");
-          label.textContent = option.textContent;
-          button.append(image, label);
-          button.onclick = () => {
-            select.value = option.value;
-            select.dispatchEvent(new Event("change", { bubbles: true }));
-            close();
-            trigger.focus();
-          };
-          panel.appendChild(button);
-          setPlayerAvatar(image, option.textContent, "b", true, botAvatarSeed(option.value));
-          return { option, button, image };
+        const groups = [
+          { title: "Principiante", min: 100, max: 800 },
+          { title: "Club", min: 1200, max: 2000 },
+          { title: "Elite", min: 2400, max: 3200 }
+        ];
+
+        const grid = document.createElement("div");
+        grid.className = "bot-level-grid";
+        root.appendChild(grid);
+
+        const entries = [];
+        groups.forEach(group => {
+          const groupWrap = document.createElement("div");
+          groupWrap.className = "bot-level-group";
+          const title = document.createElement("div");
+          title.className = "bot-level-group-title";
+          title.textContent = group.title;
+          groupWrap.appendChild(title);
+
+          const profiles = BOT_PROFILES.filter(profile => profile.elo >= group.min && profile.elo <= group.max);
+          profiles.forEach(profile => {
+            const option = document.createElement("option");
+            option.value = String(profile.elo);
+            option.textContent = profile.name + " • Elo " + profile.elo;
+            select.appendChild(option);
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "bot-level-option";
+            button.setAttribute("role", "option");
+            button.setAttribute("aria-label", profile.name + " · Elo " + profile.elo);
+            button.dataset.value = String(profile.elo);
+
+            const image = document.createElement("img");
+            image.className = "bot-level-option-avatar";
+            image.alt = profile.name;
+
+            const textWrap = document.createElement("div");
+            textWrap.className = "bot-level-option-text";
+            const nameEl = document.createElement("span");
+            nameEl.className = "bot-level-option-name";
+            nameEl.textContent = profile.name;
+            const eloEl = document.createElement("span");
+            eloEl.className = "bot-level-option-elo";
+            eloEl.textContent = "Elo " + profile.elo;
+            textWrap.append(nameEl, eloEl);
+
+            button.append(image, textWrap);
+            button.onclick = () => {
+              select.value = String(profile.elo);
+              select.dispatchEvent(new Event("change", { bubbles: true }));
+            };
+
+            groupWrap.appendChild(button);
+            setPlayerAvatar(image, profile.name, "b", true, botAvatarSeed(profile.elo));
+            entries.push({ option, button, profile });
+          });
+
+          grid.appendChild(groupWrap);
         });
 
         function refresh() {
           const selected = entries.find(entry => entry.option.value === select.value) || entries[0];
-          triggerLabel.textContent = selected.option.textContent;
-          setPlayerAvatar(triggerAvatar, selected.option.textContent, "b", true, botAvatarSeed(selected.option.value));
           entries.forEach(entry => entry.button.setAttribute("aria-selected", String(entry === selected)));
         }
-        function open() {
-          panel.hidden = false;
-          trigger.setAttribute("aria-expanded", "true");
-          const selected = entries.find(entry => entry.option.value === select.value) || entries[0];
-          if (selected) selected.button.focus();
-        }
-        function close() {
-          panel.hidden = true;
-          trigger.setAttribute("aria-expanded", "false");
-        }
 
-        trigger.onclick = () => panel.hidden ? open() : close();
-        trigger.onkeydown = event => {
-          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-            event.preventDefault();
-            open();
-          }
-        };
-        panel.onkeydown = event => {
-          const currentIndex = entries.findIndex(entry => entry.button === document.activeElement);
-          if (event.key === "Escape") {
-            event.preventDefault();
-            close();
-            trigger.focus();
-          } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-            event.preventDefault();
-            const direction = event.key === "ArrowDown" ? 1 : -1;
-            const next = (currentIndex + direction + entries.length) % entries.length;
-            entries[next].button.focus();
-          }
-        };
         select.addEventListener("change", refresh);
-        document.addEventListener("pointerdown", event => {
-          if (!root.contains(event.target)) close();
-        });
+        select.value = String(botElo);
         refresh();
       })();
       function playerDisplayName(color) {
-        if (botEnabled) return color === botColor ? "Stockfish" : normalizeName(myName, "Yo");
+        if (botEnabled) return color === botColor ? botProfileByElo(botElo).name : normalizeName(myName, "Yo");
         if (myColor) return normalizeName(color === myColor ? myName : activeOpponentName || "Rival", color === myColor ? "Yo" : "Rival");
         return color === "w" ? "Blancas" : "Negras";
       }
@@ -5775,7 +5797,7 @@
 
       function prepareLiveGamePayload() {
         const result = getResult();
-        const opponentName = botEnabled ? "Stockfish" : normalizeName(activeOpponentName || "Rival");
+        const opponentName = botEnabled ? botProfileByElo(botElo).name : normalizeName(activeOpponentName || "Rival");
         return {
           type: "liveGame",
           code: myCode,
@@ -5820,18 +5842,30 @@
         }
         renderFriends();
       }
-      function broadcastLiveMatch() {
+      function scheduleLiveMatchBroadcast(immediate = false) {
         if (!friendPeer || !friendPeer.open || !friends.length) return;
-        const payload = prepareLiveGamePayload();
-        friends.forEach(f => {
-          if (!f || !f.code || f.code === myCode || !presence[f.code]) return;
-          try {
-            const c = friendPeer.connect(FID(f.code), { reliable: true });
-            c.on("open", () => c.send(payload));
-            c.on("data", d => { if (d && d.type === "liveGame") updateLiveMatch(d) });
-            c.on("error", () => {});
-          } catch (_) { }
-        });
+        const run = () => {
+          const payload = prepareLiveGamePayload();
+          friends.forEach(f => {
+            if (!f || !f.code || f.code === myCode || !presence[f.code]) return;
+            try {
+              const c = friendPeer.connect(FID(f.code), { reliable: true });
+              c.on("open", () => c.send(payload));
+              c.on("data", d => { if (d && d.type === "liveGame") updateLiveMatch(d) });
+              c.on("error", () => {});
+            } catch (_) { }
+          });
+        };
+        if (immediate) {
+          if (liveBroadcastTimer) { clearTimeout(liveBroadcastTimer); liveBroadcastTimer = null; }
+          run();
+          return;
+        }
+        if (liveBroadcastTimer) clearTimeout(liveBroadcastTimer);
+        liveBroadcastTimer = setTimeout(run, 120);
+      }
+      function broadcastLiveMatch() {
+        scheduleLiveMatchBroadcast(true);
       }
       function openWatchModal(code) {
         const data = liveMatches[code];
@@ -5846,6 +5880,17 @@
       }
       function renderWatchBoard(gameState) {
         const board = $("watchBoard");
+        const previousState = watchBoardState;
+        const prevPositions = new Map();
+        if (previousState) {
+          for (let rank = 8; rank >= 1; rank--) {
+            for (const file of files) {
+              const square = file + rank;
+              const piece = previousState.get(square);
+              if (piece) prevPositions.set(piece.color + piece.type + "-" + (prevPositions.get(piece.color + piece.type) || 0), square);
+            }
+          }
+        }
         board.innerHTML = "";
         const b = boardInfo(boardTheme);
         if (b.img) {
@@ -5856,6 +5901,21 @@
           board.style.backgroundImage = "";
           board.style.backgroundSize = "";
           board.style.backgroundRepeat = "";
+        }
+        const remainingSources = previousState ? new Map() : null;
+        if (remainingSources) {
+          for (let rank = 8; rank >= 1; rank--) {
+            for (const file of files) {
+              const square = file + rank;
+              const piece = previousState.get(square);
+              if (piece) {
+                const key = piece.color + piece.type;
+                const arr = remainingSources.get(key) || [];
+                arr.push(square);
+                remainingSources.set(key, arr);
+              }
+            }
+          }
         }
         for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
           const file = x;
@@ -5876,10 +5936,33 @@
             img.className = "piece " + (p.color === "w" ? "white" : "black");
             img.src = PIECE_FOR("friend_watch", p.color, p.type);
             img.alt = "";
+            if (previousState) {
+              const key = p.color + p.type;
+              const sources = remainingSources && remainingSources.get(key) ? remainingSources.get(key).slice() : [];
+              const uniqueSources = sources.filter(square => square !== name && !!previousState.get(square) && previousState.get(square).color === p.color && previousState.get(square).type === p.type && !gameState.get(square));
+              const source = uniqueSources.length === 1 ? uniqueSources[0] : null;
+              if (source) {
+                const sourceIndex = sources.indexOf(source);
+                if (sourceIndex >= 0) {
+                  sources.splice(sourceIndex, 1);
+                  remainingSources.set(key, sources);
+                }
+                const sourceCoord = { x: files.indexOf(source[0]), y: 8 - Number(source[1]) };
+                const targetCoord = { x: files.indexOf(name[0]), y: 8 - Number(name[1]) };
+                const dx = (sourceCoord.x - targetCoord.x) * 100;
+                const dy = (sourceCoord.y - targetCoord.y) * 100;
+                img.style.transform = "translate(" + dx + "%, " + dy + "%)";
+                img.style.transition = "transform 220ms ease-out";
+                requestAnimationFrame(() => {
+                  img.style.transform = "translate(0, 0)";
+                });
+              }
+            }
             sq.appendChild(img);
           }
           board.appendChild(sq);
         }
+        watchBoardState = gameState;
       }
       function startFriendPeer() {
         if (typeof Peer === "undefined") return;
