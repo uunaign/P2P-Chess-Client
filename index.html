@@ -1188,7 +1188,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: #000a;
+      background: rgba(0, 0, 0, 0.76);
       z-index: 10;
       align-items: center;
       justify-content: center;
@@ -1376,31 +1376,99 @@
     .watch-content {
       display: flex;
       flex-direction: column;
-      gap: 12px
+      gap: 8px;
+      justify-content: center;
+      min-height: 0
     }
 
     .watch-meta {
       display: flex;
+      justify-content: center;
+      width: 100%
+    }
+
+    .watch-player {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 54px;
+      width: min(620px, 100%);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02)
+    }
+
+    .watch-player-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--bg)
+    }
+
+    .watch-player-text {
+      display: flex;
       flex-direction: column;
-      gap: 3px;
+      min-width: 0;
+      gap: 2px;
+      flex: 1
+    }
+
+    .watch-player-name {
+      color: var(--bright);
+      font: 700 15px/1.1 "Manrope", sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .watch-player-sub {
       color: var(--muted);
-      font-size: 12px
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .watch-player-status {
+      color: var(--gold);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap
+    }
+
+    .watch-player.empty-status .watch-player-status {
+      opacity: 0
     }
 
     .watch-board-wrap {
       display: flex;
-      justify-content: center
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 0
+    }
+
+    .watch-modal {
+      width: min(860px, calc(100vw - 22px));
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+      padding: 14px 14px 12px
     }
 
     #watchBoard {
       display: grid;
       grid-template-columns: repeat(8, minmax(30px, 1fr));
-      width: min(620px, 82vw);
-      max-width: 82vw;
+      width: min(62vh, 62vw, 560px);
+      max-width: 62vw;
       aspect-ratio: 1;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
-      border: 1px solid var(--line)
+      border: 1px solid var(--line);
+      transition: transform .2s ease
     }
 
     #watchBoard .square {
@@ -1410,7 +1478,7 @@
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 28px
+      min-height: 30px
     }
 
     #watchBoard .square.light {
@@ -1422,8 +1490,8 @@
     }
 
     #watchBoard .piece {
-      width: 80%;
-      height: 80%;
+      width: 82%;
+      height: 82%;
       object-fit: contain
     }
 
@@ -1473,54 +1541,98 @@
 
     .bot-level-picker {
       width: 100%;
-      min-width: 0
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .bot-level-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--bright);
+      padding: 2px 2px 4px;
+      letter-spacing: -0.02em
+    }
+
+    .bot-level-summary strong {
+      font-size: 18px;
+      font-weight: 800
+    }
+
+    .bot-level-summary .bot-level-summary-elo {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      margin-left: 4px
     }
 
     .bot-level-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: flex;
+      flex-direction: column;
       gap: 8px
     }
 
     .bot-level-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      padding: 8px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.02)
+      align-items: flex-start;
+      gap: 4px;
+      padding: 0;
+      overflow: hidden
+    }
+
+    .bot-level-group-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-width: 0
     }
 
     .bot-level-group-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.1;
       font-weight: 800;
-      padding: 0 4px
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 0 0 0 2px;
+      margin: 0;
+      white-space: nowrap
     }
 
     .bot-level-option {
-      width: 100%;
       display: flex;
+      flex: 0 0 auto;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 8px 7px;
+      justify-content: center;
+      gap: 4px;
+      width: 64px;
+      min-width: 64px;
+      height: 82px;
+      padding: 5px 2px 6px;
       color: var(--text);
-      background: var(--bg2);
-      border: 1px solid transparent;
+      background: transparent;
+      border: none;
       border-radius: 8px;
-      text-align: left;
+      text-align: center;
       cursor: pointer;
-      transition: border-color .12s ease, transform .12s ease, background .12s ease
+      transition: transform .12s ease, opacity .12s ease, filter .12s ease
     }
 
     .bot-level-option:hover,
     .bot-level-option[aria-selected="true"] {
       color: var(--bright);
-      background: rgba(129, 182, 76, 0.12);
-      border-color: rgba(129, 182, 76, 0.5)
+      background: rgba(129, 182, 76, 0.06);
+      transform: translateY(-1px)
     }
 
     .bot-level-option:focus-visible {
@@ -1529,30 +1641,35 @@
     }
 
     .bot-level-option-avatar {
-      width: 34px;
-      height: 34px;
-      flex: 0 0 34px;
-      border-radius: 6px;
-      background: var(--bg)
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 9px;
+      background: var(--bg);
+      object-fit: cover;
+      display: block;
+      border: 1px solid rgba(255,255,255,0.08)
     }
 
     .bot-level-option-text {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      align-items: center;
+      gap: 1px;
       min-width: 0;
-      line-height: 1.2
+      line-height: 1.1
     }
 
     .bot-level-option-name {
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 800;
       color: inherit
     }
 
     .bot-level-option-elo {
-      font-size: 11px;
-      color: var(--muted)
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 700
     }
 
     .engine-status {
@@ -2668,8 +2785,21 @@
       gap: 8px
     }
 
+    .st-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto
+    }
+
     .st-head .material-symbols-rounded {
       margin: 0
+    }
+
+    .st-head-actions .end-x {
+      position: static;
+      right: auto;
+      top: auto
     }
 
     .st-body {
@@ -3094,7 +3224,7 @@
                   <option value="w">Yo con blancas</option>
                   <option value="b">Yo con negras</option>
                   <option value="r" selected>Color aleatorio</option>
-                </select><button class="primary" id="startBotBtn"><span
+                </select><button class="primarySmall" id="startBotBtn"><span
                     class="material-symbols-rounded">smart_toy</span> Jugar contra bot</button></div>
               <div class="engine-row"><button class="secondary" id="analyzeBtn"><span
                     class="material-symbols-rounded">query_stats</span> Analizar partida</button><button
@@ -3238,14 +3368,18 @@
     <div class="modal watch-modal" role="dialog" aria-label="Partida en directo">
       <div class="st-head">
         <h3><span class="material-symbols-rounded">visibility</span> Partida en directo</h3>
-        <button class="end-x" id="watchClose" aria-label="Cerrar"><span class="material-symbols-rounded"
-            style="margin:0">close</span></button>
+        <div class="st-head-actions">
+          <button class="secondary noTextButton" id="watchRotateBtn" title="Girar tablero" aria-label="Girar tablero"><span class="material-symbols-rounded">screen_rotation</span></button>
+          <button class="end-x" id="watchClose" aria-label="Cerrar"><span class="material-symbols-rounded"
+              style="margin:0">close</span></button>
+        </div>
       </div>
       <div class="watch-content">
-        <div class="watch-meta" id="watchMeta"></div>
+        <div class="watch-meta" id="watchMetaTop"></div>
         <div class="watch-board-wrap">
           <div id="watchBoard" aria-label="Tablero en directo"></div>
         </div>
+        <div class="watch-meta" id="watchMetaBottom"></div>
       </div>
     </div>
   </div>
@@ -4660,7 +4794,22 @@
       const openHistory = () => { renderHistoryList(); $("historyModal").style.display = "flex" };
       const closeHistory = () => { $("historyModal").style.display = "none" };
       let activeWatchCode = null;
-      const closeWatch = () => { activeWatchCode = null; $("watchModal").style.display = "none" };
+      let watchFlipped = false;
+      const closeWatch = () => {
+        activeWatchCode = null;
+        watchFlipped = false;
+        $("watchBoard").style.transform = "none";
+        $("watchModal").style.display = "none";
+      };
+      $("watchRotateBtn").onclick = () => {
+        watchFlipped = !watchFlipped;
+        const data = activeWatchCode ? liveMatches[activeWatchCode] : null;
+        if (data) {
+          const watchGame = new Chess();
+          try { watchGame.load(data.fen || "startpos") } catch (_) { }
+          renderWatchBoard(watchGame);
+        }
+      };
       $("settingsBtn").onclick = openSettings;
       $("historyBtn").onclick = openHistory;
       $("historyClose").onclick = closeHistory;
@@ -5455,10 +5604,14 @@
         select.classList.add("bot-level-native");
         select.after(root);
 
+        const summary = document.createElement("div");
+        summary.className = "bot-level-summary";
+        root.appendChild(summary);
+
         const groups = [
-          { title: "Principiante", min: 100, max: 800 },
-          { title: "Club", min: 1200, max: 2000 },
-          { title: "Elite", min: 2400, max: 3200 }
+          { title: "Beginner", min: 100, max: 800 },
+          { title: "Intermediate", min: 1200, max: 2000 },
+          { title: "Advanced", min: 2400, max: 3200 }
         ];
 
         const grid = document.createElement("div");
@@ -5469,12 +5622,17 @@
         groups.forEach(group => {
           const groupWrap = document.createElement("div");
           groupWrap.className = "bot-level-group";
+
           const title = document.createElement("div");
           title.className = "bot-level-group-title";
           title.textContent = group.title;
           groupWrap.appendChild(title);
 
-          const profiles = BOT_PROFILES.filter(profile => profile.elo >= group.min && profile.elo <= group.max);
+          const row = document.createElement("div");
+          row.className = "bot-level-group-row";
+          groupWrap.appendChild(row);
+
+          const profiles = BOT_PROFILES.filter(profile => profile.elo >= group.min && profile.elo <= group.max).sort((a, b) => a.elo - b.elo);
           profiles.forEach(profile => {
             const option = document.createElement("option");
             option.value = String(profile.elo);
@@ -5499,7 +5657,7 @@
             nameEl.textContent = profile.name;
             const eloEl = document.createElement("span");
             eloEl.className = "bot-level-option-elo";
-            eloEl.textContent = "Elo " + profile.elo;
+            eloEl.textContent = profile.elo;
             textWrap.append(nameEl, eloEl);
 
             button.append(image, textWrap);
@@ -5508,7 +5666,7 @@
               select.dispatchEvent(new Event("change", { bubbles: true }));
             };
 
-            groupWrap.appendChild(button);
+            row.appendChild(button);
             setPlayerAvatar(image, profile.name, "b", true, botAvatarSeed(profile.elo));
             entries.push({ option, button, profile });
           });
@@ -5518,6 +5676,7 @@
 
         function refresh() {
           const selected = entries.find(entry => entry.option.value === select.value) || entries[0];
+          summary.innerHTML = '<strong>' + selected.profile.name + '</strong><span class="bot-level-summary-elo">' + selected.profile.elo + '</span>';
           entries.forEach(entry => entry.button.setAttribute("aria-selected", String(entry === selected)));
         }
 
@@ -5798,11 +5957,15 @@
       function prepareLiveGamePayload() {
         const result = getResult();
         const opponentName = botEnabled ? botProfileByElo(botElo).name : normalizeName(activeOpponentName || "Rival");
+        const whiteName = myColor === "w" ? normalizeName(myName, "Yo") : normalizeName(opponentName, "Rival");
+        const blackName = myColor === "b" ? normalizeName(myName, "Yo") : normalizeName(opponentName, "Rival");
         return {
           type: "liveGame",
           code: myCode,
           name: myName,
           opponent: opponentName,
+          whiteName,
+          blackName,
           fen: game.fen(),
           pgn: game.pgn({ max_width: 60, newline_char: "\n" }),
           playing: isPlayingOnline(),
@@ -5821,6 +5984,8 @@
           code,
           name: normalizeName(d.name || code, "Jugador"),
           opponent: normalizeName(d.opponent || "Rival", "Rival"),
+          whiteName: normalizeName(d.whiteName || d.opponent || "Blancas", "Blancas"),
+          blackName: normalizeName(d.blackName || d.name || "Negras", "Negras"),
           fen: String(d.fen || "startpos"),
           pgn: String(d.pgn || ""),
           playing: d.playing !== false,
@@ -5834,11 +5999,7 @@
         presence[code] = true;
         playing[code] = item.playing;
         if (activeWatchCode === code && $("watchModal").style.display === "flex") {
-          const statusText = item.opponent ? item.name + " vs " + item.opponent : item.name + " · partida en directo";
-          $("watchMeta").innerHTML = '<div><strong>' + statusText + '</strong></div><div>' + (item.moveCount || 0) + ' jugadas · ' + (item.result && item.result.why ? item.result.why : 'en curso') + '</div>';
-          const watchGame = new Chess();
-          try { watchGame.load(item.fen || "startpos") } catch (_) { }
-          renderWatchBoard(watchGame);
+          openWatchModal(code);
         }
         renderFriends();
       }
@@ -5871,8 +6032,50 @@
         const data = liveMatches[code];
         if (!data) { showToast("Esta partida no está disponible en directo ahora mismo"); return }
         activeWatchCode = code;
-        const statusText = data.opponent ? data.name + " vs " + data.opponent : data.name + " · partida en directo";
-        $("watchMeta").innerHTML = '<div><strong>' + statusText + '</strong></div><div>' + (data.moveCount || 0) + ' jugadas · ' + (data.result && data.result.why ? data.result.why : 'en curso') + '</div>';
+        watchFlipped = false;
+
+        const blackName = normalizeName(data.blackName || (data.name && data.opponent ? ((data.name === data.whiteName) ? data.opponent : data.name) : data.name || "Negras"), "Negras");
+        const whiteName = normalizeName(data.whiteName || (data.name && data.opponent ? ((data.name === data.blackName) ? data.opponent : data.opponent || data.name) : data.opponent || "Blancas"), "Blancas");
+        const topMeta = $("watchMetaTop");
+        const bottomMeta = $("watchMetaBottom");
+        topMeta.innerHTML = "";
+        bottomMeta.innerHTML = "";
+
+        const buildPlayer = (name, side, status = "") => {
+          const row = document.createElement("div");
+          row.className = "watch-player" + (status ? "" : " empty-status");
+
+          const avatar = document.createElement("img");
+          avatar.className = "watch-player-avatar";
+          avatar.alt = name;
+          setPlayerAvatar(avatar, name, side === "white" ? "w" : "b", false, name, false);
+
+          const text = document.createElement("div");
+          text.className = "watch-player-text";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "watch-player-name";
+          nameEl.textContent = name;
+
+          const sub = document.createElement("div");
+          sub.className = "watch-player-sub";
+          sub.textContent = side === "white" ? "Blancas" : "Negras";
+
+          const state = document.createElement("div");
+          state.className = "watch-player-status";
+          state.textContent = status;
+
+          text.appendChild(nameEl);
+          text.appendChild(sub);
+          row.appendChild(avatar);
+          row.appendChild(text);
+          row.appendChild(state);
+          return row;
+        };
+
+        topMeta.appendChild(buildPlayer(blackName, "black", ""));
+        bottomMeta.appendChild(buildPlayer(whiteName, "white", ""));
+
         const watchGame = new Chess();
         try { watchGame.load(data.fen || "startpos") } catch (_) { }
         renderWatchBoard(watchGame);
@@ -5917,9 +6120,16 @@
             }
           }
         }
+        const displaySquare = squareName => {
+          const fileIndex = files.indexOf(squareName[0]);
+          const rankIndex = Number(squareName[1]) - 1;
+          const x = watchFlipped ? 7 - fileIndex : fileIndex;
+          const y = watchFlipped ? rankIndex : 7 - rankIndex;
+          return { x, y };
+        };
         for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
-          const file = x;
-          const rank = 7 - y;
+          const file = watchFlipped ? 7 - x : x;
+          const rank = watchFlipped ? y : 7 - y;
           const name = files[file] + (rank + 1);
           const sq = document.createElement("div");
           const isLight = ((file + rank) % 2 === 0);
@@ -5947,8 +6157,8 @@
                   sources.splice(sourceIndex, 1);
                   remainingSources.set(key, sources);
                 }
-                const sourceCoord = { x: files.indexOf(source[0]), y: 8 - Number(source[1]) };
-                const targetCoord = { x: files.indexOf(name[0]), y: 8 - Number(name[1]) };
+                const sourceCoord = displaySquare(source);
+                const targetCoord = displaySquare(name);
                 const dx = (sourceCoord.x - targetCoord.x) * 100;
                 const dy = (sourceCoord.y - targetCoord.y) * 100;
                 img.style.transform = "translate(" + dx + "%, " + dy + "%)";
