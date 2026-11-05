@@ -32,6 +32,7 @@
   // Red y tiempo
   let role = null, myColor = null;
   let peerJSInstance = null, peerJSConn = null;
+  let activeHandicap = "none";
   let timed = true, whiteTime = 600, blackTime = 600, increment = 0, clockTimer = null, clockLastUpdate = null;
   let opponentChatBubbleTimer = null;
 
@@ -745,6 +746,24 @@
     wrapper.hidden = started || online();
   }
 
+  function applyHandicapBoard(inviterColor, value) {
+    const preset = getHandicapPreset(value);
+    if (!inviterColor || !preset || preset.effect === "none") {
+      game.reset();
+      return;
+    }
+    try {
+      const loaded = game.load(buildHandicapFen(inviterColor, value).fen);
+      if (loaded === false) throw new Error("FEN no válido");
+    } catch (err) {
+      console.error("Handicap personalizado no válido:", err);
+      activeHandicap = "none";
+      game.reset();
+      showToast("La posición personalizada no es válida; se usa la inicial");
+    }
+    selected = null; legalTargets = []; marks.clear(); arrows = []; redoStack = []; historyPly = null; forced = null; clearDraw(); report = null; reviewing = false; endShown = false;
+    try { parseTC(); syncLocalTimeVisibility(); render(); } catch (err) { console.error("Error tras aplicar el handicap:", err); }
+  }
   function resetLocal() {
     if (drag) cancelDrag();
     game.reset(); selected = null; legalTargets = []; marks.clear(); arrows = []; redoStack = []; historyPly = null; forced = null; clearDraw(); report = null; reviewing = false; endShown = false;
@@ -1777,6 +1796,161 @@
     { id: "classic", name: "Clásica", icon: "hourglass_top", main: [], more: ["3600+0", "5400+30", "7200+30"] }
   ];
   const TC_RE = /^\d{1,5}\+\d{1,3}$/;
+  const HANDICAP_PIECES = {
+    none: { label: "Ninguno", icon: "✦", piece: null },
+    pawn: { label: "Peón", icon: "♟", piece: "p" },
+    knight: { label: "Caballo", icon: "♞", piece: "n" },
+    bishop: { label: "Alfil", icon: "♝", piece: "b" },
+    rook: { label: "Torre", icon: "♜", piece: "r" },
+    queen: { label: "Dama", icon: "♛", piece: "q" },
+    king: { label: "Rey", icon: "♚", piece: "k" }
+  };
+  const HANDICAP_TARGETS = { me: "Yo", rival: "Rival" };
+  const HANDICAP_CUSTOM_PIECES = [
+    { key: "p", label: "Peón", glyph: "♟" },
+    { key: "n", label: "Caballo", glyph: "♞" },
+    { key: "b", label: "Alfil", glyph: "♝" },
+    { key: "r", label: "Torre", glyph: "♜" },
+    { key: "q", label: "Dama", glyph: "♛" },
+    { key: "k", label: "Rey", glyph: "♚" }
+  ];
+
+  function getDefaultCustomPiecesForColor(color) {
+    const isWhite = color === "w";
+    const base = isWhite ? {
+      a1: "r", b1: "n", c1: "b", d1: "q", e1: "k", f1: "b", g1: "n", h1: "r",
+      a2: "p", b2: "p", c2: "p", d2: "p", e2: "p", f2: "p", g2: "p", h2: "p"
+    } : {
+      a8: "r", b8: "n", c8: "b", d8: "q", e8: "k", f8: "b", g8: "n", h8: "r",
+      a7: "p", b7: "p", c7: "p", d7: "p", e7: "p", f7: "p", g7: "p", h7: "p"
+    };
+    return new Map(Object.entries(base));
+  }
+
+  function normalizeHandicapValue(value) {
+    const v = String(value || "none").trim().toLowerCase();
+    if (!v || v === "none") return "none";
+    if (v.startsWith("custom:")) return v;
+    return "none";
+  }
+
+  function encodeCustomHandicap(target, piecesMap) {
+    const entries = [...piecesMap.entries()].filter(([, type]) => type).map(([square, type]) => `${square}:${type}`);
+    return `custom:${target}|${entries.join(",")}`;
+  }
+
+  function decodeCustomHandicap(value) {
+    const normalized = normalizeHandicapValue(value);
+    if (normalized === "none") return { target: "me", pieces: new Map() };
+    const rest = normalized.slice("custom:".length);
+    const [targetPart, dataPart = ""] = rest.split("|");
+    const target = targetPart === "rival" ? "rival" : "me";
+    const pieces = new Map();
+    if (dataPart) {
+      dataPart.split(",").filter(Boolean).forEach(part => {
+        const [square, type] = part.split(":");
+        if (square && type && /^[a-h][1-8]$/.test(square) && /^[prnbqk]$/.test(type)) pieces.set(square, type);
+      });
+    }
+    return { target, pieces };
+  }
+
+  function getHandicapPreset(value) {
+    const normalized = normalizeHandicapValue(value);
+    if (normalized === "none") return { value: "none", piece: "none", mode: "advantage", target: "me", label: "Ninguno" };
+    if (normalized.startsWith("custom:")) {
+      const parsed = decodeCustomHandicap(normalized);
+      return { value: normalized, piece: "custom", mode: "custom", target: parsed.target, label: `Personalizado · ${HANDICAP_TARGETS[parsed.target] || "Yo"}`, customPieces: parsed.pieces };
+    }
+    return { value: "none", piece: "none", mode: "advantage", target: "me", label: "Ninguno" };
+  }
+
+  function oppositeColor(color) { return color === "w" ? "b" : "w"; }
+  // Construye el FEN de la posición con handicap sin depender de put()/remove() de chess.js
+  function buildHandicapFen(inviterColor, value) {
+    const preset = getHandicapPreset(value);
+    const grid = {};
+    ["w", "b"].forEach(c => getDefaultCustomPiecesForColor(c).forEach((type, sq) => { grid[sq] = { type, color: c }; }));
+    if (preset.piece === "custom") {
+      const targetColor = preset.target === "me" ? inviterColor : oppositeColor(inviterColor);
+      const defaults = getDefaultCustomPiecesForColor(targetColor);
+      // Las casillas se guardan con quien reta abajo; si reta con negras se espeja la fila
+      const real = sq => inviterColor === "b" ? sq[0] + (9 - Number(sq[1])) : sq;
+      preset.customPieces.forEach((type, sq0) => {
+        const sq = real(sq0);
+        if (defaults.has(sq)) delete grid[sq];
+        else grid[sq] = { type, color: targetColor };
+      });
+    }
+    const rows = [];
+    for (let rank = 8; rank >= 1; rank--) {
+      let row = "", empty = 0;
+      for (const file of "abcdefgh") {
+        const pc = grid[file + rank];
+        if (!pc) { empty++; continue; }
+        if (empty) { row += empty; empty = 0; }
+        row += pc.color === "w" ? pc.type.toUpperCase() : pc.type;
+      }
+      if (empty) row += empty;
+      rows.push(row);
+    }
+    const has = (sq, type, color) => grid[sq] && grid[sq].type === type && grid[sq].color === color;
+    let castling = "";
+    if (has("e1", "k", "w") && has("h1", "r", "w")) castling += "K";
+    if (has("e1", "k", "w") && has("a1", "r", "w")) castling += "Q";
+    if (has("e8", "k", "b") && has("h8", "r", "b")) castling += "k";
+    if (has("e8", "k", "b") && has("a8", "r", "b")) castling += "q";
+    return { fen: rows.join("/") + " w " + (castling || "-") + " - 0 1", grid };
+  }
+
+  // Comprueba que la posición personalizada sea válida antes de enviar el reto (devuelve el motivo si no lo es)
+  function validateHandicapPosition(inviterColor, value) {
+    const colors = inviterColor === "w" || inviterColor === "b" ? [inviterColor] : ["w", "b"];
+    for (const c of colors) {
+      try {
+        const { fen, grid } = buildHandicapFen(c, value);
+        const all = Object.entries(grid);
+        const kingsW = all.filter(([, p]) => p.type === "k" && p.color === "w").length;
+        const kingsB = all.filter(([, p]) => p.type === "k" && p.color === "b").length;
+        if (kingsW !== 1 || kingsB !== 1) return { ok: false, error: "Cada bando debe tener exactamente un rey" };
+        if (all.some(([sq, p]) => p.type === "p" && (sq[1] === "1" || sq[1] === "8"))) return { ok: false, error: "No puede haber peones en la primera ni en la última fila" };
+        const test = new Chess();
+        let loaded;
+        try { loaded = test.load(fen); } catch (e) { return { ok: false, error: "Posición no válida: " + (e && e.message || e) }; }
+        if (loaded === false) return { ok: false, error: "Posición no válida (FEN rechazado)" };
+      } catch (err) {
+        console.error(err);
+        return { ok: false, error: "Error al comprobar la posición: " + (err && err.message || err) };
+      }
+    }
+    return { ok: true };
+  }
+  function getHandicapLabel(value) {
+    const preset = getHandicapPreset(value);
+    if (preset.value === "none") return "Ninguno";
+    if (preset.piece === "custom") return `Personalizado · ${HANDICAP_TARGETS[preset.target]}`;
+    return "Ninguno";
+  }
+
+  function applyHandicapBuilder(inviterColor, value) {
+    const preset = getHandicapPreset(value);
+    if (!inviterColor || preset.value === "none") return new Chess();
+    const board = new Chess();
+    if (preset.piece === "custom") {
+      const targetColor = preset.target === "me" ? inviterColor : oppositeColor(inviterColor);
+      const defaultPieces = getDefaultCustomPiecesForColor(targetColor);
+      defaultPieces.forEach((type, square) => {
+        board.put({ type, color: targetColor }, square);
+      });
+      preset.customPieces.forEach((type, square) => {
+        if (defaultPieces.has(square)) board.remove(square);
+        else board.put({ type, color: targetColor }, square);
+      });
+      return board;
+    }
+    return board;
+  }
+
   const tcParse = v => { const p = String(v).split("+"); return { b: parseInt(p[0], 10) || 0, i: parseInt(p[1], 10) || 0 } };
   function tcCat(v) {
     const { b, i } = tcParse(v); if (b <= 0) return null;
@@ -1795,6 +1969,176 @@
   const TC_SELECTS = ["localTcSelect", "tcSelect", "inviteTcSelect"];
   const SEL_VALUE = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
   const tcPickers = [];
+  function makeHandicapPicker(select) {
+    if (!select) return null;
+    const root = document.createElement("div");
+    root.className = "hcp";
+    root.innerHTML = '<button type="button" class="hcp-trigger" aria-expanded="false"><span class="hcp-summary">Ninguno</span><span class="material-symbols-rounded hcp-chev">expand_more</span></button><div class="hcp-panel" hidden></div>';
+    select.style.display = "none";
+    select.after(root);
+    const trigger = root.querySelector(".hcp-trigger");
+    const panel = root.querySelector(".hcp-panel");
+    let isOpen = false;
+    let customTarget = "me";
+    let customPieces = new Map();
+    let selectedPiece = "p";
+
+    function ensureCustomOption() {
+      let option = [...select.options].find(o => o.dataset.hcpCustom === "1");
+      if (!option) {
+        option = document.createElement("option");
+        option.dataset.hcpCustom = "1";
+        select.appendChild(option);
+      }
+      option.value = encodeCustomHandicap(customTarget, customPieces);
+      option.textContent = "Personalizado";
+      return option;
+    }
+
+    function getChallengeOwnerColor() {
+      const val = $("inviteColorSelect") ? $("inviteColorSelect").value : (myColor || "w");
+      return val === "r" ? (myColor || "w") : val;
+    }
+
+    function resetCustomBoardForTarget(target) {
+      customTarget = target;
+      customPieces = new Map();
+      persistState();
+      renderBoard();
+    }
+
+    function syncFromSelect() {
+      const parsed = decodeCustomHandicap(select.value || "none");
+      customTarget = parsed.target || "me";
+      customPieces = parsed.pieces ? new Map(parsed.pieces) : new Map();
+      return parsed;
+    }
+
+    function persistState() {
+      if (!customPieces.size) {
+        select.value = "none";
+        trigger.querySelector(".hcp-summary").textContent = "Ninguno";
+        return;
+      }
+      ensureCustomOption();
+      select.value = encodeCustomHandicap(customTarget, customPieces);
+      const preset = getHandicapPreset(select.value);
+      trigger.querySelector(".hcp-summary").textContent = preset.label || "Ninguno";
+    }
+
+    function renderBoard() {
+      const boardEl = panel.querySelector(".hcp-board");
+      if (!boardEl) return;
+      const fileLabels = ["a", "b", "c", "d", "e", "f", "g", "h"];
+      // Perspectiva fija: mi mitad abajo (filas 1-4) y la del rival arriba (filas 8-5), sea cual sea el color real
+      const defaultPieces = getDefaultCustomPiecesForColor(customTarget === "me" ? "w" : "b");
+      const ranks = customTarget === "me" ? [1, 2, 3, 4] : [8, 7, 6, 5];
+      boardEl.innerHTML = "";
+      for (const rank of ranks) {
+        for (let fileIndex = 0; fileIndex < 8; fileIndex++) {
+          const square = fileLabels[fileIndex] + rank;
+          const isLight = (fileIndex + rank) % 2 === 1;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          const hasDefaultPiece = defaultPieces.has(square);
+          const customType = customPieces.get(square);
+          const isInactive = hasDefaultPiece && customType === defaultPieces.get(square);
+          const isAdded = !hasDefaultPiece && customType;
+          const pieceType = customType || (hasDefaultPiece ? defaultPieces.get(square) : null);
+          const piece = pieceType ? HANDICAP_CUSTOM_PIECES.find(p => p.key === pieceType) : null;
+          btn.className = "hcp-square" + (isLight ? " light" : " dark") + (isInactive ? " inactive" : "") + (isAdded ? " custom" : "");
+          btn.textContent = piece ? piece.glyph : "";
+          btn.title = square;
+          btn.setAttribute("aria-label", "Cuadrado " + square);
+          btn.onclick = () => {
+            if (selectedPiece && !hasDefaultPiece) {
+              customPieces.set(square, selectedPiece);
+              persistState();
+              renderBoard();
+              return;
+            }
+            if (customType) {
+              customPieces.delete(square);
+              persistState();
+              renderBoard();
+              return;
+            }
+            if (hasDefaultPiece) {
+              customPieces.set(square, defaultPieces.get(square));
+              persistState();
+              renderBoard();
+            }
+          };
+          boardEl.appendChild(btn);
+        }
+      }
+    }
+
+    function close() {
+      isOpen = false;
+      panel.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      root.classList.remove("open");
+    }
+
+    function open() {
+      isOpen = true;
+      panel.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      root.classList.add("open");
+    }
+
+    trigger.onclick = () => isOpen ? close() : open();
+    panel.innerHTML = '<div class="hcp-target-row"><button type="button" class="hcp-target-btn active" data-target="me">Yo</button><button type="button" class="hcp-target-btn" data-target="rival">Rival</button></div><div class="hcp-piece-row">' + HANDICAP_CUSTOM_PIECES.map(p => '<button type="button" class="hcp-piece-btn' + (p.key === selectedPiece ? ' active' : '') + '" data-piece="' + p.key + '">' + p.glyph + '</button>').join("") + '</div><div class="hcp-board" aria-label="Tablero del handicap"></div><button type="button" class="hcp-clear">Vaciar</button>';
+
+    const targetButtons = panel.querySelectorAll(".hcp-target-btn");
+    targetButtons.forEach(btn => {
+      btn.onclick = () => {
+        const nextTarget = btn.dataset.target || "me";
+        targetButtons.forEach(b => b.classList.toggle("active", b === btn));
+        resetCustomBoardForTarget(nextTarget);
+      };
+    });
+
+    const pieceButtons = panel.querySelectorAll(".hcp-piece-btn");
+    pieceButtons.forEach(btn => {
+      btn.onclick = () => {
+        selectedPiece = btn.dataset.piece || "p";
+        pieceButtons.forEach(b => b.classList.toggle("active", b === btn));
+      };
+    });
+
+    panel.querySelector(".hcp-clear").onclick = () => {
+      customPieces = new Map();
+      select.value = "none";
+      trigger.querySelector(".hcp-summary").textContent = "Ninguno";
+      renderBoard();
+    };
+
+    select.addEventListener("change", () => {
+      syncFromSelect();
+      const preset = getHandicapPreset(select.value);
+      trigger.querySelector(".hcp-summary").textContent = preset.label || "Ninguno";
+      const activeTarget = panel.querySelector('[data-target="' + customTarget + '"]');
+      if (activeTarget) targetButtons.forEach(b => b.classList.toggle("active", b === activeTarget));
+      renderBoard();
+    });
+
+    syncFromSelect();
+    ensureCustomOption();
+    renderBoard();
+    trigger.querySelector(".hcp-summary").textContent = getHandicapPreset(select.value).label || "Ninguno";
+    if (customPieces.size === 0) resetCustomBoardForTarget(customTarget);
+    document.addEventListener("mousedown", e => {
+      if (root.contains(e.target)) return;
+      // Si se pulsa Enviar/Cancelar no se cierra aún: al colapsar el panel el botón se movería y el click se perdería
+      if (e.target.closest && e.target.closest("#sendChallengeBtn, #cancelChallengeBtn")) return;
+      close();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    return { root, close };
+  }
+
   function ensureTcOption(v) {
     TC_SELECTS.forEach(id => {
       const sel = $(id);
@@ -1890,6 +2234,17 @@
     TC_SELECTS.forEach(id => makeTcPicker($(id)));
     document.addEventListener("mousedown", e => { tcPickers.forEach(p => { if (!p.root.contains(e.target)) p.close() }) });
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeTcPickers() });
+  })();
+  (function initHandicapPicker() {
+    const select = $("inviteHandicapSelect");
+    if (!select) return;
+    select.innerHTML = "";
+    const optionNone = document.createElement("option");
+    optionNone.value = "none";
+    optionNone.textContent = "Ninguno";
+    select.appendChild(optionNone);
+    select.value = "none";
+    makeHandicapPicker(select);
   })();
 
   function parseTC(value) {
@@ -1987,6 +2342,10 @@
         myColor = d.host === "w" ? "b" : "w";
         flipped = myColor === "b";
         if (TC_RE.test(String(d.tc))) parseTC(String(d.tc));
+        if (d.handicap !== undefined) {
+          activeHandicap = String(d.handicap);
+          applyHandicapBoard(d.host, activeHandicap);
+        }
       }
       render();
     } else if (d.type === "resign") {
@@ -2040,16 +2399,20 @@
     const isHost = !targetCode;
     const warm = takeWarmPeer();
     const roomCode = isHost ? (warm ? warm.code : genRoomCode()) : targetCode.toUpperCase();
+    activeHandicap = "none";
     // Con ID propio se evita la petición HTTP previa que PeerJS hace para obtener uno
     peerJSInstance = warm ? warm.peer : new Peer(isHost ? "AJEDREZ-" + roomCode : "AJEDREZ-G" + genRoomCode() + genRoomCode(), { config: RTC_CONFIG });
 
     const onPeerOpen = () => {
       if (isHost) {
         role = "host"; const cs = $("colorSelect").value; myColor = cs === "r" ? (Math.random() < .5 ? "w" : "b") : cs; flipped = myColor === "b";
+        if (window.__challengeHandicapValue) { activeHandicap = String(window.__challengeHandicapValue); window.__challengeHandicapValue = null; }
+        try { if (activeHandicap !== "none") applyHandicapBoard(myColor, activeHandicap); }
+        catch (err) { console.error("Error al aplicar el handicap:", err); activeHandicap = "none"; try { game.reset(); } catch (_) { } }
         $("roomInput").value = roomCode;
         $("connText").innerHTML = 'Sala [<span class="selectable">' + String(roomCode).replace(/[^A-Z0-9]/g, "") + '</span>] lista';
-        showToast("Sala creada: " + roomCode + " · juegas con " + (myColor === "w" ? "blancas" : "negras"));
-        render();
+        showToast("Sala creada: " + roomCode + " · juegas con " + (myColor === "w" ? "blancas" : "negras") + (activeHandicap !== "none" ? " · handicap: " + getHandicapLabel(activeHandicap) : ""));
+        try { render(); } catch (err) { console.error("Error al dibujar el tablero:", err); }
         if (onReady) onReady(roomCode);
       } else {
         role = "guest"; myColor = "b"; flipped = true;
@@ -2087,8 +2450,8 @@
       $("chatInput").disabled = false;
       $("chatSend").disabled = false;
       showToast("¡Partida iniciada!");
-      if (role === "host") sendPayload({ type: "sync", tc: $("tcSelect").value, host: myColor, name: myName });
-      else sendPayload({ type: "sync", name: myName });
+      if (role === "host") sendPayload({ type: "sync", tc: $("tcSelect").value, host: myColor, name: myName, handicap: activeHandicap });
+      else sendPayload({ type: "sync", name: myName, handicap: activeHandicap });
       pingAll();
     });
     conn.on("data", data => { if (conn === peerJSConn) handleNetworkData(data) });
@@ -2521,25 +2884,52 @@
     });
   }
   let challengeTarget = null;
+  function closeChallengePickers() {
+    document.querySelectorAll("#challengeModal .hcp").forEach(r => r.classList.remove("open"));
+    document.querySelectorAll("#challengeModal .hcp-panel").forEach(pn => { pn.hidden = true; });
+    document.querySelectorAll("#challengeModal .hcp-trigger").forEach(t => t.setAttribute("aria-expanded", "false"));
+  }
   function challenge(f) {
     if (!confirmLeave()) return;
     if (!friendPeer || !friendPeer.open) { showToast("Tu conexión de amigos aún no está lista"); return }
     closeTcPickers();
+    closeChallengePickers();
     challengeTarget = f;
-    $("challengeFriendName").textContent = "Invitación para " + (f.name || f.code) + ". Elige el ritmo y el color con el que quieres jugar.";
+    $("challengeFriendName").textContent = "Invitación para " + (f.name || f.code) + ". Elige el ritmo, el color y el handicap con el que quieres jugar.";
     $("inviteTcSelect").value = $("tcSelect").value;
     $("inviteColorSelect").value = $("colorSelect").value;
+    $("inviteHandicapSelect").value = "none";
     $("challengeModal").style.display = "flex";
   }
   function sendChallenge() {
     const f = challengeTarget;
     if (!f) return;
+    if (!friendPeer || !friendPeer.open) {
+      showToast("Tu conexión de amigos aún no está lista");
+      return;
+    }
+
+    const inviteSelect = $("inviteHandicapSelect");
+    const handicapValue = String((inviteSelect && inviteSelect.value) || "none");
+    const normalizedHandicap = normalizeHandicapValue(handicapValue);
+    const inviteTc = $("inviteTcSelect").value;
+    const inviteColor = $("inviteColorSelect").value;
+
+    if (normalizedHandicap !== "none") {
+      const check = validateHandicapPosition(inviteColor, normalizedHandicap);
+      if (!check.ok) { showToast(check.error); return; }   // el modal sigue abierto para corregirlo
+    }
+
+    closeChallengePickers();
     $("challengeModal").style.display = "none";
     setBoardLoading(true);
-    const timeControl = $("inviteTcSelect").value;
-    $("colorSelect").value = $("inviteColorSelect").value;
-    parseTC(timeControl);
-    initPeerJS(null, code => {
+    $("tcSelect").value = inviteTc;
+    $("colorSelect").value = inviteColor;
+    activeHandicap = normalizedHandicap;
+    window.__challengeHandicapValue = normalizedHandicap;
+    parseTC(inviteTc);
+
+    try { initPeerJS(null, roomCode => {
       const c = friendPeer.connect(FID(f.code), { reliable: true });
       const timeout = setTimeout(() => {
         if (!c.open) {
@@ -2547,11 +2937,18 @@
           showToast("No se pudo contactar con " + (f.name || f.code));
         }
       }, 8000);
-      c.on("open", () => {
-        clearTimeout(timeout);
-        c.send({ type: "invite", room: code, name: myName, tc: $("tcSelect").value, color: myColor });
-        showToast("Invitación enviada a " + (f.name || f.code));
-      });
+
+      const sendInvite = () => {
+        try {
+          c.send({ type: "invite", room: roomCode, name: myName, tc: inviteTc, color: inviteColor, handicap: activeHandicap });
+          // Se queda cargando hasta que el rival acepte (setupConn lo quita al conectarse), rechace o pasen 60 s
+          showToast("Invitación enviada a " + (f.name || f.code) + ". Esperando a que acepte…");
+        } catch (_) {
+          setBoardLoading(false);
+          showToast("No se pudo enviar la invitación. Comprueba que esté en línea.");
+        }
+      };
+
       c.on("data", d => {
         if (d && d.type === "declined") {
           setBoardLoading(false);
@@ -2563,19 +2960,38 @@
         setBoardLoading(false);
         showToast("No se pudo enviar la invitación. Comprueba que esté en línea.");
       });
-    });
+      c.on("close", () => {
+        // El amigo cerró la página antes de aceptar
+        if (!peerJSConn || !peerJSConn.open) setBoardLoading(false);
+      });
+
+      if (c.open) {
+        clearTimeout(timeout);
+        sendInvite();
+        return;
+      }
+      c.on("open", () => {
+        clearTimeout(timeout);
+        sendInvite();
+      });
+    }); } catch (err) {
+      console.error("Error al enviar el reto:", err);
+      setBoardLoading(false);
+      showToast("No se pudo enviar el reto");
+    }
     challengeTarget = null;
   }
   $("sendChallengeBtn").onclick = sendChallenge;
-  $("cancelChallengeBtn").onclick = () => { $("challengeModal").style.display = "none"; challengeTarget = null };
+  $("cancelChallengeBtn").onclick = () => { closeChallengePickers(); $("challengeModal").style.display = "none"; challengeTarget = null };
   $("challengeModal").addEventListener("click", e => { if (e.target === $("challengeModal")) { $("challengeModal").style.display = "none"; challengeTarget = null; } });
   function showInvite(d, c) {
-    pendingInvite = { room: d.room, c };
+    pendingInvite = { room: d.room, c, handicap: d.handicap };
     pendingRematch = null;
     const n = normalizeName(d.name || "Un amigo");
     const tcLabel = /^\d{1,5}\+\d{1,3}$/.test(String(d.tc)) ? tcName(d.tc) : "Control de tiempo estándar";
     const myInvitedColor = d.color === "w" ? "negras" : d.color === "b" ? "blancas" : "color aleatorio";
-    $("inviteText").textContent = n + " te invita · " + tcLabel + " · " + getEloText(n) + " · tú juegas con " + myInvitedColor;
+    const handicapText = getHandicapLabel(d.handicap);
+    $("inviteText").textContent = n + " te invita · " + tcLabel + " · " + getEloText(n) + (handicapText !== "Ninguno" ? " · handicap: " + handicapText : "") + " · tú juegas con " + myInvitedColor;
     $("inviteBar").hidden = false;
   }
   function showRematchOffer(d, c) {
