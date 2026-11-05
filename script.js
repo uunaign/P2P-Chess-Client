@@ -560,8 +560,10 @@
   function timedOut() { return timed && (whiteTime <= 0 || blackTime <= 0) }
   function renderStatus() {
     let text = game.turn() === "w" ? "Mueven blancas" : "Mueven negras";
-    if (timedOut()) text = (whiteTime <= 0 ? "Negras" : "Blancas") + " ganan por tiempo";
-    else if (game.isCheckmate()) text = "Jaque mate · ganan " + (game.turn() === "w" ? "negras" : "blancas");
+    if (timedOut()) {
+      if (game.isInsufficientMaterial()) text = "Tablas por insuficiencia de material";
+      else text = (whiteTime <= 0 ? "Negras" : "Blancas") + " ganan por tiempo";
+    } else if (game.isCheckmate()) text = "Jaque mate · ganan " + (game.turn() === "w" ? "negras" : "blancas");
     else if (game.isStalemate()) text = "Tablas por ahogado";
     else if (game.isThreefoldRepetition()) text = "Tablas por repetición";
     else if (game.isInsufficientMaterial()) text = "Tablas por material insuficiente";
@@ -1493,7 +1495,10 @@
   let endShown = false;
   function getResult() {
     if (forced) return forced;
-    if (timedOut()) return { w: whiteTime <= 0 ? "b" : "w", why: "por tiempo" };
+    if (timedOut()) {
+      if (game.isInsufficientMaterial()) return { w: null, why: "por insuficiencia de material" };
+      return { w: whiteTime <= 0 ? "b" : "w", why: "por tiempo" };
+    }
     if (game.isCheckmate()) return { w: game.turn() === "w" ? "b" : "w", why: "por jaque mate" };
     if (game.isStalemate()) return { w: null, why: "por ahogado" };
     if (game.isThreefoldRepetition()) return { w: null, why: "por repetición" };
