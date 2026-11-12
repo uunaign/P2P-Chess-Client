@@ -38,12 +38,13 @@
 
   // Red y tiempo
   let role = null, myColor = null;
-  let peerJSInstance = null, peerJSConn = null;
+  let peerJSInstance = null, peerJSConn = null, peerConnectionTimer = null;
   let activeHandicap = "none";
   let timed = true, whiteTime = 600, blackTime = 600, increment = 0, clockTimer = null, clockLastUpdate = null;
   let opponentChatBubbleTimer = null;
 
   const store = { get: k => { try { return localStorage.getItem(k) } catch (_) { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch (_) { } } };
+  let premovesEnabled = store.get("ajedrez.premoves") === "true";
   const MATCH_HISTORY_KEY = "aj_match_history";
   const LIVE_GAMES_KEY = "aj_live_games";
   let matchHistory = [];
@@ -366,6 +367,7 @@
     return [...targets];
   }
   function queuePremove(from, to) {
+    if (!premovesEnabled) return;
     const piece = game.get(from);
     if (!piece || !myColor || piece.color !== myColor || from === to) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
     if (!getPremoveTargets(from).includes(to)) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
@@ -380,7 +382,7 @@
     pendingPremove = null; selected = null; legalTargets = []; premoveMode = false; render(); return true;
   }
   function executePremove() {
-    if (!pendingPremove) return;
+    if (!premovesEnabled || !pendingPremove) return;
     const pm = pendingPremove;
     const piece = game.get(pm.from);
     if (!piece || (myColor && piece.color !== myColor)) { pendingPremove = null; render(); return; }
@@ -398,6 +400,7 @@
     if (!persistentMarks && (marks.size || arrows.length)) { marks.clear(); arrows = []; drawAnnotations() }
     const p = game.get(name), waitingForTurn = !!(myColor && game.turn() !== myColor);
     if (waitingForTurn) {
+      if (!premovesEnabled) { selected = null; legalTargets = []; premoveMode = false; render(); return; }
       if (p && p.color === myColor) {
         if (premoveMode && selected && legalTargets.includes(name)) { queuePremove(selected, name); return; }
         selected = name; premoveMode = true; legalTargets = getPremoveTargets(name); render();
@@ -452,6 +455,7 @@
     const d = drag, to = squareAt(e);
     cancelDrag();
     if (d.active && to && to !== d.from && legalTargets.includes(to)) {
+      if (!premovesEnabled && myColor && game.turn() !== myColor) return;
       if (d.premove || premoveMode || (myColor && game.turn() !== myColor)) queuePremove(d.from, to);
       else tryMove(d.from, to, undefined, true);
     }
@@ -665,6 +669,12 @@
     saveMarkSettings(); drawAnnotations();
   };
   $("persistentMarksInput").onchange = () => { persistentMarks = $("persistentMarksInput").checked; saveMarkSettings() };
+  $("premovesInput").checked = premovesEnabled;
+  $("premovesInput").onchange = () => {
+    premovesEnabled = $("premovesInput").checked;
+    store.set("ajedrez.premoves", String(premovesEnabled));
+    if (!premovesEnabled) { pendingPremove = null; premoveMode = false; selected = null; legalTargets = []; render() }
+  };
   function toggleMark(name) {
     marks.has(name) ? marks.delete(name) : marks.set(name, markColor);
     drawAnnotations();
@@ -1100,7 +1110,7 @@
     const X = k => n > 1 ? k * W / (n - 1) : 0, Y = e => H * (1 - winPct(e * 100) / 100);
     let d = "M0," + H + " "; evals.forEach((e, k) => { d += "L" + X(k).toFixed(1) + "," + Y(e).toFixed(1) + " " }); d += "L" + W + "," + H + " Z";
     svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("preserveAspectRatio", "none");
-    svg.innerHTML = '<rect width="' + W + '" height="' + H + '" fill="#3b3a37"/><path d="' + d + '" fill="#f2f0ea"/><line x1="0" x2="' + W + '" y1="' + H / 2 + '" y2="' + H / 2 + '" stroke="#8a867e" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/><line class="gc" x1="-9" x2="-9" y1="0" y2="' + H + '" stroke="#81b64c" stroke-width="3"/>';
+    svg.innerHTML = '<rect width="' + W + '" height="' + H + '" fill="var(--line)"/><path d="' + d + '" fill="var(--bright)" opacity=".18"/><line x1="0" x2="' + W + '" y1="' + H / 2 + '" y2="' + H / 2 + '" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 4" opacity=".8"/><line class="gc" x1="-9" x2="-9" y1="0" y2="' + H + '" stroke="var(--accent)" stroke-width="3"/>';
   }
   const graphPly = (svg, e, n) => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left) / (r.width || 1) * (n - 1)))) };
 
@@ -1424,7 +1434,7 @@
   $("historyModal").addEventListener("click", e => { if (e.target === $("historyModal")) closeHistory() });
   $("watchModal").addEventListener("click", e => { if (e.target === $("watchModal")) closeWatch() });
   document.querySelectorAll(".st-tab").forEach(b => b.onclick = () => showSettingsTab(b.dataset.st));
-  $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; markColor = "#e34f4f"; persistentMarks = false; $("markColorInput").value = markColor; $("persistentMarksInput").checked = false; saveMarkSettings(); store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview(); drawAnnotations() };
+  $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; markColor = "#e34f4f"; persistentMarks = false; premovesEnabled = false; $("markColorInput").value = markColor; $("persistentMarksInput").checked = false; $("premovesInput").checked = false; store.set("ajedrez.premoves", "false"); saveMarkSettings(); store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview(); drawAnnotations() };
   // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
   document.addEventListener("keydown", e => {
     if ($("settingsModal").style.display !== "flex") return;
@@ -2315,8 +2325,14 @@
 
   function sendPayload(data) {
     if (peerJSConn && peerJSConn.open) {
-      peerJSConn.send(data);
+      try { peerJSConn.send(data); return true }
+      catch (err) {
+        console.warn("No se pudo enviar el mensaje al rival:", err);
+        $("connText").textContent = "Conexión inestable";
+        $("connDot").className = "status-dot warn";
+      }
     }
+    return false;
   }
 
   function handleNetworkData(d) {
@@ -2430,10 +2446,11 @@
 
   let bootJoining = false;
   function initPeerJS(targetCode = null, onReady = null) {
+    clearTimeout(peerConnectionTimer); peerConnectionTimer = null;
     botEnabled = false; botThinking = false;
     if (peerJSConn) { const o = peerJSConn; peerJSConn = null; try { o.close() } catch (_) { } }
     pingAll();
-    if (peerJSInstance) peerJSInstance.destroy();
+    if (peerJSInstance) { try { peerJSInstance.destroy() } catch (_) { } peerJSInstance = null }
     role = null; myColor = null; flipped = false;
     hideOpponentChatBubble();
     syncGameSubtabs();
@@ -2447,9 +2464,19 @@
     const roomCode = isHost ? (warm ? warm.code : genRoomCode()) : targetCode.toUpperCase();
     activeHandicap = "none";
     // Con ID propio se evita la petición HTTP previa que PeerJS hace para obtener uno
-    peerJSInstance = warm ? warm.peer : new Peer(isHost ? "AJEDREZ-" + roomCode : "AJEDREZ-G" + genRoomCode() + genRoomCode(), { config: RTC_CONFIG });
+    try { peerJSInstance = warm ? warm.peer : new Peer(isHost ? "AJEDREZ-" + roomCode : "AJEDREZ-G" + genRoomCode() + genRoomCode(), { config: RTC_CONFIG }) }
+    catch (err) { showToast("No se pudo iniciar la conexión. Comprueba tu red e inténtalo de nuevo."); $("connText").textContent = "Sin conectar · partida local"; $("connDot").className = "status-dot warn"; return }
 
+    let peerReadyHandled = false;
     const onPeerOpen = () => {
+      if (peerReadyHandled) {
+        if (peerJSInstance) {
+          $("connText").textContent = peerJSConn && peerJSConn.open ? "¡Rival conectado!" : "Señalización recuperada";
+          $("connDot").className = peerJSConn && peerJSConn.open ? "status-dot" : "status-dot warn";
+        }
+        return;
+      }
+      peerReadyHandled = true;
       if (isHost) {
         role = "host"; const cs = hostOpts.color || $("colorSelect").value; hostOpts.color = null; myColor = cs === "r" ? (Math.random() < .5 ? "w" : "b") : cs; flipped = myColor === "b";
         if (window.__challengeHandicapValue) { activeHandicap = String(window.__challengeHandicapValue); window.__challengeHandicapValue = null; }
@@ -2464,12 +2491,33 @@
         role = "guest"; myColor = "b"; flipped = true;
         const conn = peerJSInstance.connect("AJEDREZ-" + roomCode, { reliable: true });
         setupConn(conn);
+        peerConnectionTimer = setTimeout(() => {
+          if (conn === peerJSConn && !conn.open) {
+            setBoardLoading(false);
+            bootJoining = false;
+            peerJSConn = null;
+            const failedPeer = peerJSInstance;
+            peerJSInstance = null; role = null; myColor = null; flipped = false;
+            try { conn.close() } catch (_) { }
+            try { if (failedPeer) failedPeer.destroy() } catch (_) { }
+            $("connText").textContent = "El anfitrión no responde"; $("connDot").className = "status-dot warn";
+            $("chatInput").disabled = true; $("chatSend").disabled = true;
+            render();
+            showToast("No se pudo establecer la conexión. Comprueba el código y que el anfitrión siga conectado.");
+          }
+        }, 20000);
         render();
       }
     };
     if (peerJSInstance.open) onPeerOpen(); else peerJSInstance.on("open", onPeerOpen);
 
     peerJSInstance.on("connection", conn => setupConn(conn));
+    peerJSInstance.on("disconnected", () => {
+      if (peerJSInstance && !peerJSInstance.destroyed) {
+        $("connText").textContent = "Recuperando señalización…"; $("connDot").className = "status-dot warn";
+        try { peerJSInstance.reconnect() } catch (_) { }
+      }
+    });
     peerJSInstance.on("error", err => {
       setBoardLoading(false);
       if (bootJoining && !online()) { bootJoining = false; setTimeout(() => { location.href = "online.html" }, 2600); }
@@ -2486,6 +2534,7 @@
     peerJSConn = conn;
     conn.on("open", () => {
       if (conn !== peerJSConn) return;
+      clearTimeout(peerConnectionTimer); peerConnectionTimer = null;
       setBoardLoading(false);
       // Al aceptar una invitación y establecerse la conexión, mostrar directamente la partida.
       showTab("moves");
@@ -2505,6 +2554,7 @@
     conn.on("error", () => { if (conn === peerJSConn) { $("connText").textContent = "Error en la conexión"; $("connDot").className = "status-dot warn" } });
     conn.on("close", () => {
       if (conn !== peerJSConn) return;
+      clearTimeout(peerConnectionTimer); peerConnectionTimer = null;
       myColor = null; role = null; clearDraw(); render();
       $("connText").textContent = "Rival desconectado";
       $("connDot").className = "status-dot warn";
@@ -2810,8 +2860,17 @@
     setPlayerRating(bName, nextB, gamesB + 1);
   }
 
+  let friendRenderSignature = null;
   function renderFriends() {
-    const el = $("friendList"); el.innerHTML = "";
+    const el = $("friendList");
+    const signature = JSON.stringify(friends.map(f => {
+      const live = liveMatches[f.code];
+      return [f.code, f.name, f.ack, getEloText(f.name || f.code), presence[f.code] === true,
+        playing[f.code] === true, !!live && live.playing !== false];
+    }));
+    if (signature === friendRenderSignature) return;
+    friendRenderSignature = signature;
+    el.innerHTML = "";
     if (!friends.length) { el.innerHTML = '<div class="empty">Busca a un amigo por nombre o añádelo con su código para ver si está conectado y retarle.</div>'; return }
     const activeFriends = friends.filter(f => presence[f.code] === true);
     const inactiveFriends = friends.filter(f => presence[f.code] !== true);

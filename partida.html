@@ -199,9 +199,17 @@
           <div class="st-grid" id="stBoards" hidden></div>
           <div class="st-grid" id="stTheme" hidden></div>
           <div id="stGeneral" class="settings-general" hidden>
-            <div class="field"><label for="markColorInput">Color de marcación</label><input id="markColorInput" type="color" value="#e34f4f"></div>
-            <label class="settings-check"><input id="persistentMarksInput" type="checkbox"> Mantener las marcas al mover piezas</label>
-            <div class="field"><label>Progreso Elo</label><div class="row"><button class="secondary" id="exportEloBtn"><span class="material-symbols-rounded">download</span>Exportar Elo</button><button class="secondary" id="importEloBtn"><span class="material-symbols-rounded">upload</span>Importar Elo</button><input id="importEloFile" type="file" accept=".txt,text/plain" hidden></div></div>
+            <section class="settings-group">
+              <h4>Tablero</h4>
+              <label class="settings-option" for="markColorInput"><span><strong>Color de marcación</strong><small>Color de las casillas y flechas que marques.</small></span><input id="markColorInput" type="color" value="#e34f4f"></label>
+              <label class="settings-option" for="persistentMarksInput"><span><strong>Mantener las marcas</strong><small>Conserva las anotaciones al mover piezas.</small></span><input id="persistentMarksInput" type="checkbox"></label>
+              <label class="settings-option" for="premovesInput"><span><strong>Premoves</strong><small>Encola una jugada mientras esperas el turno rival.</small></span><input id="premovesInput" type="checkbox"></label>
+            </section>
+            <section class="settings-group">
+              <h4>Progreso Elo</h4>
+              <p class="settings-help">Guarda una copia de tu progreso o impórtala en otro dispositivo.</p>
+              <div class="settings-actions"><button class="secondary" id="exportEloBtn"><span class="material-symbols-rounded">download</span>Exportar Elo</button><button class="secondary" id="importEloBtn"><span class="material-symbols-rounded">upload</span>Importar Elo</button><input id="importEloFile" type="file" accept=".txt,text/plain" hidden></div>
+            </section>
           </div>
         </div>
       </div>
