@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Ajedrez · Contra un bot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.dicebear.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="menu.css">
+  <script src="common.js"></script>
+</head>
+
+<body class="menu" data-page="bot">
+  <header class="mh">
+    <a class="logo" href="index.html" aria-label="Ajedrez, inicio"><span class="logo-tile" aria-hidden="true">♞</span>Ajedrez</a>
+    <a class="btn ghost back" href="index.html"><span class="material-symbols-rounded">arrow_back</span> Inicio</a>
+  </header>
+
+  <main class="mwrap">
+    <div class="ptitle" style="--tc:var(--grape);--td:var(--grape-dk);--tt:#fff">
+      <span class="tile"><span class="material-symbols-rounded">smart_toy</span></span>
+      <div>
+        <h1>Contra un bot</h1>
+        <p>Elige rival y color. Juegas contra Stockfish en tu propio dispositivo.</p>
+      </div>
+    </div>
+
+    <div class="bot-layout">
+      <div id="groups"></div>
+
+      <aside class="panel side" aria-live="polite">
+        <img class="portrait" id="portrait" alt="">
+        <div class="nm" id="nm">Iker</div>
+        <span class="lvl" id="lvl">Elo 1200</span>
+        <p class="quote" id="quote"></p>
+        <div class="lbl" style="text-align:left;margin-top:0">Juegas con</div>
+        <div class="colors" id="colors">
+          <button class="colorpick" data-side="w" aria-pressed="false"><span class="sym">♔</span>Blancas</button>
+          <button class="colorpick" data-side="b" aria-pressed="false"><span class="sym">♚</span>Negras</button>
+          <button class="colorpick" data-side="r" aria-pressed="true"><span class="material-symbols-rounded">casino</span>Al azar</button>
+        </div>
+        <a class="btn big" id="play" href="#"><span class="material-symbols-rounded">play_arrow</span> ¡A jugar!</a>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="mfoot">Made by Unai García</footer>
+
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      // Mismos perfiles que usa la partida (script.js)
+      const BOTS = [
+        { name: "Maya", seed: "maya", elo: 100, say: "¿El caballo se mueve en L? ¡Creo que sí!" },
+        { name: "Leo", seed: "leo", elo: 400, say: "Me encantan las capturas… ¡todas!" },
+        { name: "Sara", seed: "sara", elo: 800, say: "Juego rápido y sin miedo." },
+        { name: "Iker", seed: "iker", elo: 1200, say: "Tengo un plan. A veces funciona." },
+        { name: "Nora", seed: "nora", elo: 1600, say: "Paciencia: la ventaja llega sola." },
+        { name: "Omar", seed: "omar", elo: 2000, say: "Cuidado con mis clavadas." },
+        { name: "Luna", seed: "luna", elo: 2400, say: "Calculo diez jugadas… por diversión." },
+        { name: "Daniel", seed: "daniel", elo: 2800, say: "No suelo regalar peones." },
+        { name: "Ava", seed: "ava", elo: 3000, say: "Casi nunca fallo. Casi." },
+        { name: "Mateo", seed: "mateo", elo: 3200, say: "Ni lo intentes. Bueno, inténtalo." }
+      ];
+      const GROUPS = [
+        { title: "Para empezar", min: 100, max: 800, lvl: "Principiante", icon: "🌱" },
+        { title: "Con algo de guerra", min: 1200, max: 2000, lvl: "Intermedio", icon: "⚔️" },
+        { title: "Solo para valientes", min: 2400, max: 3200, lvl: "Avanzado", icon: "🔥" }
+      ];
+      let elo = Number(AJ.get("aj_bot_elo")) || 1200, side = ["w", "b", "r"].includes(AJ.get("aj_bot_side")) ? AJ.get("aj_bot_side") : "r";
+      if (!BOTS.some(b => b.elo === elo)) elo = 1200;
+
+      let n = 0;
+      GROUPS.forEach(g => {
+        const wrap = document.createElement("section");
+        wrap.className = "bgroup";
+        wrap.innerHTML = '<h3>' + g.icon + ' ' + g.title + '</h3><div class="bots"></div>';
+        BOTS.filter(b => b.elo >= g.min && b.elo <= g.max).forEach(b => {
+          const btn = document.createElement("button");
+          btn.className = "bot"; btn.dataset.elo = b.elo; btn.style.animationDelay = (n++ * 45) + "ms";
+          btn.innerHTML = '<img alt=""><b></b><span class="elo"></span>';
+          btn.querySelector("b").textContent = b.name; btn.querySelector(".elo").textContent = "Elo " + b.elo;
+          AJ.setAvatar(btn.querySelector("img"), b.name, true, b.seed);
+          btn.onclick = () => { elo = b.elo; paint(); };
+          wrap.querySelector(".bots").appendChild(btn);
+        });
+        $("groups").appendChild(wrap);
+      });
+
+      document.querySelectorAll(".colorpick").forEach(b => b.onclick = () => { side = b.dataset.side; paint(); });
+
+      function paint() {
+        const b = BOTS.find(x => x.elo === elo), g = GROUPS.find(x => elo >= x.min && elo <= x.max);
+        document.querySelectorAll(".bot").forEach(x => x.setAttribute("aria-pressed", String(Number(x.dataset.elo) === elo)));
+        document.querySelectorAll(".colorpick").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.side === side)));
+        AJ.setAvatar($("portrait"), b.name, true, b.seed);
+        $("nm").textContent = b.name; $("lvl").textContent = g.lvl + " · Elo " + b.elo; $("quote").textContent = "“" + b.say + "”";
+        $("play").href = "partida.html?mode=bot&elo=" + b.elo + "&side=" + side;
+        AJ.set("aj_bot_elo", b.elo); AJ.set("aj_bot_side", side);
+      }
+      paint();
+    })();
+  </script>
+</body>
+
+</html>

@@ -4,394 +4,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Ajedrez</title>
+  <title>Ajedrez · Inicio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preconnect" href="https://0.peerjs.com" crossorigin>
   <link rel="preconnect" href="https://images.chesscomfiles.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script defer src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script defer src="script.js"></script>
+  <link rel="stylesheet" href="menu.css">
+  <script src="common.js"></script>
 </head>
 
-<body>
-  <main>
-    <section class="board-column">
-      <div class="player">
-        <img class="avatar" id="topAvatar" alt="">
-        <div class="player-info">
-          <div class="who">
-            <div class="name" id="topName">Negras</div>
-            <div class="cap" id="topCap"></div>
-          </div>
-          <div class="player-chat-bubble" id="topChatBubble" hidden role="status" aria-live="polite"></div>
-        </div>
-        <span class="clock" id="topClock">10:00</span>
+<body class="menu" data-page="inicio">
+  <header class="mh">
+    <a class="logo" href="index.html" aria-label="Ajedrez, inicio"><span class="logo-tile" aria-hidden="true">♞</span>Ajedrez</a>
+    <button class="chip" id="profileBtn" aria-label="Perfil y ajustes">
+      <img id="chipAvatar" alt=""><span class="nm" id="chipName">Jugador</span><span class="material-symbols-rounded">settings</span>
+    </button>
+  </header>
+
+  <main class="mwrap">
+    <section class="hero">
+      <div>
+        <span class="bubble">¡Hola, <span id="who">Jugador</span>!</span>
+        <h1>¡Hora de <mark>mover ficha</mark>!</h1>
+        <p>Elige cómo quieres jugar hoy.</p>
       </div>
-      <div class="board-area">
-        <aside class="material-rail" aria-label="Material capturado">
-          <div class="material-side">
-            <div class="material-heading"><span id="topMaterialName">Negras</span><strong class="material-total" id="topMaterialTotal">0</strong></div>
-            <div class="material-pieces" id="topMaterialPieces"></div>
-          </div>
-          <div class="material-side">
-            <div class="material-heading"><span id="bottomMaterialName">Blancas</span><strong class="material-total" id="bottomMaterialTotal">0</strong></div>
-            <div class="material-pieces" id="bottomMaterialPieces"></div>
-          </div>
-        </aside>
-        <div class="board-wrap" id="boardWrap">
-          <div id="board" aria-label="Tablero de ajedrez"></div>
-          <svg id="overlay" viewBox="0 0 800 800" preserveAspectRatio="none"></svg>
-          <div class="board-loading" id="boardLoading" hidden role="status" aria-live="polite">
-            <div class="loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-            <strong>Esperando al rival</strong>
-            <small>El tablero se activará cuando se conecte</small>
-          </div>
-        </div>
-      </div>
-      <div class="player">
-        <img class="avatar" id="bottomAvatar" alt="">
-        <div class="player-info">
-          <div class="who">
-            <div class="name" id="bottomName">Blancas</div>
-            <div class="cap" id="bottomCap"></div>
-          </div>
-          <div class="player-chat-bubble" id="bottomChatBubble" hidden role="status" aria-live="polite"></div>
-        </div>
-        <span class="clock" id="bottomClock">10:00</span>
+      <div class="hero-art" aria-hidden="false">
+        <div class="hero-board"></div>
+        <div class="hero-shadow"></div>
+        <img class="mascot" id="mascot" alt="Caballo de ajedrez, la mascota. Pulsa para saludar" title="¡Pulsa al caballo!">
+        <div class="mascot-say" id="say" hidden role="status"></div>
       </div>
     </section>
 
-    <aside class="sidebar">
-      <section class="card">
-        <div class="status"><span id="statusText">Mueven
-            blancas</span>
-          <div class="status-actions">
-            <button class="gear" id="historyBtn" title="Historial" aria-label="Historial"><span
-                class="material-symbols-rounded">book_2</span></button>
-            <button class="gear" id="settingsBtn" title="Ajustes" aria-label="Ajustes"><span
-                class="material-symbols-rounded">settings</span></button>
-          </div>
+    <nav class="modes" aria-label="Modos de juego">
+      <a class="mode m-online" href="online.html" data-glyph="♞">
+        <span class="sticker">Con amigos</span>
+        <span class="ico"><span class="material-symbols-rounded">wifi</span></span>
+        <div class="txt">
+          <h2>Jugar online</h2>
+          <p>Reta a un amigo o entra en una sala con un código.</p>
+          <span class="go"><span>¡Jugar! <span class="material-symbols-rounded">arrow_forward</span></span></span>
         </div>
-        <div class="tabs">
-          <button class="tab active" data-tab="moves"><span class="material-symbols-rounded">chess_pawn</span> PARTIDA
-            <small id="moveCount">0</small></button>
-          <button class="tab" data-tab="online"><span class="material-symbols-rounded">sports_esports</span>
-            JUGAR</button>
-        </div>
-
-        <div class="pane" id="pane-moves">
-          <div class="local-time">
-            <div class="field"><label for="localTcSelect">Control de tiempo</label><select id="localTcSelect"></select>
-            </div>
-          </div>
-          <div class="subtabs game-subtabs" role="tablist" aria-label="Contenido de la partida" hidden>
-            <button class="game-subtab subtab active" id="gameMovesTab" type="button" role="tab" aria-selected="true"
-              aria-controls="move-subpane-list" data-game-subtab="moves">Movimientos</button>
-            <button class="game-subtab subtab" id="gameChatTab" type="button" role="tab" aria-selected="false"
-              aria-controls="move-subpane-chat" data-game-subtab="chat">Chat</button>
-          </div>
-          <div class="move-subpane" id="move-subpane-list" role="tabpanel" aria-labelledby="gameMovesTab">
-            <div class="rv" id="reviewPanel" hidden>
-              <div class="rv-top"><span class="material-symbols-rounded">query_stats</span><strong>Análisis</strong><button class="secondary" id="rvStats" title="Volver al panel de estadísticas"><span class="material-symbols-rounded">monitoring</span>Estadísticas</button><button class="secondary" id="rvExit" title="Salir del análisis">Salir</button></div>
-              <div class="rv-card" id="rvCard"></div>
-              <svg class="rp-graph" id="rvGraph" style="height:44px" aria-label="Evaluación de la partida"></svg>
-              <div class="rv-jump"><button class="secondary" id="rvPrevErr">‹ Error anterior</button><button class="secondary" id="rvNextErr">Error siguiente ›</button></div>
-            </div>
-            <div class="moves" id="moves"></div>
-            <div class="nav">
-              <button class="secondary" id="firstBtn" title="Inicio (↑)">«</button>
-              <button class="secondary" id="backBtn" title="Anterior (←)">‹</button>
-              <button class="secondary" id="forwardBtn" title="Siguiente (→)">›</button>
-              <button class="secondary" id="lastBtn" title="Final (↓)">»</button>
-            </div>
-            <div class="actions">
-              <button class="secondary" id="flipBtn"><span class="material-symbols-rounded">swap_vert</span> Girar
-                tablero</button>
-              <button class="secondary" id="downloadPgnBtn"><span class="material-symbols-rounded">download</span>
-                Exportar PGN</button>
-              <button class="secondary" id="drawBtn"><span class="material-symbols-rounded">handshake</span> Ofrecer
-                tablas</button>
-              <button class="secondary" id="resignBtn"><span class="material-symbols-rounded">flag</span>
-                Rendirse</button>
-              <button class="secondary wide" id="reviewBtn" hidden><span
-                  class="material-symbols-rounded">query_stats</span> Revisar análisis en el tablero</button>
-              <button class="primary wide" id="newGameBtn">Nueva partida</button>
-            </div>
-          </div>
-          <div class="move-subpane" id="move-subpane-chat" role="tabpanel" aria-labelledby="gameChatTab" hidden>
-            <div class="chat-panel">
-              <div class="section-title"><span class="material-symbols-rounded">forum</span> Chat de partida</div>
-              <div class="chat-log" id="chatLog" aria-live="polite">
-                <div class="msg sys">Conéctate a una partida para chatear.</div>
-              </div>
-              <div class="chat-form"><input id="chatInput" type="text" maxlength="300" placeholder="Escribe un mensaje…"
-                  disabled><button class="primarySmall noTextButton" id="chatSend" disabled
-                  aria-label="Enviar mensaje"><span class="material-symbols-rounded">send</span></button></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="pane" id="pane-online" hidden>
-          <div class="subtabs" role="tablist" aria-label="Opciones para jugar">
-            <button class="play-subtab subtab" data-play-subtab="bot"><span
-                class="material-symbols-rounded">smart_toy</span> Jugar contra bot</button>
-            <button class="play-subtab subtab active" data-play-subtab="online"><span
-                class="material-symbols-rounded">wifi</span> Jugar online</button>
-          </div>
-          <div class="play-subpane" id="subpane-bot" hidden>
-            <div class="engine-panel">
-              <div class="section-title"><span class="material-symbols-rounded">psychology</span> Bots · Elo y avatares</div>
-              <div class="engine-row"><select id="botLevel" aria-label="Elo del bot"></select></div>
-              <div class="engine-row"><select id="botSide" aria-label="Color del jugador">
-                  <option value="w">Yo con blancas</option>
-                  <option value="b">Yo con negras</option>
-                  <option value="r" selected>Color aleatorio</option>
-                </select><button class="primarySmall" id="startBotBtn"><span
-                    class="material-symbols-rounded">smart_toy</span> Jugar contra bot</button></div>
-              <div class="engine-row"><button class="secondary" id="analyzeBtn"><span
-                    class="material-symbols-rounded">query_stats</span> Analizar partida</button><button
-                  class="secondary" id="stopAnalyzeBtn" disabled><span class="material-symbols-rounded">stop</span>
-                  Detener</button></div>
-              <div class="engine-status" id="engineStatus">El motor se descarga al usarlo por primera vez. El cálculo se
-                ejecuta en tu navegador.</div>
-              <div class="engine-results" id="engineResults" aria-live="polite"></div>
-              <div class="engine-note" id="engineNote">Stockfish 19 (NNUE, WASM) · GPL-3.0. Necesita Internet para descargar el motor; el
-                cálculo se hace en tu dispositivo.</div>
-            </div>
-          </div>
-          <div class="play-subpane" id="subpane-online" hidden>
-            <div class="stack online-subpane" id="online-subpane-friends">
-              <div class="friend-profile">
-                <div class="row"><div class="friend-profile-title"><img id="profileAvatar" class="profile-avatar" alt=""> Mi perfil</div>
-                  <input id="nameInput" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="16">
-                </div>
-                <div class="row"><input id="myCode" aria-label="Tu código de amigo" title="Código de amigo" readonly>
-                  <button class="secondary noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span
-                      class="material-symbols-rounded">content_copy</span></button></div>
-              </div>
-              <details class="friend-tools">
-                <summary><span class="material-symbols-rounded">person_add</span> Añadir amigos</summary>
-                <div class="friend-tools-body">
-                  <div class="field"><label for="friendNameInput">Buscar por nombre</label>
-                    <div class="row"><input id="friendNameInput" placeholder="NOMBRE EXACTO" maxlength="16" title="El nombre debe ser único; si no aparece, puedes buscar al jugador por su código."><button
-                        class="primarySmall" id="findFriendBtn"><span class="material-symbols-rounded">person_search</span>
-                        Buscar</button></div>
-                  </div>
-                  <div class="field"><label for="friendInput">Añadir por código</label>
-                    <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button
-                        class="primarySmall" id="addFriendBtn"><span class="material-symbols-rounded">person_add</span>
-                        Añadir</button></div>
-                  </div>
-                </div>
-              </details>
-              <div class="friends" id="friendList"></div>
-              <button class="secondary" id="refreshFriends"><span class="material-symbols-rounded">refresh</span>
-                Actualizar lista</button>
-              <div class="tiny" id="friendNote">Conectando…</div>
-              <details class="room-details">
-                <summary><span class="material-symbols-rounded">vpn_key</span> Jugar con código de sala</summary>
-                <div class="room-details-body">
-                  <div class="field"><label for="tcSelect">Control de tiempo</label><select id="tcSelect"></select>
-                  </div>
-                  <div class="field"><label for="colorSelect">Jugar con</label><select id="colorSelect">
-                      <option value="w">Blancas</option>
-                      <option value="b">Negras</option>
-                      <option value="r" selected>Aleatorio</option>
-                    </select></div>
-                  <div class="row"><button class="primary" id="createRoomBtn"><span
-                        class="material-symbols-rounded">add_circle</span> Crear sala</button><button class="secondary"
-                      id="copyLinkBtn"><span class="material-symbols-rounded">link</span> Copiar enlace</button></div>
-                  <div class="row"><input id="roomInput" type="text" placeholder="CÓDIGO DE SALA" maxlength="6"><button
-                      class="secondary" id="joinRoomBtn"><span class="material-symbols-rounded">login</span>
-                      Unirse</button></div>
-                  <div class="conn"><span class="status-dot warn" id="connDot"></span><span id="connText">Sin conectar ·
-                      partida local</span></div>
-                </div>
-              </details>
-
-            </div>
-          </div>
-        </div>
-      </section>
-    </aside>
+      </a>
+      <a class="mode m-bot" href="bot.html" data-glyph="♜">
+        <span class="ico"><span class="material-symbols-rounded">smart_toy</span></span>
+        <h2>Contra un bot</h2>
+        <p>Diez rivales, de Maya a Mateo. Tú eliges el nivel.</p>
+        <span class="go"><span>Empezar <span class="material-symbols-rounded">arrow_forward</span></span></span>
+      </a>
+      <a class="mode m-local" href="local.html" data-glyph="♛">
+        <span class="ico"><span class="material-symbols-rounded">group</span></span>
+        <h2>Partida local</h2>
+        <p>Dos jugadores, un mismo dispositivo.</p>
+        <span class="go"><span>Empezar <span class="material-symbols-rounded">arrow_forward</span></span></span>
+      </a>
+    </nav>
   </main>
 
-  <footer class="page-footer">Made by Unai García</footer>
+  <footer class="mfoot">Made by Unai García</footer>
 
-  <div class="notif-stack" id="notifStack" aria-live="polite">
-    <div class="notif" id="inviteBar" hidden><span class="material-symbols-rounded notif-ico">sports_esports</span><span
-        class="notif-text" id="inviteText"></span>
-      <div class="notif-actions"><button class="primarySmall" id="invYes"><span
-            class="material-symbols-rounded">check</span>
-          Jugar</button><button class="secondary" id="invNo"><span class="material-symbols-rounded">close</span>
-          No</button></div>
-    </div>
-    <div class="notif" id="drawBar" hidden><span class="material-symbols-rounded notif-ico">handshake</span><span
-        class="notif-text">El rival ofrece tablas</span>
-      <div class="notif-actions"><button class="primarySmall" id="drawYes"><span
-            class="material-symbols-rounded">check</span> Aceptar</button><button class="secondary" id="drawNo"><span
-            class="material-symbols-rounded">close</span> Rechazar</button></div>
-    </div>
-  </div>
-  <div class="toast" id="toast"></div>
-  <div class="modal-backdrop" id="challengeModal">
-    <div class="modal" style="width:min(360px,100%)">
-      <h3><span class="material-symbols-rounded" style="vertical-align:middle">sports_esports</span> Retar a un amigo
-      </h3>
-      <p class="tiny" id="challengeFriendName" style="margin:0 0 14px">Configura la partida antes de enviar la
-        invitación.</p>
-      <div class="field"><label for="inviteTcSelect">Control de tiempo</label><select id="inviteTcSelect"></select>
+  <div class="mback" id="profileModal">
+    <div class="sheet" role="dialog" aria-label="Perfil y ajustes">
+      <div class="sheet-head">
+        <h3>Tu perfil</h3>
+        <button class="btn ghost noTextButton" id="profileClose" aria-label="Cerrar"><span class="material-symbols-rounded">close</span></button>
       </div>
-      <div class="field"><label for="inviteColorSelect">Jugar con</label><select id="inviteColorSelect">
-          <option value="w">Blancas</option>
-          <option value="b">Negras</option>
-          <option value="r" selected>Aleatorio</option>
-        </select></div>
-      <div class="field"><label for="inviteHandicapSelect">Handicap</label><select id="inviteHandicapSelect" hidden>
-          <option value="none">Ninguno</option>
-          <option value="pawn-advantage-me">Peón · ventaja · yo</option>
-          <option value="pawn-advantage-rival">Peón · ventaja · rival</option>
-          <option value="pawn-disadvantage-me">Peón · desventaja · yo</option>
-          <option value="pawn-disadvantage-rival">Peón · desventaja · rival</option>
-          <option value="knight-advantage-me">Caballo · ventaja · yo</option>
-          <option value="knight-advantage-rival">Caballo · ventaja · rival</option>
-          <option value="knight-disadvantage-me">Caballo · desventaja · yo</option>
-          <option value="knight-disadvantage-rival">Caballo · desventaja · rival</option>
-          <option value="bishop-advantage-me">Alfil · ventaja · yo</option>
-          <option value="bishop-advantage-rival">Alfil · ventaja · rival</option>
-          <option value="bishop-disadvantage-me">Alfil · desventaja · yo</option>
-          <option value="bishop-disadvantage-rival">Alfil · desventaja · rival</option>
-          <option value="rook-advantage-me">Torre · ventaja · yo</option>
-          <option value="rook-advantage-rival">Torre · ventaja · rival</option>
-          <option value="rook-disadvantage-me">Torre · desventaja · yo</option>
-          <option value="rook-disadvantage-rival">Torre · desventaja · rival</option>
-          <option value="queen-advantage-me">Dama · ventaja · yo</option>
-          <option value="queen-advantage-rival">Dama · ventaja · rival</option>
-          <option value="queen-disadvantage-me">Dama · desventaja · yo</option>
-          <option value="queen-disadvantage-rival">Dama · desventaja · rival</option>
-        </select></div>
-      <div class="modal-buttons" style="margin-top:14px"><button class="primarySmall" id="sendChallengeBtn"><span
-            class="material-symbols-rounded">send</span> Enviar reto</button><button class="secondary"
-          id="cancelChallengeBtn">Cancelar</button></div>
+      <img class="avatar-big" id="sheetAvatar" alt="">
+      <label for="nameInput">Nombre</label>
+      <input id="nameInput" maxlength="16" autocomplete="off">
+      <label for="codeInput">Código de amigo</label>
+      <div class="row"><input id="codeInput" readonly><button class="btn ghost" id="copyCode" aria-label="Copiar código"><span class="material-symbols-rounded">content_copy</span></button></div>
+      <label>Tema</label>
+      <div class="seg">
+        <button class="btn ghost" data-uitheme="dark"><span class="material-symbols-rounded">dark_mode</span> Oscuro</button>
+        <button class="btn ghost" data-uitheme="light"><span class="material-symbols-rounded">light_mode</span> Claro</button>
+      </div>
+      <label>Color</label>
+      <div class="swatches" id="swatches"></div>
+      <label>Piezas y tablero</label>
+      <a class="btn" href="partida.html?settings=1" style="width:100%"><span class="material-symbols-rounded">palette</span> Personalizar</a>
     </div>
   </div>
 
-  <div class="modal-backdrop" id="settingsModal">
-    <div class="modal st" role="dialog" aria-label="Ajustes">
-      <div class="st-head">
-        <h3><span class="material-symbols-rounded">settings</span> Ajustes</h3><button class="end-x" id="stClose"
-          aria-label="Cerrar" style="position:static"><span class="material-symbols-rounded"
-            style="margin:0">close</span></button>
-      </div>
-      <div class="st-body">
-        <div class="st-preview">
-          <div class="pv-board" id="stPreview"></div>
-        </div>
-        <div class="st-main">
-          <div class="st-tabs"><button class="st-tab active" data-st="pieces">Piezas</button><button class="st-tab"
-              data-st="boards">Tablero</button><button class="st-tab" data-st="theme">Tema</button><button class="st-tab" data-st="general">General</button></div>
-          <div class="st-grid" id="stPieces"></div>
-          <div class="st-grid" id="stBoards" hidden></div>
-          <div class="st-grid" id="stTheme" hidden></div>
-          <div id="stGeneral" class="settings-general" hidden>
-            <div class="field"><label for="markColorInput">Color de marcación</label><input id="markColorInput" type="color" value="#e34f4f"></div>
-            <label class="settings-check"><input id="persistentMarksInput" type="checkbox"> Mantener las marcas al mover piezas</label>
-            <div class="field"><label>Progreso Elo</label><div class="row"><button class="secondary" id="exportEloBtn"><span class="material-symbols-rounded">download</span>Exportar Elo</button><button class="secondary" id="importEloBtn"><span class="material-symbols-rounded">upload</span>Importar Elo</button><input id="importEloFile" type="file" accept=".txt,text/plain" hidden></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="st-foot"><button class="secondary" id="stReset">Restablecer</button><button class="primary"
-          id="stDone">Hecho</button></div>
-    </div>
-  </div>
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id), P = AJ.profile;
 
-  <div class="modal-backdrop" id="historyModal">
-    <div class="modal history-modal" role="dialog" aria-label="Historial de partidas">
-      <div class="st-head">
-        <h3><span class="material-symbols-rounded">book_2</span> Historial</h3>
-        <button class="end-x" id="historyClose" aria-label="Cerrar"><span class="material-symbols-rounded"
-            style="margin:0">close</span></button>
-      </div>
-      <div class="history-list" id="historyList"></div>
-    </div>
-  </div>
+      function paint() {
+        const n = P.name;
+        $("who").textContent = n; $("chipName").textContent = n;
+        AJ.setAvatar($("chipAvatar"), n); AJ.setAvatar($("sheetAvatar"), n);
+      }
+      paint();
 
-  <div class="modal-backdrop" id="watchModal">
-    <div class="modal watch-modal" role="dialog" aria-label="Partida en directo">
-      <div class="st-head">
-        <h3><span class="material-symbols-rounded">visibility</span> Partida en directo</h3>
-        <div class="st-head-actions">
-          <button class="secondary noTextButton" id="watchRotateBtn" title="Girar tablero" aria-label="Girar tablero"><span class="material-symbols-rounded">screen_rotation</span></button>
-          <button class="end-x" id="watchClose" aria-label="Cerrar"><span class="material-symbols-rounded"
-              style="margin:0">close</span></button>
-        </div>
-      </div>
-      <div class="watch-content">
-        <div class="watch-meta" id="watchMetaTop"></div>
-        <div class="watch-board-wrap">
-          <div id="watchBoard" aria-label="Tablero en directo"></div>
-        </div>
-        <div class="watch-meta" id="watchMetaBottom"></div>
-      </div>
-    </div>
-  </div>
+      /* Mascota: el caballo con las piezas que tengas elegidas; al pulsarlo salta y habla */
+      AJ.setPiece($("mascot"), "w", "n");
+      const phrases = ["¡Caballo a f3!", "¿Una partida rápida?", "Ojo con el jaque…", "Hoy toca ganar 😎", "Yo salto, tú piensas.", "¡Dame un tablero!"];
+      let sayTimer, last = -1;
+      document.querySelector(".hero-art").addEventListener("click", e => {
+        const m = document.querySelector(".mascot");
+        if (!m || !m.contains(e.target) && e.target !== m) return;
+        let i; do { i = Math.random() * phrases.length | 0 } while (i === last); last = i;
+        $("say").textContent = phrases[i]; $("say").hidden = false;
+        m.classList.remove("hop"); void m.offsetWidth; m.classList.add("hop");
+        clearTimeout(sayTimer); sayTimer = setTimeout(() => { $("say").hidden = true }, 2200);
+      });
 
-  <div class="modal-backdrop" id="promotionModal">
-    <div class="modal">
-      <h3>Coronar peón</h3>
-      <div class="modal-buttons" id="promotionChoices"></div>
-    </div>
-  </div>
+      /* Perfil y ajustes */
+      const modal = $("profileModal");
+      const open = () => { $("nameInput").value = P.name; $("codeInput").value = P.code; syncTheme(); modal.classList.add("open"); };
+      const close = () => modal.classList.remove("open");
+      $("profileBtn").onclick = open; $("profileClose").onclick = close;
+      modal.addEventListener("click", e => { if (e.target === modal) close(); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+      $("nameInput").onchange = () => { P.name = $("nameInput").value; $("nameInput").value = P.name; paint(); };
+      $("copyCode").onclick = () => navigator.clipboard.writeText(P.code).then(() => AJ.toast("Código copiado"));
 
-  <div class="modal-backdrop" id="endModal">
-    <div class="end" id="endBox">
-      <div class="end-head"><span class="end-icon material-symbols-rounded" id="endIcon">trophy</span>
-        <div class="end-title" id="endTitle"></div>
-        <div class="end-sub" id="endSub"></div><button class="end-x" id="endClose" aria-label="Cerrar"><span
-            class="material-symbols-rounded">close</span></button>
-      </div>
-      <div class="end-body">
-        <div class="end-msg"><img id="endAvatar" alt="">
-          <div class="bubble" id="endMsg"></div>
-        </div>
-        <div class="end-stats">
-          <div class="b">
-            <div class="sv"><i>♞</i><span id="endMoves" style="color:#fff;font-size:20px"></span></div>
-            <span>Jugadas</span>
-          </div>
-          <div>
-            <div class="sv"><i>✕</i><span id="endCaps" style="color:#fff;font-size:20px"></span></div>
-            <span>Capturas</span>
-          </div>
-          <div>
-            <div class="sv"><i>♚</i><span id="endChecks" style="color:#fff;font-size:20px"></span></div>
-            <span>Jaques</span>
-          </div>
-        </div>
-        <button class="end-pgn" id="endPgn"><span class="material-symbols-rounded">query_stats</span> Analizar
-          partida</button>
-        <div id="endAnalysis" hidden
-          style="border:1px solid var(--line);border-radius:9px;padding:12px;margin:0 0 14px">
-          <div class="ea-head"><strong style="color:var(--bright)">Análisis de la partida</strong><button
-              class="secondary" id="endStopAnalyze" disabled><span class="material-symbols-rounded">stop</span>
-              Detener</button></div>
-          <div class="ea-prog"><i id="endProg"></i></div>
-          <div class="engine-status" id="endAnalysisStatus" aria-live="polite">Preparando Stockfish…</div>
-          <div class="engine-results" id="endAnalysisResults" aria-live="polite"
-            style="max-height:none;background:none;padding:0;overflow:visible"></div>
-        </div>
-        <button class="end-pgn" id="endReview" hidden><span class="material-symbols-rounded">swipe_right_alt</span>
-          Revisar jugada a jugada en el tablero</button>
-        <div class="end-row"><button id="endNew">Nueva partida</button><button id="endRematch">Revancha</button></div>
-      </div>
-    </div>
-  </div>
+      function syncTheme() {
+        const cur = AJ.get("ajedrez.uiTheme") === "light" ? "light" : "dark", acc = AJ.get("ajedrez.accent") || "verde";
+        document.querySelectorAll("[data-uitheme]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.uitheme === cur)));
+        document.querySelectorAll(".swatch").forEach(s => s.setAttribute("aria-pressed", String(s.dataset.id === acc)));
+        document.querySelectorAll("[data-uitheme]").forEach(b => b.style.outline = b.dataset.uitheme === cur ? "3px solid var(--accent)" : "");
+      }
+      document.querySelectorAll("[data-uitheme]").forEach(b => b.onclick = () => { AJ.set("ajedrez.uiTheme", b.dataset.uitheme); AJ.applyTheme(); syncTheme(); });
+      Object.values(AJ.ACCENTS).forEach(a => {
+        const s = document.createElement("button");
+        s.className = "swatch"; s.dataset.id = a.id; s.title = a.name; s.setAttribute("aria-label", a.name);
+        s.style.setProperty("--sw", a.dark);
+        s.onclick = () => { AJ.set("ajedrez.accent", a.id); AJ.applyTheme(); syncTheme(); };
+        $("swatches").appendChild(s);
+      });
+    })();
+  </script>
 </body>
+
 </html>

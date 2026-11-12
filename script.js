@@ -1,6 +1,6 @@
 (() => {
   if (typeof Chess === "undefined") {
-    document.getElementById("statusText").textContent = "Error: no se pudo cargar chess.js.";
+    const st = document.getElementById("statusText"); if (st) st.textContent = "Error: no se pudo cargar chess.js.";
     return;
   }
 
@@ -14,7 +14,14 @@
     if (typeof game[b] !== "function" && typeof game[a] !== "function") game[b] = game[a].bind(game);
   });
 
-  const $ = id => document.getElementById(id);
+  // Cada página (online, partida…) solo contiene parte de la interfaz. Lo que falta se sustituye por un
+  // <select> suelto (siempre el mismo por id), así el motor no necesita comprobar cada elemento.
+  const PAGE = document.body.dataset.page || "partida";
+  const byId = id => document.getElementById(id);
+  const ghosts = new Map();
+  const $ = id => byId(id) || ghosts.get(id) || (ghosts.set(id, document.createElement("select")), ghosts.get(id));
+  const hostOpts = { color: null };   // opciones de anfitrión que llegan por la URL
+  const handoff = params => { location.href = "partida.html?" + new URLSearchParams(params); };
   const glyph = {
     w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" },
     b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" }
@@ -47,20 +54,8 @@
   let liveBroadcastTimer = null;
   let pieceSet = /^[a-z0-9_]+$/.test(store.get("ajedrez.pieces") || "") ? store.get("ajedrez.pieces") : "neo";
   let boardTheme = /^(c-[a-z0-9]+|img:[a-z0-9_]+)$/.test(store.get("ajedrez.board") || "") ? store.get("ajedrez.board") : "c-verde";
-  const UI_THEMES = {
-    dark: { id: "dark", name: "Oscuro", bg: "#211f1c", card: "#2b2926", line: "#3a3732", text: "#bab7b1", bright: "#ffffff", muted: "#8a867e" },
-    light: { id: "light", name: "Claro", bg: "#edf1f4", card: "#ffffff", line: "#d4dbe5", text: "#3a4758", bright: "#101827", muted: "#667085" }
-  };
-  const ACCENT_PRESETS = {
-    verde: { id: "verde", name: "Verde", dark: "#81b64c", light: "#5fb76b", accent: "#a3d160" },
-    azul: { id: "azul", name: "Azul", dark: "#3b82f6", light: "#2563eb", accent: "#93c5fd" },
-    rojo: { id: "rojo", name: "Rojo", dark: "#ef4444", light: "#dc2626", accent: "#fca5a5" },
-    morado: { id: "morado", name: "Morado", dark: "#8b5cf6", light: "#7c3aed", accent: "#c4b5fd" },
-    naranja: { id: "naranja", name: "Naranja", dark: "#f59e0b", light: "#ea580c", accent: "#fdba74" },
-    rosa: { id: "rosa", name: "Rosa", dark: "#ec4899", light: "#db2777", accent: "#f9a8d4" },
-    cian: { id: "cian", name: "Cian", dark: "#06b6d4", light: "#0891b2", accent: "#67e8f9" },
-    amarillo: { id: "amarillo", name: "Amarillo", dark: "#eab308", light: "#ca8a04", accent: "#fef08a" }
-  };
+  const UI_THEMES = AJ.UI_THEMES;
+  const ACCENT_PRESETS = AJ.ACCENTS;
   let uiTheme = /^(dark|light)$/.test(store.get("ajedrez.uiTheme") || "") ? store.get("ajedrez.uiTheme") : "dark";
   let accentId = ACCENT_PRESETS[store.get("ajedrez.accent") || ""] ? store.get("ajedrez.accent") : "verde";
   const isBlindPieceSet = set => /^blind_/.test(String(set || ""));
@@ -114,11 +109,20 @@
   }
 
   let boardLoadingTimeout = null;
-  function setBoardLoading(loading) {
+  function setBoardLoading(loading, opts = {}) {
     const el = $("boardLoading");
-    if (el) el.hidden = !loading;
+    if (el) {
+      el.hidden = !loading;
+      if (loading) {
+        const t = el.querySelector("strong"), sub = el.querySelector("small");
+        if (t) t.textContent = opts.title || "Esperando al rival";
+        if (sub) sub.textContent = opts.sub || "El tablero se activará cuando se conecte";
+        $("boardLoadingRoom").hidden = !opts.code;
+        if (opts.code) $("boardLoadingCode").textContent = opts.code;
+      }
+    }
     if (boardLoadingTimeout) { clearTimeout(boardLoadingTimeout); boardLoadingTimeout = null; }
-    if (loading) {
+    if (loading && !opts.persist) {
       // Evita dejar el tablero bloqueado indefinidamente si el rival no conecta.
       boardLoadingTimeout = setTimeout(() => setBoardLoading(false), 60000);
     }
@@ -774,8 +778,8 @@
     render();
   }
   function reset() {
+    if (online()) { requestGameReset(); return; }
     resetLocal();
-    sendPayload({ type: "reset", whiteTime, blackTime });
     showToast("Partida reiniciada");
     if (botEnabled && botColor === "w") window.setTimeout(makeBotMove, 180);
   }
@@ -901,15 +905,15 @@
   function eloToBotSkill(elo) {
     return Math.max(0, Math.min(20, Math.round((Math.max(100, Math.min(3000, Number(elo) || 1200)) - 100) / 140)));
   }
-  async function startBotGame() {
+  async function startBotGame(opts = {}) {
     if (analysisRunning) { showToast("Espera a que termine o detén el análisis primero"); return }
     if (online() && !confirm("Se cerrará la partida online actual para empezar una partida contra el bot. ¿Continuar?")) return;
     if (peerJSConn) { try { peerJSConn.close() } catch (_) { } peerJSConn = null }
     if (peerJSInstance) { try { peerJSInstance.destroy() } catch (_) { } peerJSInstance = null }
     role = null; myColor = null; botEnabled = false; botThinking = false;
-    botElo = Number($("botLevel").value) || 1200;
+    botElo = Number(opts.elo || $("botLevel").value) || 1200;
     botSkill = eloToBotSkill(botElo);
-    const side = $("botSide").value;
+    const side = opts.side || $("botSide").value || "r";
     const playerColor = side === "r" ? (Math.random() < .5 ? "w" : "b") : side;
     botColor = playerColor === "w" ? "b" : "w";
     flipped = playerColor === "b";
@@ -918,19 +922,18 @@
     $("connDot").className = "status-dot";
     $("chatInput").disabled = true; $("chatSend").disabled = true;
     $("chatLog").innerHTML = '<div class="msg sys">Partida local contra ' + botProfile.name + '.</div>';
-    $("localTcSelect").value = "0+0"; $("tcSelect").value = "0+0"; parseTC();
+    parseTC("0+0");
     resetLocal();
     botEnabled = true;
     $("engineResults").innerHTML = "";
     $("engineStatus").textContent = "Cargando Stockfish…";
-    showTab("online"); showSubtab("bot"); render();
+    showTab("moves"); render();
     try {
       await ensureEngine();
       $("engineStatus").textContent = "Partida contra " + botProfile.name + " iniciada · Elo " + botElo + ".";
       if (botColor === "w") makeBotMove();
     } catch (e) { botEnabled = false; showToast(e.message || "No se pudo cargar Stockfish"); $("engineStatus").textContent = e.message || "No se pudo cargar Stockfish." }
   }
-  $("startBotBtn").onclick = startBotGame;
   $("analyzeBtn").onclick = analyzeGame;
   function stopCurrentAnalysis() {
     analysisCancelled = true;
@@ -1755,11 +1758,7 @@
   $("lastBtn").onclick = () => goPly(game.history().length);
   function showTab(t) {
     document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === t));
-    document.querySelectorAll("#pane-moves, #pane-online").forEach(p => p.hidden = p.id !== "pane-" + t);
-    if (t === "online") {
-      const active = document.querySelector(".play-subtab.active")?.dataset.playSubtab || "bot";
-      showSubtab(active);
-    }
+    document.querySelectorAll("#pane-moves, #pane-analysis").forEach(p => p.hidden = p.id !== "pane-" + t);
   }
   function showGameSubtab(t) {
     document.querySelectorAll(".game-subtab").forEach(b => {
@@ -1773,24 +1772,22 @@
   }
   function syncGameSubtabs() {
     const connected = !!online();
-    document.querySelector(".game-subtabs").hidden = !connected;
+    const gs = document.querySelector(".game-subtabs");
+    if (gs) gs.hidden = !connected;
     if (!connected) showGameSubtab("moves");
   }
-  function showSubtab(t) {
-    document.querySelectorAll(".play-subtab").forEach(b => b.classList.toggle("active", b.dataset.playSubtab === t));
-    document.querySelectorAll(".play-subpane").forEach(p => p.hidden = p.id !== "subpane-" + t);
-    if (t === "online") {
-      const active = document.querySelector(".online-subtab.active")?.dataset.onlineSubtab || "friends";
-      showOnlineSubtab(active);
-    }
-  }
-  function showOnlineSubtab(t) {
-    if (t === "friends") pingAll();
-  }
   document.querySelectorAll(".game-subtab").forEach(b => b.onclick = () => showGameSubtab(b.dataset.gameSubtab));
-  document.querySelectorAll(".play-subtab").forEach(b => b.onclick = () => showSubtab(b.dataset.playSubtab));
   document.querySelectorAll(".tab").forEach(b => b.onclick = () => showTab(b.dataset.tab));
   syncGameSubtabs();
+
+  /* ---------- Entrada a la partida desde las otras páginas ---------- */
+  function startLocalGame(tc) {
+    if (peerJSConn) { try { peerJSConn.close() } catch (_) { } peerJSConn = null; }
+    if (peerJSInstance) { try { peerJSInstance.destroy() } catch (_) { } peerJSInstance = null; }
+    botEnabled = false; botThinking = false; role = null; myColor = null;
+    parseTC(TC_RE.test(String(tc)) ? String(tc) : "600+0");
+    resetLocal(); showTab("moves");
+  }
 
   /* ---------- Control de Tiempo & Red ---------- */
   /* ---------- Selector de ritmo personalizado ---------- */
@@ -2297,7 +2294,7 @@
     if (retry && warmRetries++ < 5) setTimeout(prepareWarmPeer, 1500);
   }
   function prepareWarmPeer() {
-    if (warmPeer || typeof Peer === "undefined") return;
+    if (warmPeer || typeof Peer === "undefined" || PAGE !== "online") return;
     const code = genRoomCode();
     let peer;
     try { peer = new Peer("AJEDREZ-" + code, { config: RTC_CONFIG }) } catch (_) { return }
@@ -2335,7 +2332,28 @@
         broadcastLiveMatch();
         if (pendingPremove && !game.game_over()) window.setTimeout(executePremove, 0);
       }
+    } else if (d.type === "resetRequest") {
+      if (!online() || !game.history().length) return;
+      pendingResetRequest = String(d.token || "");
+      if (!pendingResetRequest) return;
+      $("resetRequestText").textContent = normalizeName(d.name || "Tu rival") + " solicita reiniciar la partida. ¿Aceptas?";
+      $("resetRequestModal").style.display = "flex";
+    } else if (d.type === "resetConsent") {
+      if (d.token !== activeResetToken) return;
+      sendPayload({ type: "resetCommit", token: activeResetToken });
+      activeResetToken = null;
+      resetLocal(); showToast("Reinicio aceptado por ambos jugadores");
+    } else if (d.type === "resetCommit") {
+      if (!d.token || d.token !== pendingResetRequest) return;
+      pendingResetRequest = null;
+      $("resetRequestModal").style.display = "none";
+      resetLocal(); showToast("Partida reiniciada por acuerdo");
+    } else if (d.type === "resetDecline") {
+      if (d.token !== activeResetToken) return;
+      activeResetToken = null; showToast("El rival rechazó reiniciar la partida");
     } else if (d.type === "reset") {
+      return;
+    } else if (d.type === "resetLegacy") {
       game.reset(); marks.clear(); arrows = []; pendingPremove = null; premoveMode = false; selected = null; legalTargets = []; forced = null; clearDraw();
       if (d.whiteTime) whiteTime = d.whiteTime;
       if (d.blackTime) blackTime = d.blackTime;
@@ -2388,6 +2406,29 @@
     }
   }
 
+  let activeResetToken = null, pendingResetRequest = null;
+  function requestGameReset() {
+    if (!online()) { resetLocal(); return; }
+    if (activeResetToken) { showToast("Ya has solicitado reiniciar; espera la respuesta"); return; }
+    activeResetToken = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    sendPayload({ type: "resetRequest", token: activeResetToken, name: myName });
+    showToast("Solicitud de reinicio enviada; espera a que el rival acepte");
+  }
+  $("resetRequestYes").onclick = () => {
+    const token = pendingResetRequest;
+    if (!token) return;
+    pendingResetRequest = null; $("resetRequestModal").style.display = "none";
+    sendPayload({ type: "resetConsent", token });
+    showToast("Has aceptado; reiniciando la partida");
+  };
+  $("resetRequestNo").onclick = () => {
+    const token = pendingResetRequest;
+    pendingResetRequest = null; $("resetRequestModal").style.display = "none";
+    if (token) sendPayload({ type: "resetDecline", token });
+  };
+  $("resetRequestModal").addEventListener("click", e => { if (e.target === $("resetRequestModal")) $("resetRequestNo").click(); });
+
+  let bootJoining = false;
   function initPeerJS(targetCode = null, onReady = null) {
     botEnabled = false; botThinking = false;
     if (peerJSConn) { const o = peerJSConn; peerJSConn = null; try { o.close() } catch (_) { } }
@@ -2399,7 +2440,7 @@
     $("connText").textContent = "Conectando…"; $("connDot").className = "status-dot warn";
     $("chatInput").disabled = true; $("chatSend").disabled = true; $("chatLog").innerHTML = "";
     resetLocal();
-    showTab("online");
+    showTab("moves");
 
     const isHost = !targetCode;
     const warm = takeWarmPeer();
@@ -2410,7 +2451,7 @@
 
     const onPeerOpen = () => {
       if (isHost) {
-        role = "host"; const cs = $("colorSelect").value; myColor = cs === "r" ? (Math.random() < .5 ? "w" : "b") : cs; flipped = myColor === "b";
+        role = "host"; const cs = hostOpts.color || $("colorSelect").value; hostOpts.color = null; myColor = cs === "r" ? (Math.random() < .5 ? "w" : "b") : cs; flipped = myColor === "b";
         if (window.__challengeHandicapValue) { activeHandicap = String(window.__challengeHandicapValue); window.__challengeHandicapValue = null; }
         try { if (activeHandicap !== "none") applyHandicapBoard(myColor, activeHandicap); }
         catch (err) { console.error("Error al aplicar el handicap:", err); activeHandicap = "none"; try { game.reset(); } catch (_) { } }
@@ -2431,6 +2472,7 @@
     peerJSInstance.on("connection", conn => setupConn(conn));
     peerJSInstance.on("error", err => {
       setBoardLoading(false);
+      if (bootJoining && !online()) { bootJoining = false; setTimeout(() => { location.href = "online.html" }, 2600); }
       showToast(err.type === "peer-unavailable" ? "No existe esa sala o el anfitrión está desconectado" : err.type === "unavailable-id" ? "Código en uso, inténtalo de nuevo" : "Error de conexión: " + err.type);
       if (!online()) { role = null; myColor = null; flipped = false; $("connText").textContent = "Sin conectar · partida local"; $("connDot").className = "status-dot warn"; $("chatInput").disabled = true; $("chatSend").disabled = true; render() }
     });
@@ -2474,18 +2516,19 @@
     });
   }
 
-  $("createRoomBtn").onclick = () => initPeerJS();
+  $("createRoomBtn").onclick = () => handoff({ mode: "host", tc: $("tcSelect").value, color: $("colorSelect").value || "r" });
   $("joinRoomBtn").onclick = () => {
     const c = $("roomInput").value.trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(c)) { showToast("El código de sala debe tener 6 caracteres"); return }
-    initPeerJS(c);
+    handoff({ mode: "join", room: c });
   };
-  $("copyLinkBtn").onclick = () => {
-    const c = $("roomInput").value.trim();
-    if (!c) { showToast("Primero crea una sala"); return; }
-    const url = window.location.origin + window.location.pathname + "#room=" + c;
+  $("boardLoadingCopy").onclick = () => {
+    const c = $("boardLoadingCode").textContent.trim();
+    if (!c) return;
+    const url = location.href.split(/[?#]/)[0] + "?mode=join&room=" + encodeURIComponent(c);
     navigator.clipboard.writeText(url).then(() => showToast("Enlace copiado"));
   };
+  $("boardLoadingCodeCopy").onclick = () => navigator.clipboard.writeText($("boardLoadingCode").textContent.trim()).then(() => showToast("Código copiado"));
 
   /* ---------- Amigos: ID persistente + presencia (sin servidor propio) ---------- */
   const LS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (_) { return null } };
@@ -2566,7 +2609,8 @@
     img.src = avatarUrl(safeSeed, isBot);
   }
   (function initBotLevelPicker() {
-    const select = $("botLevel");
+    const select = byId("botLevel");
+    if (!select) return;
     const root = document.createElement("div");
     root.className = "bot-level-picker";
     select.classList.add("bot-level-native");
@@ -2927,14 +2971,25 @@
 
     closeChallengePickers();
     $("challengeModal").style.display = "none";
-    setBoardLoading(true);
+    challengeTarget = null;
+    if (PAGE !== "partida") { handoff({ mode: "host", invite: f.code, iname: f.name || "", tc: inviteTc, color: inviteColor, handicap: normalizedHandicap }); return; }
+    runChallenge(f, inviteTc, inviteColor, normalizedHandicap);
+  }
+  let friendRetries = 0, nameRetries = 0;
+  const friendReady = [];
+  function afterFriendPeer(cb) {
+    if (friendPeer && friendPeer.open) return cb();
+    friendReady.push(cb);
+  }
+  function runChallenge(f, inviteTc, inviteColor, normalizedHandicap) {
+    setBoardLoading(true, { title: "Esperando a " + (f.name || f.code), sub: "Le hemos enviado la invitación", persist: true });
     $("tcSelect").value = inviteTc;
-    $("colorSelect").value = inviteColor;
+    hostOpts.color = inviteColor;
     activeHandicap = normalizedHandicap;
     window.__challengeHandicapValue = normalizedHandicap;
     parseTC(inviteTc);
 
-    try { initPeerJS(null, roomCode => {
+    try { initPeerJS(null, roomCode => afterFriendPeer(() => {
       const c = friendPeer.connect(FID(f.code), { reliable: true });
       const timeout = setTimeout(() => {
         if (!c.open) {
@@ -2979,7 +3034,7 @@
         clearTimeout(timeout);
         sendInvite();
       });
-    }); } catch (err) {
+    })); } catch (err) {
       console.error("Error al enviar el reto:", err);
       setBoardLoading(false);
       showToast("No se pudo enviar el reto");
@@ -3031,7 +3086,7 @@
       return;
     }
     pendingInvite = null;
-    if (i && confirmLeave()) initPeerJS(i.room)
+    if (i && confirmLeave()) { if (PAGE !== "partida") handoff({ mode: "join", room: i.room }); else initPeerJS(i.room) }
   };
   $("invNo").onclick = () => {
     const rematch = pendingRematch;
@@ -3267,7 +3322,7 @@
   function startFriendPeer() {
     if (typeof Peer === "undefined") return;
     friendPeer = new Peer(FID(myCode), { config: RTC_CONFIG });
-    friendPeer.on("open", () => { $("friendNote").textContent = "En línea. Tus amigos te ven mientras esta página esté abierta; ambos necesitáis la última versión del archivo."; pingAll() });
+    friendPeer.on("open", () => { friendRetries = 0; $("friendNote").textContent = "En línea. Tus amigos te ven mientras esta página esté abierta."; friendReady.splice(0).forEach(fn => fn()); pingAll() });
     friendPeer.on("connection", c => {
       c.on("data", d => {
         if (!d) return;
@@ -3299,7 +3354,10 @@
     friendPeer.on("disconnected", () => { $("friendNote").textContent = "Reconectando…"; try { friendPeer.reconnect() } catch (_) { } });
     friendPeer.on("error", err => {
       if (err.type === "peer-unavailable") { const m = /AJEDREZ-U([A-Z0-9]+)/.exec(err.message || ""); if (m) { presence[m[1]] = false; delete playing[m[1]]; renderFriends() } }
-      else if (err.type === "unavailable-id") $("friendNote").textContent = "Tu ID ya está en uso en otra pestaña o ventana del mismo navegador; ciérrala para aparecer en línea.";
+      else if (err.type === "unavailable-id") {
+        if (friendRetries++ < 6) { try { friendPeer.destroy() } catch (_) { } setTimeout(startFriendPeer, 900 * friendRetries); }
+        else $("friendNote").textContent = "Tu ID ya está en uso en otra pestaña o ventana del mismo navegador; ciérrala para aparecer en línea.";
+      }
       else $("friendNote").textContent = "Error de conexión con amigos: " + err.type;
     });
   }
@@ -3314,8 +3372,10 @@
       });
     });
     namePeer.on("error", err => {
-      if (err.type === "unavailable-id")
-        $("friendNote").textContent = "Ese nombre ya está en uso. La búsqueda por nombre requiere nombres únicos; usa el código de amigo.";
+      if (err.type === "unavailable-id") {
+        if (nameRetries++ < 4) { try { namePeer.destroy() } catch (_) { } setTimeout(startNamePeer, 1200 * nameRetries); }
+        else $("friendNote").textContent = "Ese nombre ya está en uso. La búsqueda por nombre requiere nombres únicos; usa el código de amigo.";
+      }
       else $("friendNote").textContent = "Error al publicar la búsqueda por nombre: " + err.type;
     });
   }
@@ -3343,7 +3403,10 @@
   setInterval(() => { if (!document.hidden || isPlayingOnline()) pingAll() }, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) pingAll() });
   window.addEventListener("beforeunload", () => { try { friendPeer.destroy() } catch (_) { } try { namePeer.destroy() } catch (_) { } try { warmPeer && warmPeer.peer.destroy() } catch (_) { } });
-  prepareWarmPeer(); renderFriends(); startFriendPeer(); startNamePeer();
+  if (PAGE === "online") prepareWarmPeer();
+  renderFriends(); startFriendPeer(); startNamePeer();
+  // Salir de una partida online en curso pide confirmación (al cambiar de página se perdería la conexión)
+  window.addEventListener("beforeunload", e => { if (PAGE === "partida" && online() && game.history().length && !game.game_over()) { e.preventDefault(); e.returnValue = "" } });
 
   /* ---------- Chat ---------- */
   function addMsg(kind, text) {
@@ -3378,11 +3441,24 @@
 
   render();
 
-  if (window.location.hash.includes("room=")) {
-    const code = window.location.hash.split("room=")[1].substring(0, 6).toUpperCase();
-    if (code) {
-      $("roomInput").value = code;
-      initPeerJS(code);
-    }
+  if (PAGE === "partida") {
+    const q = new URLSearchParams(location.search), mode = q.get("mode"), qTc = q.get("tc");
+    const tc = TC_RE.test(qTc || "") ? qTc : "600+0";
+    if (mode === "bot") startBotGame({ elo: q.get("elo"), side: ["w", "b", "r"].includes(q.get("side")) ? q.get("side") : "r" });
+    else if (mode === "host") {
+      hostOpts.color = ["w", "b", "r"].includes(q.get("color")) ? q.get("color") : "r";
+      window.__challengeHandicapValue = normalizeHandicapValue(q.get("handicap"));
+      const inv = /^[A-Z0-9]{8}$/.test(q.get("invite") || "") ? q.get("invite") : null;
+      if (inv) runChallenge(friends.find(x => x.code === inv) || { code: inv, name: q.get("iname") || inv }, tc, hostOpts.color, window.__challengeHandicapValue);
+      else {
+        parseTC(tc);
+        initPeerJS(null, code => setBoardLoading(true, { title: "Sala " + code, sub: "Comparte el código o el enlace con tu rival", code, persist: true }));
+      }
+    } else if (mode === "join" && /^[A-Z0-9]{6}$/i.test(q.get("room") || "")) {
+      bootJoining = true;
+      setBoardLoading(true, { title: "Conectando…", sub: "Entrando en la sala", persist: true });
+      initPeerJS(q.get("room"));
+    } else startLocalGame(tc);
+    if (q.get("settings")) openSettings();
   }
 })();

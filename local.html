@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Ajedrez · Partida local</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="menu.css">
+  <script src="common.js"></script>
+</head>
+
+<body class="menu" data-page="local">
+  <header class="mh">
+    <a class="logo" href="index.html" aria-label="Ajedrez, inicio"><span class="logo-tile" aria-hidden="true">♞</span>Ajedrez</a>
+    <a class="btn ghost back" href="index.html"><span class="material-symbols-rounded">arrow_back</span> Inicio</a>
+  </header>
+
+  <main class="mwrap">
+    <div class="ptitle" style="--tc:var(--sun);--td:var(--sun-dk);--tt:var(--ink)">
+      <span class="tile"><span class="material-symbols-rounded">group</span></span>
+      <div>
+        <h1>Partida local</h1>
+        <p>Dos jugadores, un dispositivo. ¿A qué ritmo jugáis?</p>
+      </div>
+    </div>
+
+    <div class="cats" id="cats"></div>
+
+    <div class="cta-bar">
+      <div class="sum"><span class="material-symbols-rounded" id="sumIcon">timer</span>
+        <div><strong id="sumTitle">10 min</strong><small id="sumSub">Rápida</small></div>
+      </div>
+      <a class="btn big" id="play" href="#"><span class="material-symbols-rounded">play_arrow</span> ¡A jugar!</a>
+    </div>
+  </main>
+
+  <footer class="mfoot">Made by Unai García</footer>
+
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      // Mismas categorías y ritmos que el selector de la partida
+      const CATS = [
+        { id: "bullet", name: "Bala", sub: "Menos de 3 min", icon: "rocket_launch", c: "--coral", d: "--coral-dk", t: "#fff", list: ["30+0", "30+1", "60+0", "60+1", "60+2", "120+1"] },
+        { id: "blitz", name: "Blitz", sub: "De 3 a 5 min", icon: "bolt", c: "--sun", d: "--sun-dk", t: "var(--ink)", list: ["180+0", "180+1", "180+2", "240+0", "300+0", "300+3", "300+5"] },
+        { id: "rapid", name: "Rápida", sub: "De 10 a 30 min", icon: "timer", c: "--accent", d: "--accent-dk", t: "var(--on-accent)", list: ["600+0", "600+5", "900+0", "900+10", "1200+0", "1800+0", "1800+20"] },
+        { id: "classic", name: "Clásica", sub: "Más de una hora", icon: "hourglass_top", c: "--grape", d: "--grape-dk", t: "#fff", list: ["3600+0", "5400+30", "7200+30"] },
+        { id: "free", name: "Sin reloj", sub: "Con calma, sin prisas", icon: "all_inclusive", c: "--sky", d: "--sky-dk", t: "var(--ink)", list: ["0+0"] }
+      ];
+      const fmt = v => {
+        const [b, i] = v.split("+").map(Number);
+        if (!b) return "Sin reloj";
+        const base = b >= 3600 && b % 3600 === 0 ? b / 3600 + " h" : b >= 60 && b % 60 === 0 ? b / 60 + " min" : b + " s";
+        return i ? base + " + " + i + " s" : base;
+      };
+      const catOf = v => { const b = Number(v.split("+")[0]); return b === 0 ? CATS[4] : b < 180 ? CATS[0] : b < 600 ? CATS[1] : b < 3600 ? CATS[2] : CATS[3]; };
+      const KEY = "aj_local_tc";
+      let tc = /^\d{1,5}\+\d{1,3}$/.test(AJ.get(KEY) || "") ? AJ.get(KEY) : "600+0";
+
+      const root = $("cats");
+      CATS.forEach(c => {
+        const el = document.createElement("section");
+        el.className = "cat";
+        el.style.cssText = "--cc:var(" + c.c + ");--cd:var(" + c.d + ");--ct:" + c.t;
+        el.innerHTML = '<div class="cat-h"><span class="t"><span class="material-symbols-rounded">' + c.icon + '</span></span><div><strong>' + c.name + '</strong><small>' + c.sub + '</small></div></div><div class="chips"></div>';
+        c.list.forEach(v => el.querySelector(".chips").appendChild(chip(v)));
+        if (c.id === "classic") { /* el hueco final lo ocupa el ritmo personalizado */ }
+        root.appendChild(el);
+      });
+
+      // Ritmo personalizado
+      const cu = document.createElement("section");
+      cu.className = "cat"; cu.style.cssText = "--cc:var(--bright);--cd:var(--line);--ct:var(--bg)";
+      cu.innerHTML = '<div class="cat-h"><span class="t"><span class="material-symbols-rounded">tune</span></span><div><strong>A tu medida</strong><small>Minutos e incremento</small></div></div>' +
+        '<div class="custom"><div><label class="lbl" for="cMin">Minutos</label><input id="cMin" type="number" min="1" max="180" placeholder="15" inputmode="numeric"></div>' +
+        '<div><label class="lbl" for="cInc">Incremento (s)</label><input id="cInc" type="number" min="0" max="60" placeholder="0" inputmode="numeric"></div>' +
+        '<button class="btn ghost" id="cApply" style="height:50px">Usar</button></div>';
+      root.appendChild(cu);
+      $("cApply").onclick = () => {
+        const m = Math.round(Number($("cMin").value)), i = Math.round(Number($("cInc").value || 0));
+        if (!(m >= 1 && m <= 180) || !(i >= 0 && i <= 60)) { AJ.toast("Usa de 1 a 180 min y de 0 a 60 s de incremento"); return; }
+        select(m * 60 + "+" + i);
+      };
+
+      function chip(v) {
+        const b = document.createElement("button");
+        b.className = "tchip"; b.dataset.tc = v; b.textContent = fmt(v);
+        b.onclick = () => select(v);
+        return b;
+      }
+      function select(v) {
+        tc = v; AJ.set(KEY, v);
+        // un ritmo personalizado que no está en la lista se añade a su categoría
+        if (!document.querySelector('.tchip[data-tc="' + v + '"]')) {
+          const idx = CATS.indexOf(catOf(v));
+          root.children[idx].querySelector(".chips").appendChild(chip(v));
+        }
+        document.querySelectorAll(".tchip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tc === v)));
+        const c = catOf(v);
+        $("sumTitle").textContent = fmt(v); $("sumSub").textContent = c.name; $("sumIcon").textContent = c.icon;
+        $("play").href = "partida.html?mode=local&tc=" + encodeURIComponent(v);
+      }
+      select(tc);
+    })();
+  </script>
+</body>
+
+</html>

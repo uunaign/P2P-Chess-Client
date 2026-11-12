@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Ajedrez · Jugar online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://0.peerjs.com" crossorigin>
+  <link rel="preconnect" href="https://api.dicebear.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="menu.css">
+  <script src="common.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script defer src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script defer src="script.js"></script>
+</head>
+
+<body class="menu" data-page="online">
+  <header class="mh">
+    <a class="logo" href="index.html" aria-label="Ajedrez, inicio"><span class="logo-tile" aria-hidden="true">♞</span>Ajedrez</a>
+    <a class="btn ghost back" href="index.html"><span class="material-symbols-rounded">arrow_back</span> Inicio</a>
+  </header>
+
+  <div class="mwrap" role="main">
+    <div class="ptitle">
+      <span class="tile"><span class="material-symbols-rounded">wifi</span></span>
+      <div>
+        <h1>Jugar online</h1>
+        <p>Reta a un amigo o crea una sala y comparte el código.</p>
+      </div>
+    </div>
+
+    <div class="on-layout">
+      <div class="stack-col">
+        <section class="panel">
+          <h2><span class="material-symbols-rounded">badge</span> Tu perfil</h2>
+          <div class="me">
+            <img id="profileAvatar" alt="">
+            <div class="col">
+              <input id="nameInput" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="16" autocomplete="off">
+              <div class="codebox">
+                <input id="myCode" aria-label="Tu código de amigo" title="Tu código de amigo" readonly>
+                <button class="btn ghost noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span class="material-symbols-rounded">content_copy</span></button>
+              </div>
+            </div>
+          </div>
+          <p class="hint">Pásale tu código a un amigo para que te añada.</p>
+        </section>
+
+        <section class="panel">
+          <h2><span class="material-symbols-rounded">vpn_key</span> Sala con código</h2>
+          <div class="field"><label for="tcSelect">Ritmo</label><select id="tcSelect"></select></div>
+          <div class="lbl">Juegas con</div>
+          <select id="colorSelect" hidden>
+            <option value="w">Blancas</option>
+            <option value="b">Negras</option>
+            <option value="r" selected>Aleatorio</option>
+          </select>
+          <div class="sidepick" id="sidepick">
+            <button class="colorpick" data-side="w" aria-pressed="false"><span class="sym">♔</span>Blancas</button>
+            <button class="colorpick" data-side="b" aria-pressed="false"><span class="sym">♚</span>Negras</button>
+            <button class="colorpick" data-side="r" aria-pressed="true"><span class="material-symbols-rounded">casino</span>Al azar</button>
+          </div>
+          <button class="btn" id="createRoomBtn" style="width:100%;margin-top:18px"><span class="material-symbols-rounded">add_circle</span> Crear sala</button>
+          <div class="join">
+            <div class="lbl" style="margin-top:0">¿Te han dado un código?</div>
+            <div class="row">
+              <input id="roomInput" type="text" placeholder="ABC123" maxlength="6" autocomplete="off" aria-label="Código de sala">
+              <button class="btn ghost" id="joinRoomBtn" style="flex:none"><span class="material-symbols-rounded">login</span> Unirse</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2><span class="material-symbols-rounded">group</span> Amigos</h2>
+        <div class="addfriends">
+          <div class="field"><label for="friendNameInput">Buscar por nombre</label>
+            <div class="row"><input id="friendNameInput" placeholder="NOMBRE EXACTO" maxlength="16" title="El nombre debe ser único; si no aparece, puedes buscar al jugador por su código."><button class="btn ghost noTextButton" id="findFriendBtn" aria-label="Buscar"><span class="material-symbols-rounded">person_search</span></button></div>
+          </div>
+          <div class="field"><label for="friendInput">Añadir por código</label>
+            <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="btn ghost noTextButton" id="addFriendBtn" aria-label="Añadir"><span class="material-symbols-rounded">person_add</span></button></div>
+          </div>
+        </div>
+        <div class="friends" id="friendList"></div>
+        <div style="margin-top:16px"><button class="btn ghost" id="refreshFriends"><span class="material-symbols-rounded" style="font-size:20px">refresh</span> Actualizar lista</button></div>
+        <div class="on-note" id="friendNote">Conectando…</div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="mfoot">Made by Unai García</footer>
+
+  <div class="notif-stack" id="notifStack" aria-live="polite">
+    <div class="notif" id="inviteBar" hidden><span class="material-symbols-rounded notif-ico">sports_esports</span><span
+        class="notif-text" id="inviteText"></span>
+      <div class="notif-actions"><button class="primarySmall" id="invYes"><span
+            class="material-symbols-rounded" style="font-size:20px">check</span> Jugar</button><button class="secondary" id="invNo"><span
+            class="material-symbols-rounded" style="font-size:20px">close</span> No</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-backdrop" id="challengeModal">
+    <div class="modal" style="width:min(380px,100%)">
+      <h3><span class="material-symbols-rounded" style="vertical-align:middle">swords</span> Retar a un amigo</h3>
+      <p class="tiny" id="challengeFriendName" style="margin:0 0 14px">Configura la partida antes de enviar la invitación.</p>
+      <div class="field"><label for="inviteTcSelect">Ritmo</label><select id="inviteTcSelect"></select></div>
+      <div class="field"><label for="inviteColorSelect">Jugar con</label><select id="inviteColorSelect">
+          <option value="w">Blancas</option>
+          <option value="b">Negras</option>
+          <option value="r" selected>Aleatorio</option>
+        </select></div>
+      <div class="field"><label for="inviteHandicapSelect">Hándicap</label><select id="inviteHandicapSelect" hidden></select></div>
+      <div class="modal-buttons" style="margin-top:18px;display:flex;gap:10px"><button class="primarySmall" id="sendChallengeBtn" style="flex:1"><span
+            class="material-symbols-rounded" style="font-size:20px">send</span> Enviar reto</button><button class="secondary"
+          id="cancelChallengeBtn">Cancelar</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="watchModal">
+    <div class="modal watch-modal" role="dialog" aria-label="Partida en directo">
+      <div class="st-head">
+        <h3><span class="material-symbols-rounded">visibility</span> Partida en directo</h3>
+        <div class="st-head-actions">
+          <button class="secondary noTextButton" id="watchRotateBtn" title="Girar tablero" aria-label="Girar tablero"><span class="material-symbols-rounded">screen_rotation</span></button>
+          <button class="end-x" id="watchClose" aria-label="Cerrar"><span class="material-symbols-rounded"
+              style="margin:0">close</span></button>
+        </div>
+      </div>
+      <div class="watch-content">
+        <div class="watch-meta" id="watchMetaTop"></div>
+        <div class="watch-board-wrap">
+          <div id="watchBoard" aria-label="Tablero en directo"></div>
+        </div>
+        <div class="watch-meta" id="watchMetaBottom"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // El color de la sala se elige con botones; el <select> oculto es lo que lee script.js
+    document.querySelectorAll("#sidepick .colorpick").forEach(b => b.onclick = () => {
+      document.getElementById("colorSelect").value = b.dataset.side;
+      document.querySelectorAll("#sidepick .colorpick").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    });
+  </script>
+</body>
+
+</html>

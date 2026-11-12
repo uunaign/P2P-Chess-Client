@@ -3292,3 +3292,14 @@ body.board-img .coord {
 
 .end-icon.svg{width:44px;height:44px;font-size:0}
 #endBox.analyzed .end-icon.svg{width:32px;height:32px}
+
+
+/* Pantalla de espera de la partida online: código de sala y salida */
+.loading-room { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 14px }
+.room-code { font: 800 34px Manrope, sans-serif; letter-spacing: .22em; padding-left: .22em; color: var(--bright); user-select: all }
+.loading-room-btns { display: flex; gap: 8px }
+.loading-room-btns .material-symbols-rounded { font-size: 18px }
+.loading-cancel { display: inline-block; margin-top: 14px; text-decoration: none; font-size: 13px }
+a.gear { display: inline-flex; align-items: center; justify-content: center; text-decoration: none }
+
+.loading-room[hidden] { display: none }
