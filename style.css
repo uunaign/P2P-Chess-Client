@@ -3477,6 +3477,13 @@ body[data-page="partida"] .pv-board {
   width: 100%;
   aspect-ratio: 1 / 1;
 }
+body[data-page="partida"] .board-wrap { border-radius: 10px; }
+body[data-page="partida"] .pv-board { border-radius: 0; }
+body[data-page="partida"] #board .square,
+body[data-page="partida"] #watchBoard .square,
+body[data-page="partida"] .pv-board .pv-sq {
+  border-radius: 0 !important;
+}
 body[data-page="partida"] #newGameBtn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 78%, #000);
   color: var(--on-accent, #141d0f);
