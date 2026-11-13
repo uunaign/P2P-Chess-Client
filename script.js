@@ -3038,7 +3038,7 @@
     if (PAGE !== "partida") { handoff({ mode: "host", invite: f.code, iname: f.name || "", tc: inviteTc, color: inviteColor, handicap: normalizedHandicap }); return; }
     runChallenge(f, inviteTc, inviteColor, normalizedHandicap);
   }
-  let friendRetries = 0, nameRetries = 0;
+  let friendRetries = 0, nameRetries = 0, friendReconnectTimer = null, nameReconnectTimer = null;
   const friendReady = [];
   function afterFriendPeer(cb) {
     if (friendPeer && friendPeer.open) return cb();
@@ -3384,9 +3384,12 @@
   }
   function startFriendPeer() {
     if (typeof Peer === "undefined") return;
-    friendPeer = new Peer(FID(myCode), { config: RTC_CONFIG });
-    friendPeer.on("open", () => { friendRetries = 0; $("friendNote").textContent = "En línea. Tus amigos te ven mientras esta página esté abierta."; friendReady.splice(0).forEach(fn => fn()); pingAll() });
-    friendPeer.on("connection", c => {
+    if (friendPeer && !friendPeer.destroyed) return;
+    try { friendPeer = new Peer(FID(myCode), { config: RTC_CONFIG }); }
+    catch (err) { scheduleFriendPeerRestart(); return; }
+    const current = friendPeer;
+    current.on("open", () => { if (friendPeer !== current) return; clearTimeout(friendReconnectTimer); friendReconnectTimer = null; friendRetries = 0; $("friendNote").textContent = "En línea. Tus amigos te ven mientras esta página esté abierta."; friendReady.splice(0).forEach(fn => fn()); pingAll() });
+    current.on("connection", c => {
       c.on("data", d => {
         if (!d) return;
         if (d.type === "hello") {
@@ -3414,41 +3417,67 @@
         else if (d.type === "liveGame") { updateLiveMatch(d); c.send({ type: "liveGame", code: myCode, name: myName, opponent: normalizeName(activeOpponentName || "Rival"), fen: game.fen(), pgn: game.pgn({ max_width: 60, newline_char: "\n" }), playing: isPlayingOnline(), result: getResult() ? { w: getResult().w, why: getResult().why } : null, moveCount: game.history().length, tc: ($("tcSelect") && $("tcSelect").value) || ($("localTcSelect") && $("localTcSelect").value) || "600+0" }); }
       });
     });
-    friendPeer.on("disconnected", () => {
+    current.on("disconnected", () => {
+      if (friendPeer !== current) return;
       $("friendNote").textContent = "Recuperando conexión con el servicio de amigos…";
-      try { friendPeer.reconnect() } catch (_) {
-        if (friendPeer && !friendPeer.destroyed) { try { friendPeer.destroy() } catch (_) { } }
-        friendPeer = null;
-        if (friendRetries++ < 6) setTimeout(startFriendPeer, Math.min(1000 * friendRetries, 6000));
-        else $("friendNote").textContent = "No se pudo recuperar la conexión. Actualiza la página para volver a intentarlo.";
-      }
+      clearTimeout(friendReconnectTimer);
+      try { current.reconnect() } catch (_) { }
+      // PeerJS reconnect can remain pending without throwing; replace the peer if it never reopens.
+      friendReconnectTimer = setTimeout(() => { if (friendPeer === current && !current.open) restartFriendPeer(); }, 7000);
     });
-    friendPeer.on("error", err => {
+    current.on("error", err => {
+      if (friendPeer !== current) return;
       if (err.type === "peer-unavailable") { /* A single failed probe is not proof that the peer is offline. */ }
       else if (err.type === "unavailable-id") {
-        if (friendRetries++ < 6) { try { friendPeer.destroy() } catch (_) { } setTimeout(startFriendPeer, 900 * friendRetries); }
+        if (friendRetries++ < 6) { try { current.destroy() } catch (_) { } friendPeer = null; setTimeout(startFriendPeer, 900 * friendRetries); }
         else $("friendNote").textContent = "Tu ID ya está en uso en otra pestaña o ventana del mismo navegador; ciérrala para aparecer en línea.";
       }
-      else $("friendNote").textContent = "Error de conexión con amigos: " + err.type;
+      else { $("friendNote").textContent = "Recuperando conexión con el servicio de amigos…"; scheduleFriendPeerRestart(); }
     });
+  }
+  function scheduleFriendPeerRestart() {
+    clearTimeout(friendReconnectTimer);
+    if (friendRetries++ >= 8) { $("friendNote").textContent = "No se pudo recuperar la conexión. Actualiza la página para volver a intentarlo."; return; }
+    friendReconnectTimer = setTimeout(restartFriendPeer, Math.min(friendRetries * 1000, 8000));
+  }
+  function restartFriendPeer() {
+    clearTimeout(friendReconnectTimer); friendReconnectTimer = null;
+    const old = friendPeer; friendPeer = null;
+    try { if (old && !old.destroyed) old.destroy(); } catch (_) { }
+    startFriendPeer();
   }
   function startNamePeer() {
     if (typeof Peer === "undefined") return;
-    if (namePeer) namePeer.destroy();
-    namePeer = new Peer(NAME_FID(myName), { config: RTC_CONFIG });
-    namePeer.on("connection", c => {
+    clearTimeout(nameReconnectTimer); nameReconnectTimer = null;
+    if (namePeer) { try { namePeer.destroy(); } catch (_) { } namePeer = null; }
+    try { namePeer = new Peer(NAME_FID(myName), { config: RTC_CONFIG }); }
+    catch (_) { scheduleNamePeerRestart(); return; }
+    const current = namePeer;
+    current.on("connection", c => {
       c.on("data", d => {
         if (d && d.type === "nameLookup")
           c.send({ type: "nameResult", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline() });
       });
     });
-    namePeer.on("error", err => {
+    current.on("error", err => {
+      if (namePeer !== current) return;
       if (err.type === "unavailable-id") {
-        if (nameRetries++ < 4) { try { namePeer.destroy() } catch (_) { } setTimeout(startNamePeer, 1200 * nameRetries); }
+        if (nameRetries++ < 6) { try { current.destroy() } catch (_) { } namePeer = null; nameReconnectTimer = setTimeout(startNamePeer, 1200 * nameRetries); }
         else $("friendNote").textContent = "Ese nombre ya está en uso. La búsqueda por nombre requiere nombres únicos; usa el código de amigo.";
       }
-      else $("friendNote").textContent = "Error al publicar la búsqueda por nombre: " + err.type;
+      else scheduleNamePeerRestart();
     });
+    current.on("open", () => { if (namePeer === current) { clearTimeout(nameReconnectTimer); nameReconnectTimer = null; nameRetries = 0; } });
+    current.on("disconnected", () => {
+      if (namePeer !== current) return;
+      try { current.reconnect(); } catch (_) { }
+      nameReconnectTimer = setTimeout(() => { if (namePeer === current && !current.open) { try { current.destroy(); } catch (_) { } namePeer = null; scheduleNamePeerRestart(); } }, 7000);
+    });
+  }
+  function scheduleNamePeerRestart() {
+    clearTimeout(nameReconnectTimer);
+    if (nameRetries++ >= 8) return;
+    nameReconnectTimer = setTimeout(startNamePeer, Math.min(nameRetries * 1200, 9000));
   }
   $("nameInput").value = myName;
   setPlayerAvatar($("profileAvatar"), myName, "w");
