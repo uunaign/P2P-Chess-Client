@@ -109,7 +109,7 @@
     return flipped ? { x: 7 - f, y: 7 - r } : { x: f, y: r };
   }
 
-  let boardLoadingTimeout = null;
+  let boardLoadingTimeout = null, inviteConnectionWatchdog = null;
   function setBoardLoading(loading, opts = {}) {
     const el = $("boardLoading");
     if (el) {
@@ -123,6 +123,7 @@
       }
     }
     if (boardLoadingTimeout) { clearTimeout(boardLoadingTimeout); boardLoadingTimeout = null; }
+    if (!loading && inviteConnectionWatchdog) { clearTimeout(inviteConnectionWatchdog); inviteConnectionWatchdog = null; }
     if (loading && !opts.persist) {
       // Evita dejar el tablero bloqueado indefinidamente si el rival no conecta.
       boardLoadingTimeout = setTimeout(() => setBoardLoading(false), 60000);
@@ -3049,6 +3050,19 @@
   }
   function runChallenge(f, inviteTc, inviteColor, normalizedHandicap) {
     setBoardLoading(true, { title: "Esperando a " + (f.name || f.code), sub: "Le hemos enviado la invitación", persist: true });
+    const armConnectionWatchdog = (delay, message) => {
+      clearTimeout(inviteConnectionWatchdog);
+      inviteConnectionWatchdog = setTimeout(() => {
+        inviteConnectionWatchdog = null;
+        if (!peerJSConn || !peerJSConn.open) {
+          setBoardLoading(false);
+          $("connText").textContent = "La invitación no llegó a conectar";
+          $("connDot").className = "status-dot warn";
+          showToast(message);
+        }
+      }, delay);
+    };
+    armConnectionWatchdog(60000, "La invitación caducó antes de conectar. Puedes volver a enviar el reto.");
     $("tcSelect").value = inviteTc;
     hostOpts.color = inviteColor;
     activeHandicap = normalizedHandicap;
@@ -3079,6 +3093,9 @@
         if (d && d.type === "declined") {
           setBoardLoading(false);
           showToast((f.name || "Tu amigo") + " rechazó la invitación");
+        } else if (d && d.type === "accepted") {
+          setBoardLoading(true, { title: "Invitación aceptada", sub: "Conectando el tablero con " + (f.name || "tu amigo") + "…", persist: true });
+          armConnectionWatchdog(25000, "Tu amigo aceptó, pero no se pudo conectar el tablero. Vuelve a enviar la invitación.");
         }
       });
       c.on("error", () => {
@@ -3152,7 +3169,10 @@
       return;
     }
     pendingInvite = null;
-    if (i && confirmLeave()) { if (PAGE !== "partida") handoff({ mode: "join", room: i.room }); else initPeerJS(i.room) }
+    if (i && confirmLeave()) {
+      try { if (i.c && i.c.open) i.c.send({ type: "accepted" }); } catch (_) { }
+      if (PAGE !== "partida") handoff({ mode: "join", room: i.room }); else initPeerJS(i.room);
+    }
   };
   $("invNo").onclick = () => {
     const rematch = pendingRematch;

@@ -36,7 +36,10 @@
     const actions = document.createElement("div"); actions.className = "site-invite-actions";
     const accept = document.createElement("button"); accept.className = "btn"; accept.textContent = "Jugar";
     const decline = document.createElement("button"); decline.className = "btn ghost"; decline.textContent = "Ahora no";
-    accept.onclick = () => { location.href = "partida.html?mode=join&room=" + encodeURIComponent(data.room); };
+    accept.onclick = () => {
+      try { if (connection.open) connection.send({ type: "accepted" }); } catch (_) { }
+      location.href = "partida.html?mode=join&room=" + encodeURIComponent(data.room);
+    };
     decline.onclick = () => { try { connection.send({ type: "declined" }) } catch (_) { } card.remove(); inviteCard = null; };
     actions.append(accept, decline); card.append(title, detail, actions); document.body.appendChild(card);
   }
