@@ -2586,16 +2586,7 @@
   let myCode = LS("aj_code"); if (!myCode) { myCode = rnd(8); LS("aj_code", myCode) }
   let myName = LS("aj_name") || "Jugador" + rnd(3);
   let friends = []; try { friends = JSON.parse(LS("aj_friends") || "[]") } catch (_) { }
-  const presence = {}, playing = {}, FID = c => "AJEDREZ-U" + c, NAME_FID = name => {
-    const normalized = normalizeName(name).normalize("NFKC").toLowerCase();
-    let hashA = 2166136261, hashB = 2246822519;
-    for (let i = 0; i < normalized.length; i++) {
-      const code = normalized.charCodeAt(i);
-      hashA = Math.imul(hashA ^ code, 16777619) >>> 0;
-      hashB = Math.imul(hashB ^ code, 3266489917) >>> 0;
-    }
-    return "AJEDREZ-N" + hashA.toString(16).padStart(8, "0") + hashB.toString(16).padStart(8, "0");
-  }, saveFriends = () => LS("aj_friends", JSON.stringify(friends));
+  const presence = {}, playing = {}, FID = c => "AJEDREZ-U" + c, NAME_FID = name => AJ.namePeerId(name), saveFriends = () => LS("aj_friends", JSON.stringify(friends));
   const ELO_KEY = "aj_elo_by_name";
   let playerRatings = {}; try { playerRatings = JSON.parse(LS(ELO_KEY) || "{}") || {}; } catch (_) { playerRatings = {} }
   let activeOpponentName = "Rival";
@@ -2957,6 +2948,15 @@
     if (!name) { showToast("Escribe el nombre del jugador"); return }
     if (playerKey(name) === playerKey(myName)) { showToast("Ese es tu propio nombre"); return }
     if (!friendPeer || !friendPeer.open) { showToast("Tu conexión de amigos aún no está lista"); return }
+
+    const knownFriend = friends.find(friend => friend.code !== myCode && playerKey(friend.name || "") === playerKey(name));
+    if (knownFriend) {
+      $("friendNameInput").value = "";
+      renderFriends();
+      showToast("Ya tienes a " + (knownFriend.name || name) + " en tu lista");
+      ping(knownFriend);
+      return;
+    }
 
     let completed = false;
     let attempts = 0, attemptTimer = null;

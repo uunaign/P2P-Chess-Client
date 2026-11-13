@@ -62,6 +62,17 @@
     }
   };
 
+  function namePeerId(value) {
+    const normalized = String(value || "").trim().replace(/\s+/g, " ").slice(0, 16).normalize("NFKC").toLowerCase();
+    let hashA = 2166136261, hashB = 2246822519;
+    for (let i = 0; i < normalized.length; i++) {
+      const code = normalized.charCodeAt(i);
+      hashA = Math.imul(hashA ^ code, 16777619) >>> 0;
+      hashB = Math.imul(hashB ^ code, 3266489917) >>> 0;
+    }
+    return "AJEDREZ-N" + hashA.toString(16).padStart(8, "0") + hashB.toString(16).padStart(8, "0");
+  }
+
   /* ---------- Avatares y piezas ---------- */
   const knightFallback = fill => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="' + fill + '"/>' +
@@ -115,5 +126,5 @@
   }
   document.addEventListener("DOMContentLoaded", () => { if (document.body.classList.contains("menu")) floaters(); });
 
-  window.AJ = { UI_THEMES, ACCENTS, get, set, profile, avatarUrl, setAvatar, pieceUrl, setPiece, toast, applyTheme, rnd };
+  window.AJ = { UI_THEMES, ACCENTS, get, set, profile, namePeerId, avatarUrl, setAvatar, pieceUrl, setPiece, toast, applyTheme, rnd };
 })();

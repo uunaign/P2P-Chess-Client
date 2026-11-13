@@ -6,16 +6,7 @@
   const myCode = window.AJ.profile.code;
   const name = () => window.AJ.profile.name;
   const fid = "AJEDREZ-U" + myCode;
-  const nameId = () => {
-    const normalized = name().trim().replace(/\s+/g, " ").slice(0, 16).normalize("NFKC").toLowerCase();
-    let hashA = 2166136261, hashB = 2246822519;
-    for (let i = 0; i < normalized.length; i++) {
-      const code = normalized.charCodeAt(i);
-      hashA = Math.imul(hashA ^ code, 16777619) >>> 0;
-      hashB = Math.imul(hashB ^ code, 3266489917) >>> 0;
-    }
-    return "AJEDREZ-N" + hashA.toString(16).padStart(8, "0") + hashB.toString(16).padStart(8, "0");
-  };
+  const nameId = () => window.AJ.namePeerId(name());
   const rtcConfig = { config: { iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun.cloudflare.com:3478" },
