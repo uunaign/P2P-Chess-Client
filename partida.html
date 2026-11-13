@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://0.peerjs.com" crossorigin>
   <link rel="preconnect" href="https://images.chesscomfiles.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="common.js"></script>
@@ -201,7 +201,19 @@
           <div id="stGeneral" class="settings-general" hidden>
             <section class="settings-group">
               <h4>Tablero</h4>
-              <label class="settings-option" for="markColorInput"><span><strong>Color de marcación</strong><small>Color de las casillas y flechas que marques.</small></span><input id="markColorInput" type="color" value="#e34f4f"></label>
+              <div class="mark-color-setting">
+                <span><strong>Color de marcación</strong><small>Elige un tono para las casillas y flechas que marques.</small></span>
+                <div class="mark-color-controls" role="group" aria-label="Color de marcación">
+                  <button class="mark-swatch" type="button" data-mark-color="#e34f4f" aria-label="Rojo" title="Rojo"></button>
+                  <button class="mark-swatch" type="button" data-mark-color="#f59e0b" aria-label="Naranja" title="Naranja"></button>
+                  <button class="mark-swatch" type="button" data-mark-color="#eab308" aria-label="Amarillo" title="Amarillo"></button>
+                  <button class="mark-swatch" type="button" data-mark-color="#22c55e" aria-label="Verde" title="Verde"></button>
+                  <button class="mark-swatch" type="button" data-mark-color="#38bdf8" aria-label="Azul" title="Azul"></button>
+                  <button class="mark-swatch" type="button" data-mark-color="#a78bfa" aria-label="Violeta" title="Violeta"></button>
+                  <button class="mark-custom" id="markColorCustom" type="button"><span class="material-symbols-rounded">palette</span> Personalizado</button>
+                  <input id="markColorInput" type="color" value="#e34f4f" aria-label="Color personalizado">
+                </div>
+              </div>
               <label class="settings-option" for="persistentMarksInput"><span><strong>Mantener las marcas</strong><small>Conserva las anotaciones al mover piezas.</small></span><input id="persistentMarksInput" type="checkbox"></label>
               <label class="settings-option" for="premovesInput"><span><strong>Premoves</strong><small>Encola una jugada mientras esperas el turno rival.</small></span><input id="premovesInput" type="checkbox"></label>
             </section>

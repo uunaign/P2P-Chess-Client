@@ -663,12 +663,31 @@
   $("markColorInput").value = markColor;
   $("persistentMarksInput").checked = persistentMarks;
   function saveMarkSettings() { try { store.set(MARK_SETTINGS_KEY, JSON.stringify({ color: markColor, persistent: persistentMarks })) } catch (_) { } }
-  $("markColorInput").oninput = () => {
-    markColor = $("markColorInput").value;
+  function syncMarkColorControls() {
+    $("markColorInput").value = markColor;
+    document.querySelectorAll("[data-mark-color]").forEach(button => {
+      const active = button.dataset.markColor.toLowerCase() === markColor.toLowerCase();
+      button.classList.toggle("selected", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    const customButton = $("markColorCustom");
+    const isPreset = [...document.querySelectorAll("[data-mark-color]")].some(button => button.dataset.markColor.toLowerCase() === markColor.toLowerCase());
+    customButton.classList.toggle("selected", !isPreset);
+    customButton.setAttribute("aria-pressed", String(!isPreset));
+    customButton.style.setProperty("--custom-mark-color", markColor);
+  }
+  function setMarkColor(color) {
+    if (!/^#[0-9a-f]{6}$/i.test(color || "")) return;
+    markColor = color;
     marks.forEach((_, square) => marks.set(square, markColor));
     arrows = arrows.map(arrow => ({ ...arrow, color: markColor }));
+    syncMarkColorControls();
     saveMarkSettings(); drawAnnotations();
-  };
+  }
+  syncMarkColorControls();
+  document.querySelectorAll("[data-mark-color]").forEach(button => button.onclick = () => setMarkColor(button.dataset.markColor));
+  $("markColorCustom").onclick = () => $("markColorInput").click();
+  $("markColorInput").oninput = () => setMarkColor($("markColorInput").value);
   $("persistentMarksInput").onchange = () => { persistentMarks = $("persistentMarksInput").checked; saveMarkSettings() };
   $("premovesInput").checked = premovesEnabled;
   $("premovesInput").onchange = () => {
@@ -1435,7 +1454,7 @@
   $("historyModal").addEventListener("click", e => { if (e.target === $("historyModal")) closeHistory() });
   $("watchModal").addEventListener("click", e => { if (e.target === $("watchModal")) closeWatch() });
   document.querySelectorAll(".st-tab").forEach(b => b.onclick = () => showSettingsTab(b.dataset.st));
-  $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; markColor = "#e34f4f"; persistentMarks = false; premovesEnabled = false; $("markColorInput").value = markColor; $("persistentMarksInput").checked = false; $("premovesInput").checked = false; store.set("ajedrez.premoves", "false"); saveMarkSettings(); store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview(); drawAnnotations() };
+  $("stReset").onclick = () => { pieceSet = "neo"; boardTheme = "c-verde"; uiTheme = "dark"; accentId = "verde"; markColor = "#e34f4f"; persistentMarks = false; premovesEnabled = false; syncMarkColorControls(); $("persistentMarksInput").checked = false; $("premovesInput").checked = false; store.set("ajedrez.premoves", "false"); saveMarkSettings(); store.set("ajedrez.pieces", pieceSet); store.set("ajedrez.board", boardTheme); store.set("ajedrez.uiTheme", uiTheme); store.set("ajedrez.accent", accentId); applyBoard(); applyUiTheme(); syncSettings(); render(); renderPreview(); drawAnnotations() };
   // con los ajustes abiertos, Esc los cierra y las flechas no mueven el tablero de detrás
   document.addEventListener("keydown", e => {
     if ($("settingsModal").style.display !== "flex") return;

@@ -3313,3 +3313,237 @@ body.board-img .coord {
 a.gear { display: inline-flex; align-items: center; justify-content: center; text-decoration: none }
 
 .loading-room[hidden] { display: none }
+
+/* Juego: el mismo carácter cálido de los menús, con el tablero como foco. */
+body[data-page="partida"] { font-family: Nunito, "DM Sans", sans-serif; }
+body[data-page="partida"] main { gap: 20px; }
+body[data-page="partida"] .board-column { gap: 9px; }
+body[data-page="partida"] .avatar { border-radius: 12px; border: 2px solid var(--line); padding: 1px; }
+body[data-page="partida"] .name { font: 700 16px Fredoka, Nunito, sans-serif; letter-spacing: .01em; }
+body[data-page="partida"] .clock { border-radius: 12px; padding: 8px 14px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 75%, transparent); }
+body[data-page="partida"] .clock.active { background: var(--accent); color: var(--on-accent); box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 65%, #000); }
+body[data-page="partida"] .clock.active.low-time { background: #fee2e2; color: #b91c1c; box-shadow: 0 3px 0 #efb1b1; }
+body[data-page="partida"] .board-wrap { border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,.28), 0 0 0 4px color-mix(in srgb, var(--card) 88%, transparent); }
+body[data-page="partida"] .material-heading { font-family: Nunito, sans-serif; }
+body[data-page="partida"] .card { border-radius: 20px; border-color: color-mix(in srgb, var(--line) 88%, var(--accent)); box-shadow: 0 8px 24px rgba(0,0,0,.16); }
+body[data-page="partida"] .status { padding: 12px 12px 12px 16px; font: 700 16px Fredoka, Nunito, sans-serif; background: linear-gradient(110deg, color-mix(in srgb, var(--accent) 10%, var(--card)), var(--card) 62%); }
+body[data-page="partida"] .gear { border-radius: 11px; transition: transform .16s ease, background .16s ease, border-color .16s ease; }
+body[data-page="partida"] .gear:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+body[data-page="partida"] .tabs { padding: 6px 8px 0; gap: 6px; }
+body[data-page="partida"] .tab { border: 0; border-radius: 11px 11px 0 0; font: 700 13px Nunito, sans-serif; transition: color .15s, background .15s; }
+body[data-page="partida"] .tab.active { background: color-mix(in srgb, var(--accent) 13%, var(--card)); color: var(--bright); border-bottom: 2px solid var(--accent); }
+body[data-page="partida"] .tab small { border-radius: 999px; }
+body[data-page="partida"] .move { border-radius: 8px; }
+body[data-page="partida"] .move:hover { background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+body[data-page="partida"] .move.current { background: color-mix(in srgb, var(--accent) 18%, var(--card)); }
+body[data-page="partida"] .primary,
+body[data-page="partida"] .primarySmall { border-radius: 11px; color: var(--on-accent); font-family: Nunito, sans-serif; box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 66%, #000); transition: transform .14s ease, box-shadow .14s ease, filter .14s ease; }
+body[data-page="partida"] .primary:hover:not(:disabled),
+body[data-page="partida"] .primarySmall:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); }
+body[data-page="partida"] .primary:active:not(:disabled),
+body[data-page="partida"] .primarySmall:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 66%, #000); }
+body[data-page="partida"] .secondary { border-radius: 11px; transition: transform .14s ease, background .14s ease, border-color .14s ease; }
+body[data-page="partida"] .secondary:hover:not(:disabled) { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+body[data-page="partida"] .subtab { border-radius: 10px; }
+body[data-page="partida"] .subtab.active { background: color-mix(in srgb, var(--accent) 18%, var(--card)); color: var(--bright); border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); }
+body[data-page="partida"] .modal-backdrop { backdrop-filter: blur(5px); background: rgba(13, 14, 12, .66); }
+body[data-page="partida"] .modal { border: 1px solid color-mix(in srgb, var(--line) 75%, var(--accent)); border-radius: 22px; box-shadow: 0 18px 54px rgba(0,0,0,.32); }
+body[data-page="partida"] .modal h3 { font: 700 21px Fredoka, Nunito, sans-serif; }
+body[data-page="partida"] .st { gap: 14px; padding: 18px; }
+body[data-page="partida"] .st-head { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+body[data-page="partida"] .st-head h3 { font-size: 24px; }
+body[data-page="partida"] .st-head h3 .material-symbols-rounded { color: var(--accent); }
+body[data-page="partida"] .st-preview { padding: 8px; border-radius: 18px; background: color-mix(in srgb, var(--accent) 7%, var(--card)); }
+body[data-page="partida"] .pv-board { border: 3px solid var(--card); border-radius: 12px; box-shadow: 0 4px 0 var(--line); }
+body[data-page="partida"] .st-tab { border-radius: 11px; transition: background .15s, color .15s, border-color .15s; }
+body[data-page="partida"] .st-tab:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--bright); }
+body[data-page="partida"] .st-tab.active { background: color-mix(in srgb, var(--accent) 15%, var(--card)); border-color: var(--accent); color: var(--bright); }
+body[data-page="partida"] .st-grid { gap: 9px; }
+body[data-page="partida"] .st-card { border: 1px solid var(--line); border-radius: 13px; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+body[data-page="partida"] .st-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 58%, var(--line)); }
+body[data-page="partida"] .st-card.sel { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 11%, var(--card)); }
+body[data-page="partida"] .st-thumb.bd,
+body[data-page="partida"] .st-thumb.theme { border-radius: 9px; }
+body[data-page="partida"] .settings-group { border-radius: 15px; padding: 14px; }
+body[data-page="partida"] .settings-group h4 { color: var(--accent); font: 700 12px Nunito, sans-serif; }
+body[data-page="partida"] .settings-option { border-radius: 10px; padding: 5px 7px; }
+body[data-page="partida"] .settings-option:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+body[data-page="partida"] .st-foot { padding-top: 10px; border-top: 1px solid var(--line); }
+body[data-page="partida"] .toast { border-radius: 14px; border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); box-shadow: 0 8px 26px rgba(0,0,0,.28); }
+
+/* Más personalidad visual y una cuadrícula de controles consistente. */
+body[data-page="partida"] main { align-items: stretch; }
+body[data-page="partida"] .board-column { gap: 21px; }
+body[data-page="partida"] .player { padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--line) 80%, var(--accent)); border-radius: 16px; background: color-mix(in srgb, var(--card) 88%, var(--bg)); }
+body[data-page="partida"] .avatar { border-color: color-mix(in srgb, var(--accent) 62%, var(--line)); border-radius: 13px; }
+body[data-page="partida"] .who { padding: 3px 10px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
+body[data-page="partida"] .clock { min-width: 104px; border: 1px solid var(--line); border-radius: 13px; font-size: 19px; }
+body[data-page="partida"] .clock.active { border-color: color-mix(in srgb, var(--accent) 70%, var(--line)); }
+body[data-page="partida"] .board-wrap { box-shadow: 0 12px 30px rgba(0,0,0,.28), 0 0 0 5px color-mix(in srgb, var(--accent) 11%, var(--card)), 0 0 0 8px color-mix(in srgb, var(--line) 62%, transparent); }
+body[data-page="partida"] .card { border: 2px solid color-mix(in srgb, var(--line) 75%, var(--accent)); border-radius: 24px; box-shadow: 0 9px 0 color-mix(in srgb, var(--line) 86%, #000), 0 18px 36px rgba(0,0,0,.16); }
+body[data-page="partida"] .status { min-height: 62px; border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 18%, var(--card)), color-mix(in srgb, var(--accent) 5%, var(--card)) 58%, var(--card)); }
+body[data-page="partida"] .status > span:first-child { padding: 7px 12px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 15%, var(--card)); }
+body[data-page="partida"] .status-actions { gap: 7px; }
+body[data-page="partida"] .status-actions .gear { width: 40px; height: 40px; padding: 0; border-radius: 13px; }
+body[data-page="partida"] .tabs { padding: 9px 10px 0; gap: 8px; }
+body[data-page="partida"] .tab { min-height: 44px; border-radius: 13px 13px 0 0; }
+body[data-page="partida"] .tab.active { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
+body[data-page="partida"] .actions { gap: 8px; padding: 2px 14px 14px; }
+body[data-page="partida"] .nav { gap: 8px; padding: 11px 14px; }
+body[data-page="partida"] button { min-height: 40px; border-radius: 12px; font-family: Nunito, sans-serif; line-height: 1.15; }
+body[data-page="partida"] button > .material-symbols-rounded { margin-right: 0; }
+body[data-page="partida"] .actions > button,
+body[data-page="partida"] .nav > button,
+body[data-page="partida"] .engine-row > button,
+body[data-page="partida"] .st-foot > button,
+body[data-page="partida"] .settings-actions > button,
+body[data-page="partida"] .modal-buttons > button,
+body[data-page="partida"] .notif-actions > button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+body[data-page="partida"] .engine-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body[data-page="partida"] .engine-row > button,
+body[data-page="partida"] .settings-actions > button { width: 100%; padding-inline: 8px; }
+body[data-page="partida"] .settings-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body[data-page="partida"] .modal-buttons > button { flex: 1 1 0; min-width: 0; }
+body[data-page="partida"] .notif-actions { display: flex; align-items: stretch; gap: 8px; }
+body[data-page="partida"] .notif-actions > button { flex: 1 1 0; min-width: 0; }
+body[data-page="partida"] .actions > button { width: 100%; padding: 9px 12px; }
+body[data-page="partida"] .nav > button { padding: 6px 10px; font: 700 20px Fredoka, sans-serif; }
+body[data-page="partida"] .wide { min-height: 44px; }
+body[data-page="partida"] .move.current { box-shadow: inset 3px 0 0 var(--accent); }
+body[data-page="partida"] .st { position: relative; overflow: hidden; gap: 16px; padding: 20px; border: 2px solid color-mix(in srgb, var(--line) 66%, var(--accent)); border-radius: 26px; box-shadow: 0 8px 0 color-mix(in srgb, var(--line) 84%, #000), 0 24px 70px rgba(0,0,0,.4); }
+body[data-page="partida"] .st::before { content: ""; position: absolute; inset: 0 0 auto; height: 6px; background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 42%, #fff), var(--accent)); }
+body[data-page="partida"] .st-head { position: relative; padding: 4px 0 12px; }
+body[data-page="partida"] .st-head h3 .material-symbols-rounded { width: 40px; height: 40px; border-radius: 13px; background: color-mix(in srgb, var(--accent) 16%, var(--card)); }
+body[data-page="partida"] .st-head .end-x { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; }
+body[data-page="partida"] .st-body { gap: 18px; }
+body[data-page="partida"] .st-preview { width: 248px; padding: 10px; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 20px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 13%, var(--card)), var(--card) 64%); }
+body[data-page="partida"] .pv-board { border: 4px solid color-mix(in srgb, var(--card) 82%, var(--accent)); border-radius: 14px; box-shadow: 0 5px 0 color-mix(in srgb, var(--line) 78%, #000); }
+body[data-page="partida"] .st-tabs { gap: 7px; padding: 4px; border-radius: 15px; background: color-mix(in srgb, var(--bg) 50%, var(--card)); }
+body[data-page="partida"] .st-tab { min-height: 42px; border: 1px solid transparent; border-radius: 11px; padding: 8px 10px; }
+body[data-page="partida"] .st-tab.active { background: var(--accent); color: var(--on-accent); box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 62%, #000); }
+body[data-page="partida"] .st-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; padding: 4px; }
+body[data-page="partida"] .st-card { position: relative; min-height: 104px; justify-content: center; gap: 7px; padding: 9px 6px; border: 1px solid var(--line); border-radius: 15px; background: color-mix(in srgb, var(--card) 88%, var(--bg)); }
+body[data-page="partida"] .st-card.sel { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 35%, var(--line)); }
+body[data-page="partida"] .st-card.sel::after { content: "check"; position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font: 400 14px/1 "Material Symbols Rounded"; }
+body[data-page="partida"] .settings-group { border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); border-radius: 17px; box-shadow: 0 3px 0 color-mix(in srgb, var(--line) 82%, #000); }
+body[data-page="partida"] .settings-group h4 { padding-bottom: 6px; border-bottom: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); }
+body[data-page="partida"] .settings-option { min-height: 48px; }
+body[data-page="partida"] .st-foot { gap: 10px; padding-top: 12px; }
+body[data-page="partida"] .st-foot > button { min-width: 112px; }
+body[data-page="partida"] .st-foot > #stDone { min-width: 132px; }
+body[data-page="partida"] .toast { border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 16px; box-shadow: 0 4px 0 color-mix(in srgb, var(--line) 75%, #000), 0 12px 30px rgba(0,0,0,.28); }
+
+@media (max-width: 600px) {
+  body[data-page="partida"] .st { padding: 16px; border-radius: 22px; }
+  body[data-page="partida"] .st-preview { width: min(196px, 100%); }
+  body[data-page="partida"] .st-tabs { gap: 4px; }
+  body[data-page="partida"] .st-tab { padding: 7px 5px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="partida"] .gear,
+  body[data-page="partida"] .primary,
+  body[data-page="partida"] .primarySmall,
+  body[data-page="partida"] .secondary,
+  body[data-page="partida"] .st-card { transition: none; }
+}
+
+/* Ajustes de acabado: sin barras moradas y vista previa cuadrada a escala. */
+body[data-page="partida"] .st::before { display: none; }
+body[data-page="partida"] .player {
+  border-color: transparent;
+  background: transparent;
+}
+body[data-page="partida"] .who {
+  background: transparent;
+  padding-inline: 4px;
+}
+body[data-page="partida"] .status {
+  border-bottom-color: transparent;
+  background: var(--card);
+}
+body[data-page="partida"] .status > span:first-child {
+  background: transparent;
+}
+body[data-page="partida"] .move.current {
+  box-shadow: none;
+}
+body[data-page="partida"] .st-preview {
+  box-sizing: border-box;
+  width: 248px;
+}
+body[data-page="partida"] .pv-board {
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+body[data-page="partida"] #newGameBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 78%, #000);
+  color: var(--on-accent, #141d0f);
+  filter: none;
+}
+body[data-page="partida"] .mark-color-setting {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px 7px 11px;
+  border-bottom: 1px solid var(--line);
+}
+body[data-page="partida"] .mark-color-setting > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+body[data-page="partida"] .mark-color-setting strong { font-size: 13px; color: var(--bright); }
+body[data-page="partida"] .mark-color-setting small { font-size: 11px; line-height: 1.4; color: var(--muted); }
+body[data-page="partida"] .mark-color-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+body[data-page="partida"] .mark-swatch {
+  --swatch-color: #e34f4f;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 2px solid color-mix(in srgb, var(--swatch-color) 45%, var(--line));
+  border-radius: 50%;
+  background: var(--swatch-color);
+  box-shadow: inset 0 0 0 3px var(--card);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+body[data-page="partida"] .mark-swatch[data-mark-color="#e34f4f"] { --swatch-color: #e34f4f; }
+body[data-page="partida"] .mark-swatch[data-mark-color="#f59e0b"] { --swatch-color: #f59e0b; }
+body[data-page="partida"] .mark-swatch[data-mark-color="#eab308"] { --swatch-color: #eab308; }
+body[data-page="partida"] .mark-swatch[data-mark-color="#22c55e"] { --swatch-color: #22c55e; }
+body[data-page="partida"] .mark-swatch[data-mark-color="#38bdf8"] { --swatch-color: #38bdf8; }
+body[data-page="partida"] .mark-swatch[data-mark-color="#a78bfa"] { --swatch-color: #a78bfa; }
+body[data-page="partida"] .mark-swatch:hover { transform: scale(1.1); }
+body[data-page="partida"] .mark-swatch.selected { box-shadow: inset 0 0 0 3px var(--card), 0 0 0 2px var(--swatch-color); }
+body[data-page="partida"] .mark-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--custom-mark-color) 12%, var(--card));
+  color: var(--bright);
+  font-size: 12px;
+}
+body[data-page="partida"] .mark-custom::before {
+  content: "";
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--card);
+  border-radius: 50%;
+  background: var(--custom-mark-color);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--custom-mark-color) 65%, var(--line));
+}
+body[data-page="partida"] .mark-custom:hover { border-color: color-mix(in srgb, var(--custom-mark-color) 65%, var(--line)); }
+body[data-page="partida"] .mark-custom.selected { border-color: var(--custom-mark-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--custom-mark-color) 25%, transparent); }
+body[data-page="partida"] #markColorInput { display: none; }
+@media (max-width: 600px) {
+  body[data-page="partida"] .st-preview { width: min(196px, 100%); }
+}
