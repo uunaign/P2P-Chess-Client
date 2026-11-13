@@ -7,7 +7,7 @@
   const name = () => window.AJ.profile.name;
   const fid = "AJEDREZ-U" + myCode;
   const nameId = () => {
-    const normalized = name().normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+    const normalized = name().trim().replace(/\s+/g, " ").slice(0, 16).normalize("NFKC").toLowerCase();
     let hashA = 2166136261, hashB = 2246822519;
     for (let i = 0; i < normalized.length; i++) {
       const code = normalized.charCodeAt(i);
@@ -22,7 +22,7 @@
     { urls: "turn:openrelay.metered.ca:80", username: "openrelay", credential: "openrelay" },
     { urls: "turn:openrelay.metered.ca:443", username: "openrelay", credential: "openrelay" }
   ] } };
-  let peer = null, namePeer = null, retries = 0, nameRetries = 0, inviteCard = null, peerStartTimer = null, nameStartTimer = null;
+  let peer = null, namePeer = null, retries = 0, nameRetries = 0, inviteCard = null, peerStartTimer = null, nameStartTimer = null, nameReconnectTimer = null;
   const peerTabId = Math.random().toString(36).slice(2) + Date.now().toString(36);
   const peerChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("aj-peer-owner-" + myCode) : null;
   const saveFriend = (code, playerName) => {
@@ -94,20 +94,33 @@
     current.on("connection", connection => connection.on("data", data => {
       if (data && data.type === "nameLookup") connection.send({ type: "nameResult", name: name(), code: myCode, playing: false });
     }));
-    current.on("open", () => { if (namePeer === current) nameRetries = 0; });
+    current.on("open", () => { if (namePeer === current) { clearTimeout(nameReconnectTimer); nameReconnectTimer = null; nameRetries = 0; } });
     current.on("error", error => {
-      if (error && error.type === "unavailable-id" && namePeer === current) {
-        try { current.destroy(); } catch (_) { }
-        namePeer = null; retryName();
-      }
+      if (namePeer !== current) return;
+      if (error && error.type === "unavailable-id") restartNamePeer();
+      else scheduleNamePeerRestart();
     });
     current.on("close", () => { if (namePeer === current) { namePeer = null; retryName(); } });
     current.on("disconnected", () => {
+      if (namePeer !== current) return;
       try { current.reconnect(); } catch (_) { try { current.destroy(); } catch (_) { } namePeer = null; retryName(); }
+      clearTimeout(nameReconnectTimer);
+      nameReconnectTimer = setTimeout(() => { if (namePeer === current && !current.open) restartNamePeer(); }, 7000);
     });
   }
+  function restartNamePeer() {
+    clearTimeout(nameReconnectTimer); nameReconnectTimer = null;
+    const old = namePeer; namePeer = null;
+    try { if (old && !old.destroyed) old.destroy(); } catch (_) { }
+    retryName();
+  }
+  function scheduleNamePeerRestart() {
+    clearTimeout(nameReconnectTimer);
+    nameReconnectTimer = setTimeout(restartNamePeer, 2500);
+  }
   function retryName() {
-    if (nameRetries++ < 6) setTimeout(startNamePeer, Math.min(nameRetries * 1200, 7200));
+    clearTimeout(nameStartTimer);
+    if (nameRetries++ < 8) nameStartTimer = setTimeout(startNamePeer, Math.min(nameRetries * 1200, 9000));
   }
   window.refreshSitePeerName = () => {
     const old = namePeer;
@@ -116,6 +129,8 @@
     startNamePeer();
   };
   function releasePeers() {
+    clearTimeout(nameReconnectTimer);
+    clearTimeout(nameStartTimer);
     const oldPeer = peer, oldNamePeer = namePeer;
     peer = null; namePeer = null;
     try { if (oldPeer && !oldPeer.destroyed) oldPeer.destroy(); } catch (_) { }
@@ -123,7 +138,7 @@
   }
   if (peerChannel) peerChannel.onmessage = event => {
     if (event.data && event.data.type === "claim" && event.data.owner !== peerTabId) {
-      clearTimeout(peerStartTimer); clearTimeout(nameStartTimer);
+      clearTimeout(peerStartTimer); clearTimeout(nameStartTimer); clearTimeout(nameReconnectTimer);
       releasePeers();
     }
   };

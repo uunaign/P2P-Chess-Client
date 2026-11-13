@@ -2958,45 +2958,45 @@
     if (playerKey(name) === playerKey(myName)) { showToast("Ese es tu propio nombre"); return }
     if (!friendPeer || !friendPeer.open) { showToast("Tu conexión de amigos aún no está lista"); return }
 
-    const c = friendPeer.connect(NAME_FID(name), { reliable: true });
     let completed = false;
+    let attempts = 0, attemptTimer = null;
     const timeout = setTimeout(() => {
       if (completed) return;
       completed = true;
-      try { c.close() } catch (_) { }
       showToast("No se encontró a " + name + ". Prueba con su código de amigo.");
-    }, 8000);
-    c.on("open", () => c.send({ type: "nameLookup" }));
-    c.on("data", d => {
-      if (completed || !d || d.type !== "nameResult") return;
-      completed = true;
-      clearTimeout(timeout);
-      try { c.close() } catch (_) { }
-      if (!/^[A-Z0-9]{8}$/.test(String(d.code))) {
-        showToast("La respuesta del jugador no es válida");
-        return;
-      }
-      if (d.code === myCode) { showToast("Ese es tu propio código"); return }
-
-      let f = friends.find(x => x.code === d.code);
-      const foundName = normalizeName(d.name || name);
-      if (!f) { f = { code: d.code, name: foundName, ack: false }; friends.push(f) }
-      else f.name = foundName;
-      if (typeof d.elo === "number") setPlayerElo(foundName, d.elo);
-      presence[d.code] = true;
-      playing[d.code] = d.playing === true;
-      saveFriends();
-      $("friendNameInput").value = "";
-      renderFriends();
-      showToast("Encontrado: " + foundName);
-      ping(f);
-    });
-    c.on("error", () => {
-      if (completed) return;
-      completed = true;
-      clearTimeout(timeout);
-      showToast("No se encontró a " + name + ". Prueba con su código de amigo.");
-    });
+    }, 20000);
+    const retry = () => {
+      clearTimeout(attemptTimer);
+      if (!completed && attempts < 3) attemptTimer = setTimeout(connectAttempt, 650);
+    };
+    function connectAttempt() {
+      if (completed || attempts >= 3 || !friendPeer || !friendPeer.open) return;
+      attempts++;
+      let answered = false;
+      let c;
+      try { c = friendPeer.connect(NAME_FID(name), { reliable: true }); }
+      catch (_) { retry(); return; }
+      const attemptTimeout = setTimeout(() => { if (!answered) { try { c.close() } catch (_) { } retry(); } }, 5500);
+      c.on("open", () => { try { c.send({ type: "nameLookup" }) } catch (_) { retry(); } });
+      c.on("data", d => {
+        if (completed || !d || d.type !== "nameResult") return;
+        answered = true; clearTimeout(attemptTimeout); clearTimeout(attemptTimer); clearTimeout(timeout);
+        completed = true;
+        try { c.close() } catch (_) { }
+        if (!/^[A-Z0-9]{8}$/.test(String(d.code))) { showToast("La respuesta del jugador no es válida"); return; }
+        if (d.code === myCode) { showToast("Ese es tu propio código"); return; }
+        let f = friends.find(x => x.code === d.code);
+        const foundName = normalizeName(d.name || name);
+        if (!f) { f = { code: d.code, name: foundName, ack: false }; friends.push(f) }
+        else f.name = foundName;
+        if (typeof d.elo === "number") setPlayerElo(foundName, d.elo);
+        presence[d.code] = true; playing[d.code] = d.playing === true;
+        saveFriends(); $("friendNameInput").value = ""; renderFriends();
+        showToast("Encontrado: " + foundName); ping(f);
+      });
+      c.on("error", () => { if (!answered) { answered = true; clearTimeout(attemptTimeout); retry(); } });
+    }
+    connectAttempt();
   }
   let challengeTarget = null;
   function closeChallengePickers() {
