@@ -29,33 +29,28 @@
   </header>
 
   <div class="mwrap" role="main">
-    <div class="ptitle">
-      <span class="tile"><span class="material-symbols-rounded">wifi</span></span>
-      <div>
-        <h1>Jugar online</h1>
-        <p>Reta a un amigo o crea una sala y comparte el código.</p>
-      </div>
+    <div class="ptitle on-title">
+      <span class="tile"><span class="material-symbols-rounded">sports_esports</span></span>
+      <div><h1>Jugar online</h1><p>Encuentra a tus amigos o crea una partida en segundos.</p></div>
     </div>
 
     <div class="on-layout">
-      <div class="stack-col">
-        <section class="panel">
-          <h2><span class="material-symbols-rounded">badge</span> Tu perfil</h2>
-          <div class="me">
-            <img id="profileAvatar" alt="">
-            <div class="col">
-              <input id="nameInput" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="16" autocomplete="off">
-              <div class="codebox">
-                <input id="myCode" aria-label="Tu código de amigo" title="Tu código de amigo" readonly>
-                <button class="btn ghost noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span class="material-symbols-rounded">content_copy</span></button>
-              </div>
-            </div>
-          </div>
-          <p class="hint">Pásale tu código a un amigo para que te añada.</p>
-        </section>
+      <section class="panel friends-panel">
+        <div class="online-panel-head"><div><h2><span class="material-symbols-rounded">group</span> Tus amigos</h2><p>Busca por nombre y envía una invitación para jugar.</p></div><button class="btn ghost refresh-btn" id="refreshFriends" title="Actualizar lista"><span class="material-symbols-rounded">refresh</span><span>Actualizar</span></button></div>
+        <div class="name-search"><label for="friendNameInput">Añadir o buscar por nombre</label><div class="row"><input id="friendNameInput" placeholder="Escribe el nombre del jugador" maxlength="16" autocomplete="off"><button class="btn" id="findFriendBtn"><span class="material-symbols-rounded">person_search</span> Buscar</button></div></div>
+        <details class="code-add"><summary><span class="material-symbols-rounded">vpn_key</span> ¿Prefieres usar un código de amigo?</summary><div class="row"><input id="friendInput" placeholder="Código de amigo" maxlength="12" aria-label="Código de amigo"><button class="btn ghost noTextButton" id="addFriendBtn" aria-label="Añadir por código"><span class="material-symbols-rounded">person_add</span></button></div></details>
+        <div class="friends" id="friendList"></div>
+        <div class="on-note" id="friendNote">Conectando…</div>
+      </section>
 
+      <div class="stack-col online-side">
+        <section class="panel profile-panel">
+          <h2><span class="material-symbols-rounded">person</span> Tu nombre</h2>
+          <div class="profile-name"><img id="profileAvatar" alt=""><div class="col"><label for="nameInput">Así te verán tus amigos</label><input id="nameInput" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="16" autocomplete="off"><div class="profile-code"><span>Tu código de amigo</span><div class="codebox"><input id="myCode" aria-label="Tu código de amigo" title="Tu código de amigo" readonly><button class="btn ghost noTextButton" id="copyCodeBtn" title="Copiar código de amigo" aria-label="Copiar código de amigo"><span class="material-symbols-rounded">content_copy</span></button></div></div></div></div>
+        </section>
         <section class="panel">
-          <h2><span class="material-symbols-rounded">vpn_key</span> Sala con código</h2>
+          <h2><span class="material-symbols-rounded">stadia_controller</span> Partida con código</h2>
+          <p class="panel-copy">Crea una sala privada o únete con el código que te han enviado.</p>
           <div class="field"><label for="tcSelect">Ritmo</label><select id="tcSelect"></select></div>
           <div class="lbl">Juegas con</div>
           <select id="colorSelect" hidden>
@@ -70,7 +65,7 @@
           </div>
           <button class="btn" id="createRoomBtn" style="width:100%;margin-top:18px"><span class="material-symbols-rounded">add_circle</span> Crear sala</button>
           <div class="join">
-            <div class="lbl" style="margin-top:0">¿Te han dado un código?</div>
+            <div class="lbl" style="margin-top:0">¿Tienes un código de sala?</div>
             <div class="row">
               <input id="roomInput" type="text" placeholder="ABC123" maxlength="6" autocomplete="off" aria-label="Código de sala">
               <button class="btn ghost" id="joinRoomBtn" style="flex:none"><span class="material-symbols-rounded">login</span> Unirse</button>
@@ -78,21 +73,6 @@
           </div>
         </section>
       </div>
-
-      <section class="panel">
-        <h2><span class="material-symbols-rounded">group</span> Amigos</h2>
-        <div class="addfriends">
-          <div class="field"><label for="friendNameInput">Buscar por nombre</label>
-            <div class="row"><input id="friendNameInput" placeholder="NOMBRE EXACTO" maxlength="16" title="El nombre debe ser único; si no aparece, puedes buscar al jugador por su código."><button class="btn ghost noTextButton" id="findFriendBtn" aria-label="Buscar"><span class="material-symbols-rounded">person_search</span></button></div>
-          </div>
-          <div class="field"><label for="friendInput">Añadir por código</label>
-            <div class="row"><input id="friendInput" placeholder="CÓDIGO DE AMIGO" maxlength="12"><button class="btn ghost noTextButton" id="addFriendBtn" aria-label="Añadir"><span class="material-symbols-rounded">person_add</span></button></div>
-          </div>
-        </div>
-        <div class="friends" id="friendList"></div>
-        <div style="margin-top:16px"><button class="btn ghost" id="refreshFriends"><span class="material-symbols-rounded" style="font-size:20px">refresh</span> Actualizar lista</button></div>
-        <div class="on-note" id="friendNote">Conectando…</div>
-      </section>
     </div>
   </div>
 

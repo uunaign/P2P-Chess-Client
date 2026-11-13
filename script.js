@@ -2916,7 +2916,10 @@
   function ping(f) {
     if (!friendPeer || !friendPeer.open) return;
     const c = friendPeer.connect(FID(f.code), { reliable: true });
-    const t = setTimeout(() => { presence[f.code] = false; delete playing[f.code]; renderFriends(); try { c.close() } catch (_) { } }, 10000);
+    // WebRTC can take several seconds to negotiate; a short timeout incorrectly
+    // reports reachable friends as offline on slower networks.
+    let responded = false;
+    const t = setTimeout(() => { if (!responded) { presence[f.code] = false; delete playing[f.code]; renderFriends() } try { c.close() } catch (_) { } }, 20000);
     c.on("open", () => {
       c.send({ type: "hello", name: myName, code: myCode, elo: getPlayerElo(myName), playing: isPlayingOnline(), fen: game.fen(), pgn: game.pgn({ max_width: 60, newline_char: "\n" }) });
       if (isPlayingOnline()) c.send(prepareLiveGamePayload());
@@ -2924,7 +2927,7 @@
     c.on("data", d => {
       if (!d) return;
       if (d.type === "hello") {
-        clearTimeout(t); presence[f.code] = true;
+        responded = true; clearTimeout(t); presence[f.code] = true;
         if (d.name && d.name !== f.name) { f.name = String(d.name).slice(0, 16); saveFriends() }
         if (typeof d.elo === "number") setPlayerElo(d.name, d.elo);
         playing[f.code] = d.playing === true;
@@ -2938,7 +2941,8 @@
       } else if (d.type === "friendAck") { f.ack = true; saveFriends(); try { c.close() } catch (_) { } }
       else if (d.type === "liveGame") { updateLiveMatch(d); renderFriends(); try { c.close() } catch (_) { } }
     });
-    c.on("error", () => { clearTimeout(t); presence[f.code] = false; delete playing[f.code]; renderFriends() });
+    c.on("error", () => { /* Keep the last known status until the presence probe expires. */ });
+    c.on("close", () => { clearTimeout(t) });
   }
   let pingTimer = null;
   function pingAll() {   // agrupa llamadas seguidas para no saturar la red mientras se establece una partida
@@ -3410,9 +3414,17 @@
         else if (d.type === "liveGame") { updateLiveMatch(d); c.send({ type: "liveGame", code: myCode, name: myName, opponent: normalizeName(activeOpponentName || "Rival"), fen: game.fen(), pgn: game.pgn({ max_width: 60, newline_char: "\n" }), playing: isPlayingOnline(), result: getResult() ? { w: getResult().w, why: getResult().why } : null, moveCount: game.history().length, tc: ($("tcSelect") && $("tcSelect").value) || ($("localTcSelect") && $("localTcSelect").value) || "600+0" }); }
       });
     });
-    friendPeer.on("disconnected", () => { $("friendNote").textContent = "Reconectando…"; try { friendPeer.reconnect() } catch (_) { } });
+    friendPeer.on("disconnected", () => {
+      $("friendNote").textContent = "Recuperando conexión con el servicio de amigos…";
+      try { friendPeer.reconnect() } catch (_) {
+        if (friendPeer && !friendPeer.destroyed) { try { friendPeer.destroy() } catch (_) { } }
+        friendPeer = null;
+        if (friendRetries++ < 6) setTimeout(startFriendPeer, Math.min(1000 * friendRetries, 6000));
+        else $("friendNote").textContent = "No se pudo recuperar la conexión. Actualiza la página para volver a intentarlo.";
+      }
+    });
     friendPeer.on("error", err => {
-      if (err.type === "peer-unavailable") { const m = /AJEDREZ-U([A-Z0-9]+)/.exec(err.message || ""); if (m) { presence[m[1]] = false; delete playing[m[1]]; renderFriends() } }
+      if (err.type === "peer-unavailable") { /* A single failed probe is not proof that the peer is offline. */ }
       else if (err.type === "unavailable-id") {
         if (friendRetries++ < 6) { try { friendPeer.destroy() } catch (_) { } setTimeout(startFriendPeer, 900 * friendRetries); }
         else $("friendNote").textContent = "Tu ID ya está en uso en otra pestaña o ventana del mismo navegador; ciérrala para aparecer en línea.";
@@ -3448,7 +3460,7 @@
   $("refreshFriends").onclick = () => pingAll();
   $("copyCodeBtn").onclick = () => navigator.clipboard.writeText(myCode).then(() => showToast("Código copiado"));
   $("findFriendBtn").onclick = findFriendByName;
-  $("friendNameInput").onkeydown = event => { if (event.key === "Enter") findFriendByName() };
+  $("friendNameInput").onkeydown = event => { if (event.key === "Enter") { event.preventDefault(); findFriendByName() } };
   $("addFriendBtn").onclick = () => {
     const c = $("friendInput").value.trim().toUpperCase().replace(/^AJEDREZ-U/, "");
     if (!/^[A-Z0-9]{8}$/.test(c)) { showToast("El código de amigo tiene 8 caracteres"); return }

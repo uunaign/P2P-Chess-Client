@@ -13,6 +13,8 @@
     rel="stylesheet">
   <link rel="stylesheet" href="menu.css">
   <script src="common.js"></script>
+  <script defer src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script defer src="site-peer.js"></script>
 </head>
 
 <body class="menu" data-page="inicio">
@@ -26,9 +28,9 @@
   <main class="mwrap">
     <section class="hero">
       <div>
-        <span class="bubble">¡Hola, <span id="who">Jugador</span>!</span>
-        <h1>¡Hora de <mark>mover ficha</mark>!</h1>
-        <p>Elige cómo quieres jugar hoy.</p>
+        <span class="bubble">AJEDREZ · TU ESPACIO DE JUEGO</span>
+        <h1>Hola, <mark id="who">Jugador</mark></h1>
+        <p>Una buena partida empieza con una decisión. ¿Cómo quieres jugar hoy?</p>
       </div>
       <div class="hero-art" aria-hidden="false">
         <div class="hero-board"></div>
@@ -43,9 +45,9 @@
         <span class="sticker">Con amigos</span>
         <span class="ico"><span class="material-symbols-rounded">wifi</span></span>
         <div class="txt">
-          <h2>Jugar online</h2>
-          <p>Reta a un amigo o entra en una sala con un código.</p>
-          <span class="go"><span>¡Jugar! <span class="material-symbols-rounded">arrow_forward</span></span></span>
+          <h2>Jugar con otras personas</h2>
+          <p>Invita a un amigo o crea una sala privada para empezar una partida.</p>
+          <span class="go"><span>Explorar partidas <span class="material-symbols-rounded">arrow_forward</span></span></span>
         </div>
       </a>
       <a class="mode m-bot" href="bot.html" data-glyph="♜">
@@ -119,7 +121,7 @@
       $("profileBtn").onclick = open; $("profileClose").onclick = close;
       modal.addEventListener("click", e => { if (e.target === modal) close(); });
       document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
-      $("nameInput").onchange = () => { P.name = $("nameInput").value; $("nameInput").value = P.name; paint(); };
+      $("nameInput").onchange = () => { P.name = $("nameInput").value; $("nameInput").value = P.name; paint(); if (window.refreshSitePeerName) window.refreshSitePeerName(); };
       $("copyCode").onclick = () => navigator.clipboard.writeText(P.code).then(() => AJ.toast("Código copiado"));
 
       function syncTheme() {
