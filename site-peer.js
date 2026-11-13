@@ -22,7 +22,9 @@
     { urls: "turn:openrelay.metered.ca:80", username: "openrelay", credential: "openrelay" },
     { urls: "turn:openrelay.metered.ca:443", username: "openrelay", credential: "openrelay" }
   ] } };
-  let peer = null, namePeer = null, retries = 0, nameRetries = 0, inviteCard = null;
+  let peer = null, namePeer = null, retries = 0, nameRetries = 0, inviteCard = null, peerStartTimer = null, nameStartTimer = null;
+  const peerTabId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const peerChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("aj-peer-owner-" + myCode) : null;
   const saveFriend = (code, playerName) => {
     if (!/^[A-Z0-9]{8}$/.test(code) || code === myCode) return;
     let list = [];
@@ -113,7 +115,27 @@
     try { if (old) old.destroy(); } catch (_) { }
     startNamePeer();
   };
-  window.addEventListener("beforeunload", () => { try { if (peer) peer.destroy(); if (namePeer) namePeer.destroy(); } catch (_) { } });
-  start();
-  startNamePeer();
+  function releasePeers() {
+    const oldPeer = peer, oldNamePeer = namePeer;
+    peer = null; namePeer = null;
+    try { if (oldPeer && !oldPeer.destroyed) oldPeer.destroy(); } catch (_) { }
+    try { if (oldNamePeer && !oldNamePeer.destroyed) oldNamePeer.destroy(); } catch (_) { }
+  }
+  if (peerChannel) peerChannel.onmessage = event => {
+    if (event.data && event.data.type === "claim" && event.data.owner !== peerTabId) {
+      clearTimeout(peerStartTimer); clearTimeout(nameStartTimer);
+      releasePeers();
+    }
+  };
+  function claimPeers() {
+    clearTimeout(peerStartTimer); clearTimeout(nameStartTimer);
+    if (peerChannel) peerChannel.postMessage({ type: "claim", owner: peerTabId });
+    peerStartTimer = setTimeout(start, 900); nameStartTimer = setTimeout(startNamePeer, 1200);
+  }
+  window.addEventListener("beforeunload", () => { clearTimeout(peerStartTimer); clearTimeout(nameStartTimer); releasePeers(); if (peerChannel) peerChannel.close(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) claimPeers();
+  });
+  window.addEventListener("focus", () => { if (!document.hidden) claimPeers(); });
+  if (!document.hidden) claimPeers();
 })();

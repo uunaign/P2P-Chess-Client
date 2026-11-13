@@ -2600,6 +2600,9 @@
   let playerRatings = {}; try { playerRatings = JSON.parse(LS(ELO_KEY) || "{}") || {}; } catch (_) { playerRatings = {} }
   let activeOpponentName = "Rival";
   let friendPeer = null, namePeer = null, pendingInvite = null, pendingRematch = null;
+  let friendStartTimer = null;
+  const peerTabId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const peerChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("aj-peer-owner-" + myCode) : null;
   const ratedResults = new Map();
   const confirmLeave = () => !online() || confirm("Se cerrará la partida online actual. ¿Continuar?");
   const isPlayingOnline = () => !!online();
@@ -3446,6 +3449,24 @@
     try { if (old && !old.destroyed) old.destroy(); } catch (_) { }
     startFriendPeer();
   }
+  function releaseFriendServices() {
+    clearTimeout(friendReconnectTimer); clearTimeout(nameReconnectTimer);
+    const oldFriendPeer = friendPeer, oldNamePeer = namePeer;
+    friendPeer = null; namePeer = null;
+    try { if (oldFriendPeer && !oldFriendPeer.destroyed) oldFriendPeer.destroy(); } catch (_) { }
+    try { if (oldNamePeer && !oldNamePeer.destroyed) oldNamePeer.destroy(); } catch (_) { }
+  }
+  if (peerChannel) peerChannel.onmessage = event => {
+    if (event.data && event.data.type === "claim" && event.data.owner !== peerTabId) {
+      clearTimeout(friendStartTimer);
+      releaseFriendServices();
+    }
+  };
+  function claimFriendServices() {
+    clearTimeout(friendStartTimer);
+    if (peerChannel) peerChannel.postMessage({ type: "claim", owner: peerTabId });
+    friendStartTimer = setTimeout(() => { startFriendPeer(); startNamePeer(); pingAll(); }, 900);
+  }
   function startNamePeer() {
     if (typeof Peer === "undefined") return;
     clearTimeout(nameReconnectTimer); nameReconnectTimer = null;
@@ -3501,10 +3522,13 @@
   };
   $("friendInput").onkeydown = event => { if (event.key === "Enter") $("addFriendBtn").click() };
   setInterval(() => { if (!document.hidden || isPlayingOnline()) pingAll() }, 30000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) pingAll() });
-  window.addEventListener("beforeunload", () => { try { friendPeer.destroy() } catch (_) { } try { namePeer.destroy() } catch (_) { } try { warmPeer && warmPeer.peer.destroy() } catch (_) { } });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) claimFriendServices();
+  });
+  window.addEventListener("focus", () => { if (!document.hidden) claimFriendServices(); });
+  window.addEventListener("beforeunload", () => { clearTimeout(friendStartTimer); releaseFriendServices(); if (peerChannel) peerChannel.close(); try { warmPeer && warmPeer.peer.destroy() } catch (_) { } });
   if (PAGE === "online") prepareWarmPeer();
-  renderFriends(); startFriendPeer(); startNamePeer();
+  renderFriends(); claimFriendServices();
   // Salir de una partida online en curso pide confirmación (al cambiar de página se perdería la conexión)
   window.addEventListener("beforeunload", e => { if (PAGE === "partida" && online() && game.history().length && !game.game_over()) { e.preventDefault(); e.returnValue = "" } });
 
